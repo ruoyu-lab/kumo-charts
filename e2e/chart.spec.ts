@@ -364,12 +364,9 @@ test('resizes one edge of a rectangle by its handle and deletes it with the keyb
     throw new Error('No rectangle.');
   }
 
-  const inside = await pagePoint(
-    page,
-    (first.time + second.time) / 2,
-    (first.price + second.price) / 2
-  );
-  await page.mouse.click(inside.x, inside.y);
+  // Taken by its left side: its fill takes no click.
+  const side = await pagePoint(page, first.time, (first.price + second.price) / 2);
+  await page.mouse.click(side.x, side.y);
   expect(await events(page, 'selectionChange')).toEqual([
     { selection: { kind: 'drawing', id: 'box' } }
   ]);
