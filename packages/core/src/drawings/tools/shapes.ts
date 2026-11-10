@@ -23,7 +23,7 @@ import type {
 } from '../types';
 import { arrowInset, paintArrowHead, paintBoxText, paintTextBlock } from './labels';
 import { sideLevel } from './lines';
-import { bodyHit, fillArea, segmentsHit, shapeHit, strokeDrawing, tracePath } from './shared';
+import { bodyHit, fillArea, segmentsHit, strokeDrawing, tracePath } from './shared';
 
 export const TEXT_PADDING = 4;
 
@@ -195,7 +195,7 @@ export const rectangle: DrawingTypeDefinition<Anchors<2>> = {
   },
   hitTest: (geometry, point, tolerance) => {
     const box = extendedBox(geometry);
-    return shapeHit(point, box.border, box.area, tolerance, geometry.style.fill);
+    return segmentsHit(point, box.border, tolerance);
   },
   bounds: (geometry) => boundsOf(extendedBox(geometry).area),
   handles: boxHandles,
@@ -341,7 +341,7 @@ export const parallelChannel: DrawingTypeDefinition<Anchors<3>> = {
   },
   hitTest: (geometry, point, tolerance) => {
     const channel = channelOf(geometry, true);
-    return shapeHit(point, channel.lines, channel.area, tolerance, geometry.style.fill);
+    return segmentsHit(point, channel.lines, tolerance);
   },
   bounds: (geometry) => boundsOf(channelOf(geometry, true).area),
   handles: channelHandles,

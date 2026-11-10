@@ -12,7 +12,7 @@ import type {
   DrawingTypeDefinition
 } from '../types';
 import { paintTextBlock } from './labels';
-import { bodyHit, fillArea, shapeHit, strokeDrawing, tracePath } from './shared';
+import { fillArea, segmentsHit, strokeDrawing, tracePath } from './shared';
 
 /** Fields of the round shapes, which write their text in the middle. */
 const ROUND_FIELDS: readonly DrawingField[] = [
@@ -67,8 +67,8 @@ function paintOval(context: DrawingPaintContext, oval: Oval): void {
   }
 }
 
-/** A `line` hit on the oval's outline, else a `body` hit inside it when it is `filled`. */
-function ovalHit(oval: Oval, point: Point, tolerance: number, filled: boolean): DrawingHit | null {
+/** A `line` hit on the oval's outline: its inside is a fill, never hit. */
+function ovalHit(oval: Oval, point: Point, tolerance: number): DrawingHit | null {
   const { center, radiusX, radiusY, rotation } = oval;
 
   if (radiusX <= 0 || radiusY <= 0) {
@@ -87,7 +87,7 @@ function ovalHit(oval: Oval, point: Point, tolerance: number, filled: boolean): 
     return { part: 'line', distance };
   }
 
-  return filled && reach < 1 ? bodyHit : null;
+  return null;
 }
 
 function ovalBounds({ center, radiusX, radiusY, rotation }: Oval) {
@@ -121,8 +121,7 @@ export const circle: DrawingTypeDefinition<Anchors<2>> = {
   paint: (context) => {
     paintOval(context, circleOf(context.geometry));
   },
-  hitTest: (geometry, point, tolerance) =>
-    ovalHit(circleOf(geometry), point, tolerance, geometry.style.fill),
+  hitTest: (geometry, point, tolerance) => ovalHit(circleOf(geometry), point, tolerance),
   bounds: (geometry) => ovalBounds(circleOf(geometry)),
   axisMarks: ([center]) => ({ prices: [center.price], times: [center.time] })
 };
@@ -169,7 +168,7 @@ export const ellipse: DrawingTypeDefinition<Anchors<3>> = {
   },
   hitTest: (geometry, point, tolerance) => {
     const oval = ellipseOf(geometry);
-    return oval ? ovalHit(oval, point, tolerance, geometry.style.fill) : null;
+    return oval ? ovalHit(oval, point, tolerance) : null;
   },
   handles: (geometry): DrawingHandle[] => {
     const [start, end] = geometry.points;
@@ -218,13 +217,7 @@ export const triangle: DrawingTypeDefinition<Anchors<3>> = {
     });
   },
   hitTest: (geometry, point, tolerance) =>
-    shapeHit(
-      point,
-      segmentsOf(geometry.points, true),
-      geometry.points,
-      tolerance,
-      geometry.style.fill
-    ),
+    segmentsHit(point, segmentsOf(geometry.points, true), tolerance),
   bounds: (geometry) => boundsOf(geometry.points)
 };
 
@@ -280,7 +273,7 @@ export const rotatedRectangle: DrawingTypeDefinition<Anchors<3>> = {
   },
   hitTest: (geometry, point, tolerance) => {
     const corners = rotatedCorners(geometry.points);
-    return shapeHit(point, segmentsOf(corners, true), corners, tolerance, geometry.style.fill);
+    return segmentsHit(point, segmentsOf(corners, true), tolerance);
   },
   bounds: (geometry) => boundsOf(rotatedCorners(geometry.points)),
   handles: (geometry) => {

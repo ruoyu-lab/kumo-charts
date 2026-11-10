@@ -1,7 +1,7 @@
 import { withAlpha } from '../../canvas/color';
 import type { BarsView, PriceSource } from '../../data/types';
 import type { Point } from '../../interaction/types';
-import { boundsOf, insidePolygon, segmentsOf } from '../geometry';
+import { boundsOf, segmentsOf } from '../geometry';
 import type {
   Anchors,
   DrawingGeometry,
@@ -12,7 +12,6 @@ import type {
 import {
   barPrice,
   barsCache,
-  bodyHit,
   fillArea,
   ratioText,
   segmentsHit,
@@ -187,15 +186,10 @@ export const anchoredVwap: DrawingTypeDefinition<Anchors<1>> = {
     }
 
     const curves = [lines.vwap, ...lines.bands.flatMap((band) => [band.upper, band.lower])];
-    // The bands are hit inside where they are filled.
-    const inside =
-      geometry.style.fill && lines.bands.some((band) => insidePolygon(point, bandArea(band)));
-    return (
-      segmentsHit(
-        point,
-        curves.flatMap((curve) => segmentsOf(curve, false)),
-        tolerance
-      ) ?? (inside ? bodyHit : null)
+    return segmentsHit(
+      point,
+      curves.flatMap((curve) => segmentsOf(curve, false)),
+      tolerance
     );
   },
   handles: (geometry) => {

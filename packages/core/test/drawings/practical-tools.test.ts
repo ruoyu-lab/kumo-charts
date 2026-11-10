@@ -233,12 +233,12 @@ describe('rotated rectangle', () => {
     const chart = chartWithTools();
     const id = rectangle(chart);
 
-    expect(selects(chart, id, 160, 184)).toBe(true);
-    expect(selects(chart, id, 160, 176)).toBe(true);
+    // Its sides 6 away from 180 take it; the fill between them does not.
+    expect(selects(chart, id, 160, 186)).toBe(true);
+    expect(selects(chart, id, 160, 174)).toBe(true);
+    expect(selects(chart, id, 160, 184)).toBe(false);
     expect(selects(chart, id, 160, 190)).toBe(false);
     expect(selects(chart, id, 160, 170)).toBe(false);
-    chart.drawings.update(id, { style: { fill: false } });
-    expect(selects(chart, id, 160, 184)).toBe(false);
   });
 
   it('is widened by a corner, and turned by an end at its width as the screen shows it', () => {
@@ -260,8 +260,8 @@ describe('rotated rectangle', () => {
 
     // A corner, from 186 at bar 170 to 188: wider on both sides.
     drag(chart, at(chart, 170, 186), at(chart, 170, 188));
-    expect(selects(chart, id, 160, 187)).toBe(true);
-    expect(selects(chart, id, 160, 173)).toBe(true);
+    expect(selects(chart, id, 160, 188)).toBe(true);
+    expect(selects(chart, id, 160, 172)).toBe(true);
     const wide = half();
 
     // The end at bar 170 stretched on to 175, then turned up: as wide as before.

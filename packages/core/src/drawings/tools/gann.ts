@@ -1,14 +1,7 @@
 import { font } from '../../canvas/canvas';
 import { withAlpha } from '../../canvas/color';
 import type { Point } from '../../interaction/types';
-import {
-  boundsOf,
-  cornersOf,
-  extendSegment,
-  insidePolygon,
-  insideRect,
-  type Segment
-} from '../geometry';
+import { boundsOf, cornersOf, extendSegment, insideRect, type Segment } from '../geometry';
 import type {
   Anchors,
   DrawingBounds,
@@ -21,12 +14,10 @@ import type {
 } from '../types';
 import { boxHandles, corners, moveBoxHandle } from './shapes';
 import {
-  bodyHit,
   fillArea,
   LABEL_GAP,
   ratioText,
   segmentsHit,
-  shapeHit,
   shownLevels,
   strokeDrawing,
   tracePath
@@ -240,12 +231,10 @@ export const gannBox: DrawingTypeDefinition<Anchors<2>> = {
   },
   hitTest: (geometry, point, tolerance) => {
     const box = gannBoxOf(geometry);
-    return shapeHit(
+    return segmentsHit(
       point,
       gannLines(box).map(({ line }) => line),
-      corners(box.first, box.second),
-      tolerance,
-      geometry.style.fill
+      tolerance
     );
   },
   bounds: (geometry) => {
@@ -366,13 +355,7 @@ export const fibSpeedFan: DrawingTypeDefinition<Anchors<2>> = {
   // The rays and the grid, and the wedges between the rays where they are filled.
   hitTest: (geometry, point, tolerance) => {
     const fan = fanOf(geometry);
-    const wedges = [...wedgesOf(fan.origin, fan.prices), ...wedgesOf(fan.origin, fan.times)];
-    return (
-      segmentsHit(point, [...raysOf(fan), ...gridOf(fan)], tolerance) ??
-      (geometry.style.fill && wedges.some(({ area }) => insidePolygon(point, area))
-        ? bodyHit
-        : null)
-    );
+    return segmentsHit(point, [...raysOf(fan), ...gridOf(fan)], tolerance);
   },
   // The rays to the edge of the plot, and the box with its labels.
   bounds: (geometry) => {
@@ -553,18 +536,10 @@ export const gannFan: DrawingTypeDefinition<Anchors<2>> = {
   },
   hitTest: (geometry, point, tolerance) => {
     const angles = gannFanOf(geometry);
-    const [origin] = geometry.points;
-    const wedges = angles.flatMap(({ ray }, index) => {
-      const next = angles[index + 1];
-      return next ? [[origin, ray[1], next.ray[1]]] : [];
-    });
-    return (
-      segmentsHit(
-        point,
-        angles.map(({ ray }) => ray),
-        tolerance
-      ) ??
-      (geometry.style.fill && wedges.some((area) => insidePolygon(point, area)) ? bodyHit : null)
+    return segmentsHit(
+      point,
+      angles.map(({ ray }) => ray),
+      tolerance
     );
   },
   // The labels lie inside the plot, by the ends of the rays.

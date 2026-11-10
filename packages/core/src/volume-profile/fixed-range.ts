@@ -159,7 +159,8 @@ export function fixedRangeVolumeProfile(
         Math.abs(point.y - top),
         Math.abs(point.y - bottom)
       );
-      return edge <= tolerance ? { part: 'line', distance: edge } : { part: 'body', distance: 0 };
+      // The profile inside is painted over a background, which a click goes through: its border takes it.
+      return edge <= tolerance ? { part: 'line', distance: edge } : null;
     },
     // The anchors set the time range only, so their handles move sideways.
     handles: (geometry) => {

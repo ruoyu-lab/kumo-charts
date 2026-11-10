@@ -1,7 +1,7 @@
 import { font } from '../../canvas/canvas';
 import { withAlpha } from '../../canvas/color';
 import type { Point } from '../../interaction/types';
-import { boundsOf, extendSides, insidePolygon, insideRect, type Segment } from '../geometry';
+import { boundsOf, extendSides, type Segment } from '../geometry';
 import type {
   Anchors,
   DrawingGeometry,
@@ -11,15 +11,7 @@ import type {
   DrawingTypeDefinition
 } from '../types';
 import { sideLevel } from './lines';
-import {
-  bodyHit,
-  LABEL_GAP,
-  ratioText,
-  segmentsHit,
-  shownLevels,
-  strokeDrawing,
-  tracePath
-} from './shared';
+import { LABEL_GAP, ratioText, segmentsHit, shownLevels, strokeDrawing, tracePath } from './shared';
 
 /**
  * The levels of a Fibonacci retracement: those to 4.236 show by default,
@@ -211,17 +203,7 @@ function fibType<A extends readonly DrawingPoint[]>(
     // The levels, and the bands between them where they are filled.
     hitTest: (geometry, point, tolerance) => {
       const ladder = ladderOf(geometry, kind);
-      const first = ladder.levels[0];
-      const last = ladder.levels.at(-1);
-      return (
-        segmentsHit(point, levelLines(ladder), tolerance) ??
-        (geometry.style.fill &&
-        first &&
-        last &&
-        insideRect(point, { x: ladder.left, y: first.y }, { x: ladder.right, y: last.y })
-          ? bodyHit
-          : null)
-      );
+      return segmentsHit(point, levelLines(ladder), tolerance);
     },
     bounds: (geometry) => ladderBounds(geometry, ladderOf(geometry, kind))
   };
@@ -360,18 +342,10 @@ export const fibChannel: DrawingTypeDefinition<Anchors<3>> = {
   },
   // The levels, and the bands between them where they are filled.
   hitTest: (geometry, point, tolerance) => {
-    const levels = channelLevels(geometry);
-    const first = levels[0]?.line;
-    const last = levels.at(-1)?.line;
-    return (
-      segmentsHit(
-        point,
-        levels.map(({ line }) => line),
-        tolerance
-      ) ??
-      (geometry.style.fill && first && last && insidePolygon(point, [...first, last[1], last[0]])
-        ? bodyHit
-        : null)
+    return segmentsHit(
+      point,
+      channelLevels(geometry).map(({ line }) => line),
+      tolerance
     );
   },
   // Each level shown by its ratio, moved as drawn: by bars in time, along the pane's scale.
@@ -461,26 +435,16 @@ export const fibTimeZone: DrawingTypeDefinition<Anchors<2>> = {
   hitTest: (geometry, point, tolerance) => {
     const zones = zonesOf(geometry);
     const [first, second] = geometry.points;
-
-    const xs = zones.map(({ x }) => x);
-    return (
-      segmentsHit(
-        point,
-        [
-          [first, second],
-          ...zones.map(({ x }): Segment => [
-            { x, y: 0 },
-            { x, y: geometry.height }
-          ])
-        ],
-        tolerance
-      ) ??
-      (geometry.style.fill &&
-      zones.length > 1 &&
-      point.x >= Math.min(...xs) &&
-      point.x <= Math.max(...xs)
-        ? bodyHit
-        : null)
+    return segmentsHit(
+      point,
+      [
+        [first, second],
+        ...zones.map(({ x }): Segment => [
+          { x, y: 0 },
+          { x, y: geometry.height }
+        ])
+      ],
+      tolerance
     );
   },
   // The lines from the top to the bottom of the plot, with their counts right of them.

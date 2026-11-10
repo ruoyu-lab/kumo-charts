@@ -1,7 +1,7 @@
 import { drawLabel, font } from '../../canvas/canvas';
 import { withAlpha } from '../../canvas/color';
 import type { Point } from '../../interaction/types';
-import { boundsOf, insidePolygon, segmentsOf, type Segment } from '../geometry';
+import { boundsOf, segmentsOf, type Segment } from '../geometry';
 import type {
   Anchors,
   DrawingField,
@@ -14,7 +14,6 @@ import type {
 } from '../types';
 import { WAVE_DEGREES } from '../style';
 import {
-  bodyHit,
   BOXED_LABEL_GAP,
   fillArea,
   ratioText,
@@ -181,13 +180,7 @@ export const xabcdPattern: DrawingTypeDefinition<Anchors<5>> = {
     }
   },
   hitTest: (geometry, point, tolerance) => {
-    const [x, a, b, c, d] = geometry.points;
-    return (
-      segmentsHit(point, segmentsOf(geometry.points, false), tolerance) ??
-      (geometry.style.fill && (insidePolygon(point, [x, a, b]) || insidePolygon(point, [b, c, d]))
-        ? bodyHit
-        : null)
-    );
+    return segmentsHit(point, segmentsOf(geometry.points, false), tolerance);
   },
   bounds: (geometry) => labelledPoints(geometry, geometry.points, XABCD)
 };
@@ -338,12 +331,7 @@ export const headAndShoulders: DrawingTypeDefinition<Anchors<7>> = {
   },
   hitTest: (geometry, point, tolerance) => {
     const pattern = headAndShouldersOf(geometry);
-    return (
-      segmentsHit(point, [...segmentsOf(pattern.points, false), pattern.neckline], tolerance) ??
-      (geometry.style.fill && pattern.areas.some((area) => insidePolygon(point, area))
-        ? bodyHit
-        : null)
-    );
+    return segmentsHit(point, [...segmentsOf(pattern.points, false), pattern.neckline], tolerance);
   },
   bounds: (geometry) => {
     const pattern = headAndShouldersOf(geometry);

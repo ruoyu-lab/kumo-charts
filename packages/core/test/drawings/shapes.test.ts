@@ -298,10 +298,10 @@ describe('rectangle', () => {
     ]);
   });
 
-  it('hits the border as line and the inside as body', () => {
+  it('hits the border as line, and nothing inside: a fill is never hit', () => {
     expect(hit('rectangle', geometry, 150, 102)).toEqual({ part: 'line', distance: 2 });
     expect(hit('rectangle', geometry, 197, 75)).toEqual({ part: 'line', distance: 3 });
-    expect(hit('rectangle', geometry, 150, 75)).toEqual({ part: 'body', distance: 0 });
+    expect(hit('rectangle', geometry, 150, 75)).toBeNull();
     expect(hit('rectangle', geometry, 150, 110)).toBeNull();
     expect(hit('rectangle', geometry, 300, 300)).toBeNull();
   });
@@ -425,10 +425,10 @@ describe('parallel-channel', () => {
     ]);
   });
 
-  it('hits both lines as line and the inside as body', () => {
+  it('hits both lines as line, and nothing between them', () => {
     expect(hit('parallel-channel', geometry, 50, 77)?.part).toBe('line');
     expect(hit('parallel-channel', geometry, 50, 127)?.part).toBe('line');
-    expect(hit('parallel-channel', geometry, 50, 110)).toEqual({ part: 'body', distance: 0 });
+    expect(hit('parallel-channel', geometry, 50, 110)).toBeNull();
     expect(hit('parallel-channel', geometry, 50, 200)).toBeNull();
     expect(hit('parallel-channel', geometry, 150, 100)).toBeNull();
   });
@@ -533,9 +533,9 @@ describe('fib-retracement', () => {
     expect(line?.segments[0]).toEqual(segment(10, 200, 90, 200));
   });
 
-  it('hits the level lines, and the bands between them where they are filled', () => {
+  it('hits the level lines, and nothing between them, filled or not', () => {
     expect(hit('fib-retracement', geometry, 50, 152)).toEqual({ part: 'line', distance: 2 });
-    expect(hit('fib-retracement', geometry, 50, 130)).toEqual({ part: 'body', distance: 0 });
+    expect(hit('fib-retracement', geometry, 50, 130)).toBeNull();
     expect(hit('fib-retracement', geometry, 120, 150)).toBeNull();
     const unfilled = geometryOf(
       'fib-retracement',
@@ -685,9 +685,9 @@ describe('price-range', () => {
     expect(textsOf(paint('price-range', fromZero))).toEqual(['+5.00 · 10 bars']);
   });
 
-  it('hits its arrow as line, its label and its box where it is filled as body', () => {
+  it('hits its arrow as line and its label as body, never its box', () => {
     expect(hit('price-range', rising, 151, 105)).toEqual({ part: 'line', distance: 1 });
-    expect(hit('price-range', rising, 120, 105)).toEqual({ part: 'body', distance: 0 });
+    expect(hit('price-range', rising, 120, 105)).toBeNull();
     // The label, below the box.
     expect(hit('price-range', rising, 150, 130)).toEqual({ part: 'body', distance: 0 });
     expect(hit('price-range', rising, 150, 160)).toBeNull();

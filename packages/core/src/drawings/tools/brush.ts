@@ -1,8 +1,8 @@
 import type { Point } from '../../interaction/types';
-import { boundsOf, insidePolygon, segmentsOf } from '../geometry';
+import { boundsOf, segmentsOf } from '../geometry';
 import type { Anchors, DrawingAxisMarks, DrawingTypeDefinition } from '../types';
 import { arrowLength, paintArrowHead } from './labels';
-import { bodyHit, last, segmentsHit, strokeDrawing } from './shared';
+import { last, segmentsHit, strokeDrawing } from './shared';
 
 /** The points of a stroke, two or more. */
 type Stroke = readonly [Point, Point, ...Point[]];
@@ -81,8 +81,7 @@ export const brush: DrawingTypeDefinition<Anchors<0>> = {
     }
   },
   hitTest: (geometry, point, tolerance) =>
-    segmentsHit(point, segmentsOf(geometry.points, false), tolerance) ??
-    (geometry.style.fill && insidePolygon(point, geometry.points) ? bodyHit : null),
+    segmentsHit(point, segmentsOf(geometry.points, false), tolerance),
   handles: () => [],
   bounds: (geometry) => boundsOf(geometry.points),
   axisMarks: strokeMarks

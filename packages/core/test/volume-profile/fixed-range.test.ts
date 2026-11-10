@@ -63,7 +63,7 @@ describe('the fixed range volume profile', () => {
     );
   });
 
-  it('is selected by a click inside it, and moved in time by its handles', () => {
+  it('is selected by a click on its frame, not inside it, and moved in time by its handles', () => {
     const chart = hourlyChart();
     const id = chart.drawings.add({ type: TYPE, points: [point(10, 0), point(30, 0)] });
     const bounds = chart.drawings.bounds(id);
@@ -72,6 +72,8 @@ describe('the fixed range volume profile', () => {
     const right = (bounds?.x ?? 0) + (bounds?.width ?? 0);
 
     click(chart, (bounds?.x ?? 0) + (bounds?.width ?? 0) / 2, middle);
+    expect(chart.selection()).toBeNull();
+    click(chart, bounds?.x ?? 0, middle);
     expect(chart.selection()).toEqual({ kind: 'drawing', id });
 
     // The handle of the second anchor, halfway up the frame.

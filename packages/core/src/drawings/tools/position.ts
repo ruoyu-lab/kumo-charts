@@ -2,7 +2,7 @@ import type { Point } from '../../interaction/types';
 import { drawLabel, font } from '../../canvas/canvas';
 import { withAlpha } from '../../canvas/color';
 import type { BarsView } from '../../data/types';
-import { segmentsOf } from '../geometry';
+import { segmentsOf, type Segment } from '../geometry';
 import type {
   Anchors,
   DrawingGeometry,
@@ -11,7 +11,7 @@ import type {
   DrawingPoint,
   DrawingTypeDefinition
 } from '../types';
-import { barsCache, fillArea, LABEL_GAP, shapeHit, strokeDrawing } from './shared';
+import { barsCache, fillArea, LABEL_GAP, segmentsHit, strokeDrawing } from './shared';
 
 /** The geometry of a position: its entry, target and stop. */
 type Position = DrawingGeometry<Anchors<3>>;
@@ -403,9 +403,16 @@ function position(type: string, long: boolean): DrawingTypeDefinition<Anchors<3>
         return null;
       }
 
-      // The zones are always painted.
-      const area = rect(box.left, box.right, box.target, box.stop);
-      return shapeHit(point, segmentsOf(area, true), area, tolerance, true);
+      // The zones are its background: it is taken by its outline and the line at the entry.
+      const entry: Segment = [
+        { x: box.left, y: box.entry },
+        { x: box.right, y: box.entry }
+      ];
+      return segmentsHit(
+        point,
+        [...segmentsOf(rect(box.left, box.right, box.target, box.stop), true), entry],
+        tolerance
+      );
     },
     // The labels above the target and below the stop count, so a toolbar does not cover them.
     bounds: (geometry) => {

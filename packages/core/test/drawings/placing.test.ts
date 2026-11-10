@@ -202,7 +202,8 @@ describe('what a tool and a drag repaint', () => {
     expect(chart.drawings.get(line)).not.toBeNull();
     expect(await seriesPainted(chart, dragged(at(chart, 180, 170)))).toBe(false);
     pointer(chart, 'pointerup', 0, 0);
-    expect(await seriesPainted(chart, dragged(at(chart, 125, 155)))).toBe(true);
+    // The position by the edge at its target: its zones are a fill, which a press goes through.
+    expect(await seriesPainted(chart, dragged(at(chart, 125, 160)))).toBe(true);
   });
 });
 

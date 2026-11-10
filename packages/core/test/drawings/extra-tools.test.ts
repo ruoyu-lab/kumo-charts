@@ -269,11 +269,14 @@ describe('editing and hit testing', () => {
     chart.drawings.remove(cross);
 
     const circle = add('circle', [point(150, 190), point(160, 190)]);
-    expect(selects(chart, circle, 152, 190)).toBe(true);
+    expect(selects(chart, circle, 160, 190)).toBe(true);
+    expect(selects(chart, circle, 152, 190)).toBe(false);
     chart.drawings.remove(circle);
 
     const triangle = add('triangle', [point(145, 180), point(165, 180), point(155, 210)]);
-    expect(selects(chart, triangle, 155, 190)).toBe(true);
+    // Its sides take it; its inside is a fill, which a click goes through.
+    expect(selects(chart, triangle, 155, 180)).toBe(true);
+    expect(selects(chart, triangle, 155, 190)).toBe(false);
     expect(selects(chart, triangle, 146, 208)).toBe(false);
     chart.drawings.remove(triangle);
 

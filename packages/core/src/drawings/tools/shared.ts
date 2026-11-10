@@ -4,9 +4,10 @@ import type { BarsView, PriceSource } from '../../data/types';
 import type { Theme } from '../../options/types';
 import { paletteColor } from '../../render/contributors';
 import { LruCache } from '../../utils/lru-cache';
-import { distanceToSegment, insidePolygon, type Segment } from '../geometry';
+import { distanceToSegment, type Segment } from '../geometry';
 import type { DrawingHit, DrawingLevelStyle, DrawingPaintContext, DrawingStyle } from '../types';
 
+/** A hit on a drawing's content: its text, the box of a label, a mark painted solid; never a fill. */
 export const bodyHit: DrawingHit = { part: 'body', distance: 0 };
 
 /** Space between a line, a point or a box and the text written by it. */
@@ -93,22 +94,6 @@ export function segmentsHit(
     Number.POSITIVE_INFINITY
   );
   return distance <= tolerance ? { part: 'line', distance } : null;
-}
-
-/**
- * A `line` hit on one of `lines`, else a `body` hit inside the `area` polygon where it is
- * `filled`: an area painted with nothing is not there to hit.
- */
-export function shapeHit(
-  point: Point,
-  lines: readonly Segment[],
-  area: readonly Point[],
-  tolerance: number,
-  filled: boolean
-): DrawingHit | null {
-  return (
-    segmentsHit(point, lines, tolerance) ?? (filled && insidePolygon(point, area) ? bodyHit : null)
-  );
 }
 
 /** A level that shows, and the color it is drawn in. */

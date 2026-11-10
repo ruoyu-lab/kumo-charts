@@ -1,8 +1,8 @@
 import { withAlpha } from '../../canvas/color';
 import type { Point } from '../../interaction/types';
-import { boundsOf, extendSegment, insidePolygon, type Segment } from '../geometry';
+import { boundsOf, extendSegment, type Segment } from '../geometry';
 import type { Anchors, DrawingGeometry, DrawingTypeDefinition } from '../types';
-import { bodyHit, fillArea, segmentsHit, strokeDrawing, tracePath } from './shared';
+import { fillArea, segmentsHit, strokeDrawing, tracePath } from './shared';
 
 /**
  * Where the median line starts: at the first anchor (Andrews), or moved halfway to the second, in
@@ -96,10 +96,7 @@ function pitchforkType(type: string, from: ForkStart): DrawingTypeDefinition<Anc
         return null;
       }
 
-      return (
-        segmentsHit(point, linesOf(fork), tolerance) ??
-        (geometry.style.fill && insidePolygon(point, fork.area) ? bodyHit : null)
-      );
+      return segmentsHit(point, linesOf(fork), tolerance);
     },
     bounds: (geometry) => {
       const fork = forkOf(geometry, from);

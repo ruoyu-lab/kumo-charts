@@ -18,7 +18,7 @@ import {
   fillArea,
   LABEL_GAP,
   ratioText,
-  shapeHit,
+  segmentsHit,
   type ShownLevel,
   shownLevels,
   strokeDrawing,
@@ -155,13 +155,6 @@ function channelOf(geometry: DrawingGeometry<Anchors<2>>): Channel | null {
   return { fit, lines, ends };
 }
 
-/** The area between the highest and the lowest line. */
-function areaOf(channel: Channel): Point[] {
-  const top = channel.lines[0]?.line;
-  const bottom = channel.lines.at(-1)?.line;
-  return top && bottom ? [top[0], top[1], bottom[1], bottom[0]] : [];
-}
-
 /**
  * A linear regression channel of the bars between two times: the base line fits the
  * closes (or another `source`) by least squares, and the lines `levels` standard deviations away,
@@ -224,12 +217,10 @@ export const regressionTrend: DrawingTypeDefinition<Anchors<2>> = {
   hitTest: (geometry, point, tolerance) => {
     const channel = channelOf(geometry);
     return channel
-      ? shapeHit(
+      ? segmentsHit(
           point,
           channel.lines.map(({ line }) => line),
-          areaOf(channel),
-          tolerance,
-          geometry.style.fill
+          tolerance
         )
       : null;
   },

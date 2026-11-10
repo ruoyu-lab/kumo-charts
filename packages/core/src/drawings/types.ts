@@ -231,8 +231,13 @@ export interface DrawingPaintContext<A extends readonly DrawingPoint[] = readonl
   readonly editing: boolean;
 }
 
+/**
+ * Where a point hits a drawing: `line` on one of its lines, `body` on its content, as its text, the
+ * box of a label or a mark painted solid. A fill is the background of a drawing, never hit: a click
+ * there reaches what is under it, and a drawing is taken by its lines. Handles are hit-tested by the
+ * chart.
+ */
 export interface DrawingHit {
-  /** `line` or `body`; handles are hit-tested by the chart. */
   readonly part: 'line' | 'body';
   readonly distance: number;
 }

@@ -172,10 +172,11 @@ function rangeType(kind: RangeKind): DrawingTypeDefinition<Anchors<2>> {
     hitTest: (geometry, point, tolerance) => {
       const range = rangeOf(geometry, kind);
       const { label } = range;
-      const inside =
-        insideRect(point, label, { x: label.x + label.width, y: label.y + label.height }) ||
-        (geometry.style.fill && insideRect(point, range.start, range.end));
-      return segmentsHit(point, range.arrows, tolerance) ?? (inside ? bodyHit : null);
+      const onLabel = insideRect(point, label, {
+        x: label.x + label.width,
+        y: label.y + label.height
+      });
+      return segmentsHit(point, range.arrows, tolerance) ?? (onLabel ? bodyHit : null);
     },
     bounds: (geometry) => {
       const { start, end, label } = rangeOf(geometry, kind);

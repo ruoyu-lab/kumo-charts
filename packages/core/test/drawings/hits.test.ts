@@ -41,13 +41,14 @@ function selectedAt(chart: Chart, index: number, price: number): string | null {
 }
 
 describe('hit testing', () => {
-  it('takes a line over the inside of a shape drawn over it', () => {
+  it('takes a line under the fill of a shape drawn over it: a fill is never hit', () => {
     const chart = chartWithBars(200);
     const line = add(chart, 'horizontal-line', [point(100, 170)]);
     const box = add(chart, 'rectangle', [point(150, 160), point(180, 180)]);
 
     expect(selectedAt(chart, 165, 170)).toBe(line);
-    expect(selectedAt(chart, 165, 175)).toBe(box);
+    expect(selectedAt(chart, 165, 175)).toBeNull();
+    expect(selectedAt(chart, 165, 180)).toBe(box);
   });
 
   it('takes the nearer of two lines, the one drawn over at the same distance', () => {
@@ -61,9 +62,9 @@ describe('hit testing', () => {
     expect(selectedAt(chart, 160, 170.5)).toBe(upper);
   });
 
-  it('takes no unfilled area: the inside of a rectangle without fill is the chart', () => {
+  it('takes no inside of a shape, filled or not: it is the chart', () => {
     const chart = chartWithBars(200);
-    const box = add(chart, 'rectangle', [point(150, 160), point(180, 180)], { fill: false });
+    const box = add(chart, 'rectangle', [point(150, 160), point(180, 180)]);
 
     expect(selectedAt(chart, 165, 170)).toBeNull();
     expect(selectedAt(chart, 165, 180)).toBe(box);
@@ -100,19 +101,29 @@ describe('hit testing', () => {
   ];
 
   it.each(filled)(
-    'takes the inside of a filled %s, and not without fill',
+    'takes nothing inside a filled %s, nor without fill',
     (type, points, style, inside) => {
       const chart = chartWithBars(200);
       const id = add(chart, type, points, style);
 
-      expect(selectedAt(chart, 165, inside())).toBe(id);
+      expect(selectedAt(chart, 165, inside())).toBeNull();
 
       chart.drawings.update(id, { style: { fill: false } });
       expect(selectedAt(chart, 165, inside())).toBeNull();
     }
   );
 
-  it('takes the arrow and the label of a price range, and its box only filled', () => {
+  it('takes a position by its outline and its line at the entry, never by its zones', () => {
+    const chart = chartWithBars(200);
+    const id = add(chart, 'long-position', [point(150, 170), point(170, 180), point(170, 165)]);
+
+    expect(selectedAt(chart, 160, 175)).toBeNull();
+    expect(selectedAt(chart, 160, 168)).toBeNull();
+    expect(selectedAt(chart, 160, 170)).toBe(id);
+    expect(selectedAt(chart, 160, 180)).toBe(id);
+  });
+
+  it('takes the arrow and the label of a price range, never its box', () => {
     const chart = chartWithBars(200);
     const id = add(chart, 'price-range', [point(150, 160), point(180, 180)], { fill: false });
 
@@ -123,6 +134,7 @@ describe('hit testing', () => {
     expect(selectedAt(chart, 150, 170)).toBeNull();
 
     chart.drawings.update(id, { style: { fill: true } });
-    expect(selectedAt(chart, 155, 170)).toBe(id);
+    expect(selectedAt(chart, 155, 170)).toBeNull();
+    expect(selectedAt(chart, 165, 170)).toBe(id);
   });
 });
