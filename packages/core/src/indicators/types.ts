@@ -233,6 +233,12 @@ export interface IndicatorContext {
    * bars they are built from.
    */
   readonly interval: Interval | null;
+  /**
+   * The symbol of the bars, where the page that made the chart says it: an indicator that reads
+   * data besides the bars, such as another source of the same symbol, needs to know it. `null`
+   * where the page does not say.
+   */
+  readonly symbol?: string | null;
 }
 
 /** A window of the most recent bars, oldest first. */
