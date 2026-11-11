@@ -1,3 +1,4 @@
+import type { ChartView } from '../chart/environment';
 import { fail } from '../utils/errors';
 
 export type LayerName = 'scene' | 'objects' | 'cursor';
@@ -31,7 +32,7 @@ export class Surface {
   private pixelRatioQuery: MediaQueryList | null = null;
 
   constructor(
-    private readonly view: Window,
+    private readonly view: ChartView,
     private readonly container: HTMLElement,
     private maxPixelRatio: number,
     private readonly onChange: () => void
@@ -111,7 +112,8 @@ export class Surface {
     this.resizeObserver = null;
 
     if (enabled) {
-      const observer = new ResizeObserver((entries) => {
+      // Its own window's: one of another window misses what changes in this one.
+      const observer = new this.view.ResizeObserver((entries) => {
         const size = entries.at(-1)?.contentRect;
 
         if (size && this.resize(size.width, size.height)) {

@@ -35,6 +35,7 @@ import { ObjectsController } from '../objects/objects-controller';
 import type { ObjectContext, Selection } from '../objects/types';
 import type { BarChange } from '../data/types';
 import { fail, runEach } from '../utils/errors';
+import type { ChartView } from './environment';
 import type { ContributorProvider } from '../render/contributors';
 import type { PaneFrame } from '../render/frame';
 import { Countdown } from './countdown';
@@ -147,7 +148,7 @@ export class ChartCore {
   private destroyed = false;
 
   constructor(
-    readonly view: Window,
+    readonly view: ChartView,
     container: HTMLElement,
     options: ChartOptionsInput | undefined,
     modules: readonly ModuleSpec[],
