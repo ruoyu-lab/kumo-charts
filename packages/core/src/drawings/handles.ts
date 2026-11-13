@@ -70,19 +70,18 @@ export function moveHandle(
 }
 
 /**
- * The anchor that `Shift` constrains a dragged anchor handle against: its neighbour. Custom
- * handles are not constrained.
+ * The anchor that `Shift` constrains a dragged anchor handle against, as placing the anchor did: its
+ * neighbour. Only the handles that are an anchor itself are constrained (`0`, `1`, … of the
+ * anchors): a drawing's own handles for its edges or its levels move more than one anchor, or
+ * only a value, and are left free.
  */
-export function pivotFor(
-  definition: DrawingTypeDefinition,
-  anchors: readonly DrawingPoint[],
-  handle: string
-): DrawingPoint | null {
-  if (definition.handles || anchors.length < 2) {
+export function pivotFor(anchors: readonly DrawingPoint[], handle: string): DrawingPoint | null {
+  const index = /^\d+$/.test(handle) ? Number(handle) : -1;
+
+  if (anchors.length < 2 || index < 0 || index >= anchors.length) {
     return null;
   }
 
-  const index = Number(handle);
   return anchors[index - 1] ?? anchors[index + 1] ?? null;
 }
 

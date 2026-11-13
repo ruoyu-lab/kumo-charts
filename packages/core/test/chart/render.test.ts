@@ -229,6 +229,27 @@ describe('rendering', () => {
     expect(calls.filter((name) => name === 'fillText').length).toBeGreaterThan(6);
   });
 
+  it('leaves the crosshair out while the pointer is on an order line, and paints it again off it', async () => {
+    const chart = chartWithBars(120);
+    chart.orders.set([{ id: 'o1', side: 'buy', price: 150 }]);
+    const x = chart.timeScale.timeToX(T0 + 60 * MINUTE) ?? 0;
+    const lineY = chart.priceScale().priceToY(150) ?? 0;
+    const texts = () => paint(chart, 'cursor').filter((name) => name === 'fillText').length;
+
+    pointer(chart, 'pointermove', x, lineY + 80, { buttons: 0 });
+    await nextFrame();
+    const off = texts();
+    pointer(chart, 'pointermove', x, lineY, { buttons: 0 });
+    await nextFrame();
+    const on = texts();
+    pointer(chart, 'pointermove', x, lineY + 80, { buttons: 0 });
+    await nextFrame();
+
+    // The crosshair's labels on the axes go with it.
+    expect(on).toBeLessThan(off);
+    expect(texts()).toBe(off);
+  });
+
   it('paints the latest price in its own color when one is set', () => {
     const colors = (chart: ReturnType<typeof chartWithBars>, layer: 'scene' | 'cursor') => {
       const canvas = chart.element.querySelector<HTMLCanvasElement>(

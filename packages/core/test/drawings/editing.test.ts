@@ -186,6 +186,49 @@ describe('handles', () => {
     pointer(chart, 'pointerup', tx, ty);
   });
 
+  it('constrains a dragged corner of a drawing with handles of its own too, as it was placed', () => {
+    const chart = chartWithBars(200, { timeScale: { barSpacing: 12 } });
+    const id = chart.drawings.add({
+      type: 'rectangle',
+      points: [
+        { time: T0 + 150 * MINUTE, price: 170 },
+        { time: T0 + 180 * MINUTE, price: 185 }
+      ]
+    });
+    chart.select({ kind: 'drawing', id });
+    const [ax, ay] = at(chart, 180, 185);
+    const [tx, ty] = at(chart, 190, 172);
+    pointer(chart, 'pointerdown', ax, ay, { shiftKey: true });
+    pointer(chart, 'pointermove', tx, ty, { shiftKey: true });
+    pointer(chart, 'pointerup', tx, ty, { shiftKey: true });
+
+    // The corner is on the horizontal through the opposite one, as a placed corner would be.
+    const [first, second] = chart.drawings.get(id)?.points ?? [];
+    expect(second?.price).toBeCloseTo(first?.price ?? Number.NaN, 6);
+    expect(second?.time).toBeGreaterThan(T0 + 180 * MINUTE);
+  });
+
+  it('leaves the edges and the middle handles of a box free with Shift held', () => {
+    const chart = chartWithBars(200, { timeScale: { barSpacing: 12 } });
+    const id = chart.drawings.add({
+      type: 'rectangle',
+      points: [
+        { time: T0 + 150 * MINUTE, price: 170 },
+        { time: T0 + 180 * MINUTE, price: 185 }
+      ]
+    });
+    chart.select({ kind: 'drawing', id });
+    const [ex, ey] = at(chart, 165, 185);
+    const [tx, ty] = at(chart, 165, 190);
+    pointer(chart, 'pointerdown', ex, ey, { shiftKey: true });
+    pointer(chart, 'pointermove', tx, ty, { shiftKey: true });
+    pointer(chart, 'pointerup', tx, ty, { shiftKey: true });
+
+    const [first, second] = chart.drawings.get(id)?.points ?? [];
+    expect(first?.price).toBe(170);
+    expect(second?.price).toBeGreaterThan(185);
+  });
+
   it('restores the drawing when a handle drag is cancelled with Escape', () => {
     const chart = chartWithBars(200, { timeScale: { barSpacing: 12 } });
     const id = trendLine(chart, [150, 170], [180, 185]);

@@ -675,7 +675,11 @@ export class ChartCore {
       let crosshair: CrosshairView | null = null;
       attempt(() => {
         this.tracker.sync(frame);
-        crosshair = crosshairView(this, frame, this.tracker.value);
+        // On an order line the pointer is about the line, not a bar and a price: the crosshair gives way.
+        crosshair =
+          this.objects.hovered?.kind === 'order'
+            ? null
+            : crosshairView(this, frame, this.tracker.value);
       });
       const labelFont = font(options.font.size, options.font.family);
       const covers = crosshairCovers(frame, options, crosshair, (text) =>

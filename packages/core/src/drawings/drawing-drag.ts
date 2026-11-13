@@ -140,7 +140,7 @@ export function beginDrawingDrag(
               handle,
               anchorAt(current, pane, position, {
                 magnet: magnetFor(drawingOptions(current.options).magnet, held),
-                pivot: held.shift ? pivotFor(entry.definition, original, handle) : null
+                pivot: held.shift ? pivotFor(original, handle) : null
               }),
               spaceOf(current, pane),
               styleOf(current, entry)
