@@ -234,6 +234,60 @@ describe('handles', () => {
     expect(second?.price).toBeCloseTo(178, 4);
   });
 
+  it('constrains the corners of a box that are no anchor too, against the one across', () => {
+    for (const type of ['rectangle', 'gann-box']) {
+      const chart = chartWithBars(200, { timeScale: { barSpacing: 12 } });
+      const id = chart.drawings.add({
+        type,
+        points: [
+          { time: T0 + 150 * MINUTE, price: 170 },
+          { time: T0 + 180 * MINUTE, price: 185 }
+        ]
+      });
+      chart.select({ kind: 'drawing', id });
+      // The corner at the first time and the second price, dragged off its diagonal.
+      const [ax, ay] = at(chart, 150, 185);
+      const [tx, ty] = at(chart, 140, 172);
+      pointer(chart, 'pointerdown', ax, ay, { shiftKey: true });
+      pointer(chart, 'pointermove', tx, ty, { shiftKey: true });
+      pointer(chart, 'pointerup', tx, ty, { shiftKey: true });
+
+      // It is level with the corner across (second time, first price): the first price is 170.
+      const [first, second] = chart.drawings.get(id)?.points ?? [];
+      expect(second?.price).toBeCloseTo(170, 4);
+      expect(first?.time).toBeLessThan(T0 + 150 * MINUTE);
+    }
+  });
+
+  it('constrains a dragged corner of a rotated rectangle with Shift, as its width was placed', () => {
+    const chart = chartWithBars(200, { timeScale: { barSpacing: 12 } });
+    const id = chart.drawings.add({
+      type: 'rotated-rectangle',
+      points: [
+        { time: T0 + 150 * MINUTE, price: 170 },
+        { time: T0 + 180 * MINUTE, price: 170 },
+        { time: T0 + 180 * MINUTE, price: 180 }
+      ]
+    });
+    chart.select({ kind: 'drawing', id });
+    // The base line is level, so a corner is at the second time, as far from it as the third anchor.
+    const [hx, hy] = at(chart, 180, 180);
+    const [bx, by] = at(chart, 180, 170);
+    const [tx, ty] = at(chart, 181, 176);
+
+    // The target is off every constrained direction, so the point is placed by the constraint.
+    const off = (dx: number, dy: number) =>
+      Math.min(Math.abs(dx), Math.abs(dy), Math.abs(Math.abs(dx) - Math.abs(dy)));
+    expect(off(tx - bx, ty - by)).toBeGreaterThan(5);
+    pointer(chart, 'pointerdown', hx, hy, { shiftKey: true });
+    pointer(chart, 'pointermove', tx, ty, { shiftKey: true });
+    pointer(chart, 'pointerup', tx, ty, { shiftKey: true });
+
+    const third = chart.drawings.get(id)?.points[2];
+    const [cx, cy] = at(chart, ((third?.time ?? 0) - T0) / MINUTE, third?.price ?? 0);
+    expect(off(cx - bx, cy - by)).toBeLessThan(1.5);
+  });
+
   it('leaves the edges and the middle handles of a box free with Shift held', () => {
     const chart = chartWithBars(200, { timeScale: { barSpacing: 12 } });
     const id = chart.drawings.add({

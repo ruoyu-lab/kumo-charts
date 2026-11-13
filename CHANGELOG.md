@@ -11,7 +11,7 @@ The packages of KumoChart share one version. Each release lists what changed for
 
 **Added**
 
-- `pivotOf()` of a drawing type: where `Shift` constrains a dragged handle that is no anchor from, such as the other end of the line it is the end of. The ends of the parallel line of a channel follow `Shift` now, as the ends of its base line did.
+- `pivotOf()` of a drawing type: where `Shift` constrains a dragged handle that is no anchor from, such as the other end of the line it is the end of. The ends of the parallel line of a channel, the two corners of a rectangle or a Gann box that are no anchor and the corners of a rotated rectangle follow `Shift` now, as the handles that are anchors did.
 
 ## 1.0.0-beta.6
 

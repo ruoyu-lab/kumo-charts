@@ -12,7 +12,7 @@ import type {
   DrawingPoint,
   DrawingTypeDefinition
 } from '../types';
-import { boxHandles, corners, moveBoxHandle } from './shapes';
+import { boxHandles, boxPivot, corners, moveBoxHandle } from './shapes';
 import {
   fillArea,
   LABEL_GAP,
@@ -243,6 +243,7 @@ export const gannBox: DrawingTypeDefinition<Anchors<2>> = {
   },
   handles: boxHandles,
   moveHandle: moveBoxHandle,
+  pivotOf: boxPivot,
   levels: ([first, second], scale, style) => {
     const from = scale.toScale(first.price);
     const to = scale.toScale(second.price);

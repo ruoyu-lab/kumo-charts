@@ -122,6 +122,18 @@ export function boxHandles(geometry: DrawingGeometry<Anchors<2>>): DrawingHandle
   ];
 }
 
+/** What `Shift` keeps a dragged corner of a box in line with: the corner across from it. */
+export function boxPivot([a, b]: Anchors<2>, handle: string): DrawingPoint | null {
+  switch (handle) {
+    case 'ab':
+      return { time: b.time, price: a.price };
+    case 'ba':
+      return { time: a.time, price: b.price };
+    default:
+      return null;
+  }
+}
+
 export function moveBoxHandle([a, b]: Anchors<2>, handle: string, to: DrawingPoint): Anchors<2> {
   switch (handle) {
     case '0':
@@ -200,6 +212,7 @@ export const rectangle: DrawingTypeDefinition<Anchors<2>> = {
   bounds: (geometry) => boundsOf(extendedBox(geometry).area),
   handles: boxHandles,
   moveHandle: moveBoxHandle,
+  pivotOf: boxPivot,
   levels: (anchors, _scale, style) => boxLevels(anchors, style)
 };
 

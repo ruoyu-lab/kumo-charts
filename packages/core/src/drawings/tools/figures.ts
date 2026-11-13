@@ -305,5 +305,7 @@ export const rotatedRectangle: DrawingTypeDefinition<Anchors<3>> = {
       ? [from, until, width]
       : [from, until, c];
   },
+  // A corner sets the width, constrained against the second anchor as the width was when placed.
+  pivotOf: ([, b], handle) => (handle.startsWith('corner-') ? b : null),
   axisMarks: ([a, b]) => ({ prices: [a.price, b.price], times: [a.time, b.time] })
 };
