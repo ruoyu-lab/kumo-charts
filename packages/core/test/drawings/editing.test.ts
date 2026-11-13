@@ -208,6 +208,32 @@ describe('handles', () => {
     expect(second?.time).toBeGreaterThan(T0 + 180 * MINUTE);
   });
 
+  it('constrains a dragged end of the parallel line of a channel with Shift, as the base line is', () => {
+    const chart = chartWithBars(200, { timeScale: { barSpacing: 12 } });
+    const id = chart.drawings.add({
+      type: 'parallel-channel',
+      points: [
+        { time: T0 + 150 * MINUTE, price: 170 },
+        { time: T0 + 180 * MINUTE, price: 178 },
+        { time: T0 + 150 * MINUTE, price: 185 }
+      ]
+    });
+    chart.select({ kind: 'drawing', id });
+    // The parallel's start is the third anchor; its end is 15 above the base line's end.
+    const [ax, ay] = at(chart, 150, 185);
+    const [tx, ty] = at(chart, 140, 190);
+    pointer(chart, 'pointerdown', ax, ay, { shiftKey: true });
+    pointer(chart, 'pointermove', tx, ty, { shiftKey: true });
+    pointer(chart, 'pointerup', tx, ty, { shiftKey: true });
+
+    // The parallel runs horizontally from its other end (193), and the base line stays parallel to it.
+    const [first, second, third] = chart.drawings.get(id)?.points ?? [];
+    expect(third?.price).toBeCloseTo(193, 4);
+    expect(third?.time).toBeLessThan(T0 + 150 * MINUTE);
+    expect(first?.price).toBeCloseTo(178, 4);
+    expect(second?.price).toBeCloseTo(178, 4);
+  });
+
   it('leaves the edges and the middle handles of a box free with Shift held', () => {
     const chart = chartWithBars(200, { timeScale: { barSpacing: 12 } });
     const id = chart.drawings.add({

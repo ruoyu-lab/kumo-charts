@@ -397,6 +397,18 @@ export interface DrawingTypeDefinition<
     style: DrawingStyle
   ): readonly DrawingPoint[];
   /**
+   * Where `Shift` constrains a dragged handle that is no anchor from: the point it keeps its
+   * direction to, such as the other end of the line it is the end of. `null` leaves the handle
+   * free, the default. Handles named after anchors are constrained against their neighbour anchor
+   * and are not asked.
+   */
+  pivotOf?(
+    anchors: A,
+    handle: string,
+    space: DrawingSpace,
+    style: DrawingStyle
+  ): DrawingPoint | null;
+  /**
    * Highlighted on the axes, as the drawing's `style` draws it. Default: every anchor's value and
    * time while selected.
    */

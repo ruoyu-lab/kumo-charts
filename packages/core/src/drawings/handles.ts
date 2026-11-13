@@ -70,15 +70,25 @@ export function moveHandle(
 }
 
 /**
- * The anchor that `Shift` constrains a dragged anchor handle against, as placing the anchor did: its
- * neighbour. Only the handles that are an anchor itself are constrained (`0`, `1`, … of the
- * anchors): a drawing's own handles for its edges or its levels move more than one anchor, or
- * only a value, and are left free.
+ * The point that `Shift` constrains a dragged handle against, as placing the anchor did. For a
+ * handle that is an anchor itself (`0`, `1`, … of the anchors) it is its neighbour. A drawing's own
+ * handles are left free unless its `pivotOf()` names one, as the end of the parallel line of a
+ * channel, which moves more than one anchor but still runs in a direction.
  */
-export function pivotFor(anchors: readonly DrawingPoint[], handle: string): DrawingPoint | null {
+export function pivotFor(
+  definition: DrawingTypeDefinition,
+  anchors: readonly DrawingPoint[],
+  handle: string,
+  space: DrawingSpace,
+  style: DrawingStyle
+): DrawingPoint | null {
   const index = /^\d+$/.test(handle) ? Number(handle) : -1;
 
-  if (anchors.length < 2 || index < 0 || index >= anchors.length) {
+  if (index < 0 || index >= anchors.length) {
+    return definition.pivotOf?.(anchors, handle, space, style) ?? null;
+  }
+
+  if (anchors.length < 2) {
     return null;
   }
 

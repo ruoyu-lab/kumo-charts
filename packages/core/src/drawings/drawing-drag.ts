@@ -131,6 +131,8 @@ export function beginDrawingDrag(
       }
 
       const position = local(pane, next);
+      const space = spaceOf(current, pane);
+      const style = styleOf(current, entry);
       const points =
         handle === null
           ? translated(current, pane, original, start, position)
@@ -140,10 +142,12 @@ export function beginDrawingDrag(
               handle,
               anchorAt(current, pane, position, {
                 magnet: magnetFor(drawingOptions(current.options).magnet, held),
-                pivot: held.shift ? pivotFor(original, handle) : null
+                pivot: held.shift
+                  ? pivotFor(entry.definition, original, handle, space, style)
+                  : null
               }),
-              spaceOf(current, pane),
-              styleOf(current, entry)
+              space,
+              style
             );
 
       // Off the only bar, the bars give the anchors no time: the drawing stays where it was.

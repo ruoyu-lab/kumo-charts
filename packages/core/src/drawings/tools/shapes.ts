@@ -266,19 +266,13 @@ function channelHandles(geometry: DrawingGeometry<Anchors<3>>): DrawingHandle[] 
 }
 
 /**
- * Applies a channel handle in the space the channel is drawn in, so that the handle ends under
- * the pointer on a logarithmic scale and across gaps between bars too. The third anchor is kept at
- * the time of the first, so the height is exactly its distance from the base line there.
+ * The channel in the space it is drawn in: the height of the base line at a bar position, the
+ * distance of the parallel from it (the third anchor sits at the time of the first) and a point
+ * moved up or down by an offset.
  */
-function moveChannelHandle(
-  [start, end, through]: Anchors<3>,
-  handle: string,
-  to: DrawingPoint,
-  space: DrawingSpace
-): Anchors<3> {
+function channelFrame([start, end, through]: Anchors<3>, space: DrawingSpace) {
   const x = (point: DrawingPoint) => space.barIndex(point.time);
   const y = (point: DrawingPoint) => space.toScale(point.price);
-  /** The base line's height at bar position `at`. */
   const base = (at: number) =>
     x(start) === x(end)
       ? y(start)
@@ -287,7 +281,24 @@ function moveChannelHandle(
     time: point.time,
     price: space.fromScale(y(point) + offset)
   });
-  const height = y(through) - base(x(through));
+  return { base, height: y(through) - base(x(through)), raised };
+}
+
+/**
+ * Applies a channel handle in the space the channel is drawn in, so that the handle ends under
+ * the pointer on a logarithmic scale and across gaps between bars too. The third anchor is kept at
+ * the time of the first, so the height is exactly its distance from the base line there.
+ */
+function moveChannelHandle(
+  anchors: Anchors<3>,
+  handle: string,
+  to: DrawingPoint,
+  space: DrawingSpace
+): Anchors<3> {
+  const [start, end] = anchors;
+  const { base, height, raised } = channelFrame(anchors, space);
+  const x = (point: DrawingPoint) => space.barIndex(point.time);
+  const y = (point: DrawingPoint) => space.toScale(point.price);
   const channel = (from: DrawingPoint, until: DrawingPoint, offset: number): Anchors<3> => [
     from,
     until,
@@ -312,6 +323,24 @@ function moveChannelHandle(
     default:
       return channel(start, end, y(to) - base(x(to)));
   }
+}
+
+/**
+ * What `Shift` keeps a dragged end of the parallel line in line with: the other end of that line.
+ * The ends of the base line are anchors, constrained against each other as any two anchors are.
+ */
+function channelPivot(
+  anchors: Anchors<3>,
+  handle: string,
+  space: DrawingSpace
+): DrawingPoint | null {
+  if (handle !== 'p0' && handle !== 'p1') {
+    return null;
+  }
+
+  const [start, end] = anchors;
+  const { height, raised } = channelFrame(anchors, space);
+  return raised(handle === 'p0' ? end : start, height);
 }
 
 export const parallelChannel: DrawingTypeDefinition<Anchors<3>> = {
@@ -346,6 +375,7 @@ export const parallelChannel: DrawingTypeDefinition<Anchors<3>> = {
   bounds: (geometry) => boundsOf(channelOf(geometry, true).area),
   handles: channelHandles,
   moveHandle: moveChannelHandle,
+  pivotOf: channelPivot,
   // The parallel is offset as drawn: through the third anchor, by a constant distance in the
   // pane's scale from the base line where it is.
   levels: ([start, end, through], scale, style, { barIndex }) => {
