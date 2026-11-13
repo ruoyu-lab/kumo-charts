@@ -5,7 +5,15 @@ import { chartLayout, type Layout } from '../layout/layout';
 import type { ChartOptions } from '../options/types';
 import { MAIN_PANE_ID, RIGHT_SCALE } from '../panes/pane-store';
 import { fail } from '../utils/errors';
-import { checkFields, checkNumber, checkOneOf, checkString, fieldsOf } from '../utils/validate';
+import {
+  checkFields,
+  checkFunction,
+  checkNumber,
+  checkObject,
+  checkOneOf,
+  checkString,
+  fieldsOf
+} from '../utils/validate';
 import { isPlainObject, type DeepPartial } from '../utils/merge';
 import { createDataApi, type DataApi } from './api/data';
 import {
@@ -103,7 +111,10 @@ export interface ChartBase<Options = unknown, Events = unknown, State = unknown>
   saveState(): ChartState & State;
   /** Restores a saved layout atomically; an invalid state throws and changes nothing. */
   loadState(state: ChartState): void;
-  /** Renders pending changes and returns a canvas with the whole chart. */
+  /**
+   * Renders pending changes and returns a canvas with the whole chart; an empty one when the chart
+   * has no size, as in a container that is hidden.
+   */
   screenshot(): HTMLCanvasElement;
   /**
    * Removes the chart's element and releases every listener, observer and timer. Every other
@@ -256,6 +267,7 @@ export function createChart<const M extends readonly ChartModule[] = readonly []
       });
     },
     batch: (operation) => {
+      checkFunction('operation', operation);
       core.run(operation);
     },
     on: (type, listener) => core.bus.on(type, listener),
@@ -304,6 +316,7 @@ export function createChart<const M extends readonly ChartModule[] = readonly []
     select: (selection) => {
       core.run(() => {
         if (selection !== null) {
+          checkObject('selection', selection);
           checkOneOf('selection.kind', selection.kind, core.objects.kinds());
           checkString('selection.id', selection.id);
 

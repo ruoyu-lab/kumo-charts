@@ -2,7 +2,7 @@ import { toTime, type TimeInput } from '../../data/time';
 import type { Bar, BarInput, BarsView, TradeInput } from '../../data/types';
 import type { Calendar } from '../../feed/calendar';
 import type { Interval, IntervalInput } from '../../feed/interval';
-import { checkFields, fieldsOf } from '../../utils/validate';
+import { checkArray, checkFields, fieldsOf } from '../../utils/validate';
 import type { ChartCore } from '../chart-core';
 
 export interface DataSetOptions {
@@ -80,6 +80,7 @@ const SET_FIELDS = fieldsOf<DataSetOptions>({ interval: true });
 export function createDataApi(core: ChartCore): DataApi {
   return {
     set: (bars, options = {}) => {
+      checkArray('bars', bars);
       checkFields('data.set() options', options, SET_FIELDS);
       core.run(() => {
         core.setData(bars, options.interval);
@@ -92,7 +93,10 @@ export function createDataApi(core: ChartCore): DataApi {
     },
     addTrades: (trade) =>
       core.run(() => core.addTrades(Array.isArray(trade) ? trade : [trade as TradeInput])),
-    prepend: (bars) => core.run(() => core.prependData(bars)),
+    prepend: (bars) => {
+      checkArray('bars', bars);
+      return core.run(() => core.prependData(bars));
+    },
     clear: () => {
       core.run(() => {
         core.clearData();

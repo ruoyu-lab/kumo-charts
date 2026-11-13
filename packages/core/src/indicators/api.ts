@@ -1,7 +1,7 @@
 import type { ChartCore } from '../chart/chart-core';
 import { formatValue } from '../format/value-format';
 import { fail } from '../utils/errors';
-import { checkNumber } from '../utils/validate';
+import { checkNumber, checkString } from '../utils/validate';
 import { indicatorColors, indicatorFormat, outputFormat, valueColor } from './contributor';
 import type { ChartIndicators } from './chart-indicators';
 import type { IndicatorLanguage } from './texts';
@@ -170,6 +170,6 @@ export function createIndicatorsApi(
     types: () => store.registry.types(),
     definition: (type) => store.registry.get(type) ?? null,
     title: (type) => language().title(type),
-    label: (text) => language().label(text)
+    label: (text) => language().label(checkString('text', text))
   };
 }

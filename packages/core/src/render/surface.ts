@@ -188,11 +188,17 @@ export class Surface {
     return ctx;
   }
 
-  /** Draws all layers onto one canvas, for screenshots. */
+  /** Draws all layers onto one canvas, for screenshots; a chart with no size (hidden, or squeezed to nothing) gives an empty one. */
   composite(): HTMLCanvasElement {
     const output = this.container.ownerDocument.createElement('canvas');
     output.width = this.layers.scene.canvas.width;
     output.height = this.layers.scene.canvas.height;
+
+    // The browser refuses to draw a canvas with no size.
+    if (output.width === 0 || output.height === 0) {
+      return output;
+    }
+
     const ctx =
       output.getContext('2d') ?? fail('The browser does not provide a 2D canvas context.');
 

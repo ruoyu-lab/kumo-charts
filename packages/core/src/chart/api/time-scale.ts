@@ -1,6 +1,6 @@
 import { toTime, type TimeInput } from '../../data/time';
 import type { LogicalRange, ViewAlign } from '../../scales/time-scale';
-import { checkNumber, checkOneOf } from '../../utils/validate';
+import { checkNumber, checkObject, checkOneOf } from '../../utils/validate';
 import type { ChartCore } from '../chart-core';
 import type { TimeRange } from '../events';
 
@@ -65,7 +65,9 @@ export function createTimeScaleApi(core: ChartCore): TimeScaleApi {
         ? { from: core.bars.time(visible.from), to: core.bars.time(visible.to) }
         : null;
     },
-    setVisibleRange: ({ from, to }) => {
+    setVisibleRange: (range) => {
+      checkObject('range', range);
+      const { from, to } = range;
       const start = core.bars.logicalIndexOf(toTime(from, 'range.from'));
       const end = core.bars.logicalIndexOf(toTime(to, 'range.to'));
 
@@ -83,6 +85,7 @@ export function createTimeScaleApi(core: ChartCore): TimeScaleApi {
       return core.bars.length > 0 ? scale.logicalRange() : null;
     },
     setVisibleLogicalRange: (range) => {
+      checkObject('range', range);
       checkNumber('range.from', range.from);
       checkNumber('range.to', range.to);
       mutate(() => {

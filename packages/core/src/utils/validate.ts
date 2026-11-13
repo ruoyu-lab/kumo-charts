@@ -92,6 +92,12 @@ export function checkArray(path: string, value: unknown): void {
   }
 }
 
+export function checkFunction(path: string, value: unknown): void {
+  if (typeof value !== 'function') {
+    fail(`${path} must be a function, received ${describeValue(value)}.`);
+  }
+}
+
 export function checkFunctionOrNull(path: string, value: unknown): void {
   if (value !== null && typeof value !== 'function') {
     fail(`${path} must be a function or null, received ${describeValue(value)}.`);
