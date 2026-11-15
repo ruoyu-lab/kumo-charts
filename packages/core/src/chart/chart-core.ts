@@ -559,6 +559,27 @@ export class ChartCore {
     return this.objects.beginDrag(this.objectContext(), target, point, modifiers);
   }
 
+  /**
+   * Brings the line a label kept at an edge of the plot stands for to the middle of its pane, the
+   * price scale then kept as it is by hand.
+   */
+  revealPinned(target: HitTarget): void {
+    const place = this.objects.reveal(this.objectContext(), target);
+    const pane = place && this.shownFrame().panes.find((each) => each.id === place.pane);
+    const scale = place && this.panes.findScale(place.pane, place.scale)?.scale;
+
+    if (!place || !pane || !scale) {
+      return;
+    }
+
+    const y = scale.valueToY(place.value);
+
+    if (Number.isFinite(y)) {
+      scale.lead.pan(pane.plot.height / 2 - y);
+      this.invalidate();
+    }
+  }
+
   /** Selection set through the API: no event. */
   select(selection: Selection | null): void {
     if (this.objects.select(selection)) {

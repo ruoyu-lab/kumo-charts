@@ -4,6 +4,7 @@ import type {
   ObjectDomain,
   ObjectHit,
   ObjectPaintContext,
+  ObjectPlace,
   Selection
 } from './types';
 
@@ -117,6 +118,11 @@ export class ObjectsController {
   /** Opens the editor of an object, as a double click does; returns whether one opened. */
   edit(target: HitTarget): boolean {
     return this.domain(target.kind)?.edit?.(target.id) ?? false;
+  }
+
+  /** Where the line a pinned label stands for lies, or `null`. */
+  reveal(context: ObjectContext, target: HitTarget): ObjectPlace | null {
+    return this.domain(target.kind)?.reveal?.(context, target) ?? null;
   }
 
   paint(context: ObjectPaintContext): void {

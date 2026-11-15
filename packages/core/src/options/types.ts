@@ -106,6 +106,12 @@ export interface PriceScaleOptions {
   formatter: PriceFormatter | null;
   /** Minimum axis width in CSS pixels; the axis grows to fit its labels. */
   minWidth: number;
+  /**
+   * Keeps the label of an order or an alert whose line lies above or below the plot at its top or
+   * bottom edge, with an arrow, where a click brings the line into view. Otherwise it is out of
+   * sight with its line.
+   */
+  pinLabels: boolean;
 }
 
 export interface TimeScaleOptions {

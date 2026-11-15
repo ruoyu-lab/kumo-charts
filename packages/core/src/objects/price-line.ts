@@ -140,6 +140,13 @@ export interface PriceLineLayout {
   /** Center of the label, moved apart from overlapping labels. */
   readonly labelY: number;
   readonly label: Rect;
+  /**
+   * The edge of the plot the label is kept at while its line lies beyond it, with an arrow at its
+   * start of `arrow` pixels; `null` for a label at its line.
+   */
+  readonly pinned: 'top' | 'bottom' | null;
+  readonly arrow: number;
+  /** The width of the label up to its buttons, the arrow included. */
   readonly textWidth: number;
   readonly buttons: ReadonlyArray<{ readonly button: PriceLineButton; readonly rect: Rect }>;
 }
@@ -147,6 +154,13 @@ export interface PriceLineLayout {
 const LABEL_PADDING = 6;
 const LABEL_MARGIN = 8;
 const LABEL_GAP = 2;
+/** The room of the arrow at the start of a label pinned to an edge. */
+const ARROW_WIDTH = 16;
+
+/** Whether a part of a price line is its label pinned to an edge of the plot. */
+export function isPinned(part: string): boolean {
+  return part === 'pinned' || part.startsWith('pinned:');
+}
 
 /**
  * Where the labels go: at their lines, each moved down past the one above it, and those that
@@ -179,22 +193,46 @@ function labelCenters(
   return labels.map((label) => label.center);
 }
 
-/** Lays out the labels of price lines at the right of the plot, keeping them from overlapping. */
+/**
+ * Lays out the labels of price lines at the right of the plot, keeping them from overlapping.
+ * With `pin`, the label of a line above or below the plot stays at the top or bottom edge, those
+ * of several lines stacked there in the order of their lines, and no label leaves the plot.
+ */
 export function layoutPriceLines(
   views: readonly PriceLineView[],
   plotWidth: number,
   plotHeight: number,
   fontSize: number,
-  measure: (text: string, size: number) => number
+  measure: (text: string, size: number) => number,
+  pin = false
 ): PriceLineLayout[] {
   const height = fontSize + 8;
-  const sorted = [...views]
+  const half = height / 2;
+  const placed = views
     .filter((view) => Number.isFinite(view.y))
-    .sort((left, right) => left.y - right.y);
-  const centers = labelCenters(sorted, plotHeight, height);
+    .map((view) => {
+      const pinned: PriceLineLayout['pinned'] = !pin
+        ? null
+        : view.y < 0
+          ? 'top'
+          : view.y > plotHeight
+            ? 'bottom'
+            : null;
+      // A pinned label is placed at the edge, one at the top of the plot by its first edge.
+      const y = pinned === 'top' ? half : pinned === 'bottom' ? plotHeight - half : view.y;
+      return { view, pinned, at: pin && !pinned ? Math.max(view.y, half) : y };
+    })
+    .sort((left, right) => left.at - right.at || left.view.y - right.view.y);
+  const centers = labelCenters(
+    placed.map(({ view, at }) => ({ ...view, y: at })),
+    plotHeight,
+    height
+  );
 
-  return sorted.map((view, index) => {
-    const textWidth = view.text ? measure(view.text, fontSize) + LABEL_PADDING * 2 : 0;
+  return placed.map(({ view, pinned }, index) => {
+    const arrow = pinned ? ARROW_WIDTH : 0;
+    const text = view.text ? measure(view.text, fontSize) + LABEL_PADDING * 2 : 0;
+    const textWidth = text + arrow;
     const buttonWidths = view.buttons.map(
       (button) =>
         button.width ??
@@ -212,7 +250,15 @@ export function layoutPriceLines(
       return { button, rect };
     });
 
-    return { view, labelY, label: { x: left, y: top, width, height }, textWidth, buttons };
+    return {
+      view,
+      labelY,
+      label: { x: left, y: top, width, height },
+      pinned,
+      arrow,
+      textWidth,
+      buttons
+    };
   });
 }
 
@@ -253,7 +299,8 @@ export function hitPriceLines(
 
   for (const layout of layouts) {
     if (contains(layout.label, point)) {
-      return { id: layout.view.id, part: 'label', priority: HitPriority.label, distance: 0 };
+      const part = layout.pinned ? 'pinned' : 'label';
+      return { id: layout.view.id, part, priority: HitPriority.label, distance: 0 };
     }
   }
 
@@ -302,7 +349,7 @@ export function paintPriceLines(
     const top = plot.y + label.y;
     const left = plot.x + label.x;
 
-    if (layout.labelY !== view.y) {
+    if (layout.labelY !== view.y && !layout.pinned) {
       ctx.beginPath();
       ctx.moveTo(left + label.width / 2, y);
       ctx.lineTo(left + label.width / 2, top);
@@ -315,10 +362,28 @@ export function paintPriceLines(
     ctx.roundRect(left, top, label.width, label.height, 3);
     ctx.fill();
 
+    if (layout.pinned) {
+      // An arrow towards the line, which lies beyond the edge the label is kept at.
+      const x = left + layout.arrow / 2 + 1;
+      const middle = top + label.height / 2;
+      const tip = layout.pinned === 'top' ? -1 : 1;
+      ctx.fillStyle = options.textColor;
+      ctx.beginPath();
+      ctx.moveTo(x, middle + tip * 4);
+      ctx.lineTo(x - 4, middle - tip * 3);
+      ctx.lineTo(x + 4, middle - tip * 3);
+      ctx.closePath();
+      ctx.fill();
+    }
+
     if (view.text) {
       ctx.fillStyle = options.textColor;
       ctx.textAlign = 'center';
-      ctx.fillText(view.text, left + layout.textWidth / 2, top + label.height / 2 + 0.5);
+      ctx.fillText(
+        view.text,
+        left + layout.arrow + (layout.textWidth - layout.arrow) / 2,
+        top + label.height / 2 + 0.5
+      );
     }
 
     for (const { button, rect } of layout.buttons) {

@@ -30,6 +30,8 @@ export interface SavedIndicator {
   /** The timeframe it is computed in, such as `1h`; absent for the chart's bars. */
   readonly timeframe?: string;
   readonly visible: boolean;
+  /** Its latest values are marked on the price axis; absent for not. */
+  readonly lastValueLabel?: boolean;
   readonly colors: Readonly<Record<string, string>>;
   readonly styles?: Readonly<Record<string, IndicatorOutputStyle>>;
   /** Reference lines in place of the type's; absent for the type's. */
@@ -200,6 +202,7 @@ export class ChartIndicators {
             source: info.source,
             ...(info.timeframe === null ? {} : { timeframe: info.timeframe }),
             visible: info.visible,
+            ...(info.lastValueLabel ? { lastValueLabel: true } : {}),
             colors: info.colors,
             styles: info.styles,
             ...(info.levels === null ? {} : { levels: info.levels })
@@ -226,6 +229,9 @@ export class ChartIndicators {
           ...(indicator.timeframe !== undefined ? { timeframe: indicator.timeframe } : {}),
           ...(indicator.scale !== undefined ? { scale: indicator.scale } : {}),
           visible: indicator.visible,
+          ...(indicator.lastValueLabel === undefined
+            ? {}
+            : { lastValueLabel: indicator.lastValueLabel }),
           colors: { ...indicator.colors },
           ...(indicator.styles !== undefined ? { styles: structuredClone(indicator.styles) } : {}),
           ...(indicator.levels !== undefined ? { levels: [...indicator.levels] } : {})

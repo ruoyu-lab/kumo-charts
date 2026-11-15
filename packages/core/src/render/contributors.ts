@@ -35,8 +35,8 @@ export interface Contributor {
    */
   rebase?(mode: 'percent' | 'indexed', base: number): void;
   emit(scale: PriceScale, jobs: PlotJob[]): void;
-  /** The latest value to mark on the axis of its scale, as placed there, in its color. */
-  latest?(): { readonly value: number; readonly color: string } | null;
+  /** The latest values to mark on the axis of its scale, as placed there, each in its color. */
+  latest?(): ReadonlyArray<{ readonly value: number; readonly color: string }>;
 }
 
 /** Palette color `index`, cycling through the palette, which a theme never leaves empty. */

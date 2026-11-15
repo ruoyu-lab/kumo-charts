@@ -62,6 +62,13 @@ export const HitPriority = {
   body: 10
 } as const;
 
+/** Where an object lies on a price scale: a value of a scale of a pane. */
+export interface ObjectPlace {
+  readonly pane: string;
+  readonly scale: string;
+  readonly value: number;
+}
+
 /** One kind of chart object: drawings, orders, alerts or markers. */
 export interface ObjectDomain {
   readonly kind: ObjectKind;
@@ -76,6 +83,8 @@ export interface ObjectDomain {
   has(id: string): boolean;
   /** Opens the editor of an object the user double-clicked; returns whether one opened. */
   edit?(id: string): boolean;
+  /** Where the line a label kept at an edge of the plot stands for lies, to bring into view. */
+  reveal?(context: ObjectContext, target: HitTarget): ObjectPlace | null;
 }
 
 /** x of the center of the bar a time falls in, in plot coordinates, beyond the bars too. */

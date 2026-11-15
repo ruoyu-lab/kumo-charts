@@ -159,13 +159,13 @@ export class SeriesContributor implements Contributor {
    * Its latest close or value, when it shows a label of it: in the color of its line, or of a
    * rising or falling bar.
    */
-  latest(): { value: number; color: string } | null {
+  latest(): Array<{ value: number; color: string }> {
     const { bars: store, values, lastValueLabel } = this.entry;
     const last = ((store ?? values)?.length ?? 0) - 1;
     const value = store ? store.close(last) : (values?.value(last) ?? Number.NaN);
 
     if (!lastValueLabel || !Number.isFinite(value)) {
-      return null;
+      return [];
     }
 
     const { theme } = this.sources.options;
@@ -181,10 +181,12 @@ export class SeriesContributor implements Contributor {
       downColor?: string;
     };
     const up = !store || value >= store.open(last);
-    return {
-      value: this.placed(value),
-      color: style.color ?? (up ? (style.upColor ?? theme.up) : (style.downColor ?? theme.down))
-    };
+    return [
+      {
+        value: this.placed(value),
+        color: style.color ?? (up ? (style.upColor ?? theme.up) : (style.downColor ?? theme.down))
+      }
+    ];
   }
 
   emit(scale: PriceScale, jobs: PlotJob[]): void {

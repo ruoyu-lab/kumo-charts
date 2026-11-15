@@ -36,6 +36,7 @@ const INPUT_FIELDS = fieldsOf<IndicatorInput>({
   source: true,
   timeframe: true,
   visible: true,
+  lastValueLabel: true,
   colors: true,
   styles: true,
   levels: true
@@ -46,6 +47,7 @@ const PATCH_FIELDS = fieldsOf<IndicatorPatch>({
   source: true,
   timeframe: true,
   visible: true,
+  lastValueLabel: true,
   scale: true,
   colors: true,
   styles: true,
@@ -191,6 +193,10 @@ export function parseSettings(definition: IndicatorRules, input: IndicatorInput)
     outputs,
     fills,
     visible: input.visible === undefined ? true : checkBoolean('indicator.visible', input.visible),
+    lastValueLabel:
+      input.lastValueLabel === undefined
+        ? false
+        : checkBoolean('indicator.lastValueLabel', input.lastValueLabel),
     colors: byOutput(input.type, {}, input.colors, outputs, 'colors', checkColor),
     styles: byOutput(input.type, {}, input.styles, outputs, 'styles', checkStyle),
     levels: input.levels === undefined ? null : checkLevels(input.levels)

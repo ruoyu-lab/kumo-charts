@@ -334,6 +334,11 @@ export interface IndicatorInput {
    */
   timeframe?: IntervalInput | null;
   visible?: boolean;
+  /**
+   * Marks the latest value of each of its lines and histograms on the price axis, in their colors,
+   * as the latest price is. Default `false`.
+   */
+  lastValueLabel?: boolean;
   /** Color overrides keyed by output key. */
   colors?: Record<string, string>;
   /** How outputs are drawn, keyed by output key: shown or not, the width and style of lines. */
@@ -371,6 +376,7 @@ export interface IndicatorPatch {
   /** The timeframe it is computed in; `null` for the chart's bars. */
   timeframe?: IntervalInput | null;
   visible?: boolean;
+  lastValueLabel?: boolean;
   scale?: string;
   colors?: Record<string, string | null>;
   styles?: Record<string, IndicatorOutputStyle | null>;
@@ -390,6 +396,8 @@ export interface Indicator {
    */
   readonly timeframe: string | null;
   readonly visible: boolean;
+  /** Its latest values are marked on the price axis. */
+  readonly lastValueLabel: boolean;
   readonly colors: Readonly<Record<string, string>>;
   readonly styles: Readonly<Record<string, Readonly<IndicatorOutputStyle>>>;
   /** The reference lines set in place of the type's, or `null` for the type's. */

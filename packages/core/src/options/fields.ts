@@ -50,7 +50,8 @@ const SECTION_FIELDS: {
     margins: true,
     precision: true,
     formatter: true,
-    minWidth: true
+    minWidth: true,
+    pinLabels: true
   }),
   latestPrice: fieldsOf<LatestPriceOptions>({
     line: true,

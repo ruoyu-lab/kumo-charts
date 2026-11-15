@@ -51,7 +51,8 @@ export function createDefaultOptions(sections: readonly OptionsSection[] = []): 
       margins: { top: 0.1, bottom: 0.08 },
       precision: 'auto',
       formatter: null,
-      minWidth: 48
+      minWidth: 48,
+      pinLabels: true
     },
     latestPrice: {
       line: true,

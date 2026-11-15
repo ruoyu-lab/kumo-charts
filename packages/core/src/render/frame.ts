@@ -471,16 +471,18 @@ function buildPass(
           : contributor.scale === LEFT_SCALE
             ? 'left'
             : null;
-      const latest = side ? contributor.latest?.() : null;
 
-      if (side && latest) {
+      if (side) {
         const pane = { id: entry.id, scale, format: contributor.format };
-        marks.push({
-          side,
-          y: scale.valueToY(latest.value),
-          text: formatPaneValue(sources, pane, latest.value),
-          color: latest.color
-        });
+
+        for (const latest of contributor.latest?.() ?? []) {
+          marks.push({
+            side,
+            y: scale.valueToY(latest.value),
+            text: formatPaneValue(sources, pane, latest.value),
+            color: latest.color
+          });
+        }
       }
     });
     const labelsOf = (scale: PriceScale, format: ValueFormat) => {

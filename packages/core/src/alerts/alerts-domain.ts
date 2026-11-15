@@ -11,11 +11,13 @@ import {
   type ObjectContext,
   type ObjectDomain,
   type ObjectHit,
-  type ObjectPaintContext
+  type ObjectPaintContext,
+  type ObjectPlace
 } from '../objects/types';
 import {
   draggedValue,
   hitPriceLines,
+  isPinned,
   layoutPriceLines,
   paintPriceLines,
   type PriceDragEvent,
@@ -199,7 +201,8 @@ export class AlertsDomain implements ObjectDomain, Collection<AlertInput, Alert>
                 pane.plot.width,
                 pane.plot.height,
                 context.options.font.size,
-                (text, size) => context.measureText(text, font(size, context.options.font.family))
+                (text, size) => context.measureText(text, font(size, context.options.font.family)),
+                context.options.priceScale.pinLabels
               )
             }
           ]
@@ -225,7 +228,8 @@ export class AlertsDomain implements ObjectDomain, Collection<AlertInput, Alert>
       const config = line ? this.book.config(line.id) : undefined;
 
       if (hit && line && config) {
-        const draggable = config.draggable && !hit.part.startsWith('button:');
+        const draggable =
+          config.draggable && !hit.part.startsWith('button:') && !isPinned(hit.part);
         return {
           target: {
             kind: 'alert',
@@ -241,6 +245,24 @@ export class AlertsDomain implements ObjectDomain, Collection<AlertInput, Alert>
     }
 
     return null;
+  }
+
+  reveal(_context: ObjectContext, target: HitTarget): ObjectPlace | null {
+    const config = this.book.config(target.id);
+    const bound = /:(\d)$/.exec(target.part)?.[1];
+    const line = config
+      ? linesOf(config).find((each) => each.bound === (bound === undefined ? null : Number(bound)))
+      : undefined;
+
+    if (!config || !line) {
+      return null;
+    }
+
+    return {
+      pane: this.host.reader.paneOf(config.source),
+      scale: this.host.reader.scaleOf(config.source),
+      value: line.value
+    };
   }
 
   /** Drags the alert's level, or the bound of its channel whose line the target is. */

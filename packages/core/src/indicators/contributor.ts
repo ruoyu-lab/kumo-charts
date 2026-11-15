@@ -327,6 +327,35 @@ class IndicatorContributor implements Contributor {
     }
   }
 
+  /**
+   * The latest value of each line and histogram it draws, in the color the legend shows it in,
+   * when it shows labels of them on the axis.
+   */
+  latest(): Array<{ value: number; color: string }> {
+    const { entry } = this;
+
+    if (!entry.lastValueLabel) {
+      return [];
+    }
+
+    const last = this.sources.bars.length - 1;
+    const { theme } = this.sources.options;
+    return entry.outputs.flatMap((output, column) => {
+      const { kind } = output.plot;
+      const value = entry.series.drawn(column, last);
+
+      if (
+        !drawn(entry, output) ||
+        !(kind === 'line' || kind === 'segments' || kind === 'histogram') ||
+        !Number.isFinite(value)
+      ) {
+        return [];
+      }
+
+      return [{ value, color: valueColor(entry, output, column, last, this.colors, theme) }];
+    });
+  }
+
   emit(scale: PriceScale, jobs: PlotJob[]): void {
     const { outputs, fills, definition, params, id, series } = this.entry;
     const { timeScale, options, seriesTypes } = this.sources;

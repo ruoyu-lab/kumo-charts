@@ -11,6 +11,7 @@ import type {
 import { LEFT_SCALE, MAIN_PANE_ID, RIGHT_SCALE } from '../panes/pane-store';
 import type { Frame } from '../render/frame';
 import { clamp } from '../utils/math';
+import { isPinned } from '../objects/price-line';
 import type { ChartCore } from './chart-core';
 import { crosshairAt } from './cursor';
 import type { ChartPointerEvent } from './events';
@@ -328,6 +329,10 @@ export function createInteractionHost(core: ChartCore): InteractionHost {
             buttonId: target.part.slice('button:'.length)
           });
           return;
+        }
+
+        if (target && isPinned(target.part)) {
+          core.revealPinned(target);
         }
 
         core.selectByUser(target ? { kind: target.kind, id: target.id } : null);

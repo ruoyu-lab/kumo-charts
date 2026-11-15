@@ -140,6 +140,7 @@ function validateOptions(options: ChartOptions): void {
 
   checkFunctionOrNull('options.priceScale.formatter', price.formatter);
   checkNumber('options.priceScale.minWidth', price.minWidth, { min: 0 });
+  checkBoolean('options.priceScale.pinLabels', price.pinLabels);
 
   checkBoolean('options.latestPrice.line', options.latestPrice.line);
   checkBoolean('options.latestPrice.label', options.latestPrice.label);

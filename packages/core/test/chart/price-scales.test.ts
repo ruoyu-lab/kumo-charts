@@ -417,6 +417,40 @@ describe('price scales', () => {
     expect(cursorTexts().filter((text) => text === price)).toHaveLength(1);
   });
 
+  it('labels the latest value of each line of an indicator on the axis, when it is asked to', () => {
+    const chart = chartWithBars(200);
+    const axisTexts = () => {
+      const canvas = chart.element.querySelector<HTMLCanvasElement>('canvas[data-layer="cursor"]');
+      const calls = canvas ? canvasCalls(canvas) : [];
+      calls.length = 0;
+      chart.screenshot();
+      return calls.filter((call) => call.name === 'fillText').map((call) => String(call.args[0]));
+    };
+    chart.indicators.add({ id: 'ma', type: 'MA', params: { periods: [5, 20] } });
+    const values = chart.indicators.valuesAt('ma');
+    expect(values).toHaveLength(2);
+
+    // Off by default: the legend writes the values, the axis does not.
+    expect(chart.indicators.get('ma')?.lastValueLabel).toBe(false);
+    const before = axisTexts();
+    expect(values.filter((value) => before.includes(value.text))).toHaveLength(0);
+
+    chart.indicators.update('ma', { lastValueLabel: true });
+    const labelled = axisTexts();
+    expect(values.filter((value) => labelled.includes(value.text))).toHaveLength(2);
+
+    // It is kept with the state, and turned off again.
+    const saved = chart.saveState();
+    expect(saved.indicators).toMatchObject([{ id: 'ma', lastValueLabel: true }]);
+    chart.indicators.remove('ma');
+    chart.loadState(saved);
+    expect(chart.indicators.get('ma')?.lastValueLabel).toBe(true);
+    chart.indicators.update('ma', { lastValueLabel: false });
+    expect(axisTexts().filter((text) => values.some((value) => value.text === text))).toHaveLength(
+      0
+    );
+  });
+
   it('moves labels of series apart, around the latest price, where they overlap', () => {
     // Labels 20 pixels tall; the latest price's from 100 to 134, with its countdown.
     const fixed = { top: 100, bottom: 134 };

@@ -44,6 +44,51 @@ describe('price line labels', () => {
   });
 });
 
+describe('pinned price line labels', () => {
+  const pinned = (views: PriceLineView[]) =>
+    layoutPriceLines(views, 400, 300, 12, measure, true).map((label) => ({
+      id: label.view.id,
+      y: label.labelY,
+      pinned: label.pinned
+    }));
+
+  it('stay at the edge the line lies beyond, stacked in the order of their lines', () => {
+    expect(
+      pinned([view('a', -50), view('b', -30), view('c', 150), view('d', 400), view('e', 380)])
+    ).toEqual([
+      { id: 'a', y: 10, pinned: 'top' },
+      { id: 'b', y: 32, pinned: 'top' },
+      { id: 'c', y: 150, pinned: null },
+      { id: 'e', y: 268, pinned: 'bottom' },
+      { id: 'd', y: 290, pinned: 'bottom' }
+    ]);
+  });
+
+  it('keep a label that would be cut by the top edge inside the plot, with its line in view', () => {
+    expect(pinned([view('a', 3)])).toEqual([{ id: 'a', y: 10, pinned: null }]);
+  });
+
+  it('give way to the label of a line in view that lies where they stack', () => {
+    const labels = pinned([view('a', -50), view('b', 12)]);
+
+    expect(labels.map((label) => label.y)).toEqual([10, 32]);
+  });
+
+  it('are only made when asked to: off, a label stays with its line out of the plot', () => {
+    const labels = layoutPriceLines([view('a', -50)], 400, 300, 12, measure);
+
+    expect(labels.map((label) => [label.labelY, label.pinned])).toEqual([[-50, null]]);
+  });
+
+  it('make room for the arrow, which the label starts with', () => {
+    const [plain] = layoutPriceLines([view('a', 100)], 400, 300, 12, measure);
+    const [edge] = layoutPriceLines([view('a', -100)], 400, 300, 12, measure, true);
+
+    expect((edge?.label.width ?? 0) - (plain?.label.width ?? 0)).toBe(edge?.arrow);
+    expect(edge?.arrow).toBeGreaterThan(0);
+  });
+});
+
 describe('a dragged value', () => {
   /** A scale on which each pixel down is worth `pixel` less, from `top` at y 0. */
   const scale = (top: number, pixel: number) => ({ yToValue: (y: number) => top - y * pixel });

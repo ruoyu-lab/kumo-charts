@@ -44,6 +44,7 @@ export interface IndicatorEntry {
    */
   timeframe: Interval | null;
   visible: boolean;
+  lastValueLabel: boolean;
   colors: Record<string, string>;
   styles: Record<string, IndicatorOutputStyle>;
   /** Reference lines in place of the type's, or `null` for the type's. */
@@ -120,6 +121,7 @@ export class IndicatorStore {
       source: typeof entry.source === 'string' ? entry.source : { ...entry.source },
       timeframe: timeframe ? formatInterval(timeframe) : null,
       visible: entry.visible,
+      lastValueLabel: entry.lastValueLabel,
       colors: { ...entry.colors },
       styles: structuredClone(entry.styles),
       levels: entry.levels === null ? null : [...entry.levels]
@@ -310,6 +312,10 @@ export class IndicatorStore {
       patch.visible === undefined
         ? entry.visible
         : checkBoolean('indicator.visible', patch.visible);
+    const lastValueLabel =
+      patch.lastValueLabel === undefined
+        ? entry.lastValueLabel
+        : checkBoolean('indicator.lastValueLabel', patch.lastValueLabel);
     const scale =
       patch.scale === undefined ? entry.scale : checkString('indicator.scale', patch.scale);
 
@@ -327,6 +333,7 @@ export class IndicatorStore {
     entry.styles = styles;
     entry.levels = levels;
     entry.visible = visible;
+    entry.lastValueLabel = lastValueLabel;
     entry.scale = scale;
     this.release();
   }

@@ -539,10 +539,10 @@ test('keeps a drawing on the bar its time falls in on every timeframe', async ({
   for (const timeframe of ['15m', '1h', '4h', '1d']) {
     // Where the arrow stands against the center of the bar its time falls in.
     const offset = await page.evaluate(
-      ([value, time]) => {
+      ({ value, time }) => {
         const chart = window.chart;
-        chart?.data.setTimeframe(value ?? '');
-        const containing = chart?.data.toArray().findLast((bar) => bar.time <= (time ?? 0));
+        chart?.data.setTimeframe(value);
+        const containing = chart?.data.toArray().findLast((bar) => bar.time <= time);
         const box = chart?.drawings.bounds('mark');
 
         if (!chart || !containing || !box) {
@@ -551,11 +551,65 @@ test('keeps a drawing on the bar its time falls in on every timeframe', async ({
 
         return box.x + box.width / 2 - (chart.timeScale.timeToX(containing.time) ?? Number.NaN);
       },
-      [timeframe, placed]
+      { value: timeframe, time: placed }
     );
 
     expect(Math.abs(offset), timeframe).toBeLessThan(1);
   }
+});
+
+test('keeps the label of an order beyond the plot at its edge, and a click brings the line in', async ({
+  page
+}) => {
+  const price = await page.evaluate(() => {
+    const high = Math.max(...(window.chart?.data.toArray().map((bar) => bar.high) ?? [0]));
+    window.chart?.orders.add({ id: 'far', side: 'sell', price: high * 1.5, label: 'TP' });
+    return high * 1.5;
+  });
+  const lineY = () => page.evaluate((value) => window.chart?.priceScale().priceToY(value), price);
+  const box = await page.locator('#chart').boundingBox();
+  const layout = await page.evaluate(() => window.chart?.layout());
+  const plot = layout?.panes[0]?.plot;
+
+  if (!box || !plot) {
+    throw new Error('The chart has no layout.');
+  }
+
+  // The line is above the plot; its label is at the top edge, in reach of the pointer.
+  expect(await lineY()).toBeLessThan(0);
+  const label = { x: box.x + plot.width - 20, y: box.y + plot.y + 10 };
+  await page.mouse.move(label.x, label.y);
+  await page.mouse.down();
+  await page.mouse.move(label.x, label.y + 40, { steps: 4 });
+  await page.mouse.up();
+
+  // Pressing and moving did not drag the order away: it is not draggable by its pinned label.
+  expect(await page.evaluate(() => window.chart?.orders.get('far')?.price)).toBe(price);
+
+  await page.mouse.click(label.x, label.y);
+  const y = await lineY();
+  expect(y).toBeGreaterThan(0);
+  expect(y).toBeLessThan(plot.height);
+  expect(await page.evaluate(() => window.chart?.orders.get('far')?.price)).toBe(price);
+});
+
+test('leaves a label out of sight with its line when it is not to be pinned', async ({ page }) => {
+  await page.evaluate(() => {
+    window.chart?.applyOptions({ priceScale: { pinLabels: false } });
+    const high = Math.max(...(window.chart?.data.toArray().map((bar) => bar.high) ?? [0]));
+    window.chart?.orders.add({ id: 'far', side: 'sell', price: high * 1.5 });
+  });
+  const box = await page.locator('#chart').boundingBox();
+  const layout = await page.evaluate(() => window.chart?.layout());
+  const plot = layout?.panes[0]?.plot;
+
+  if (!box || !plot) {
+    throw new Error('The chart has no layout.');
+  }
+
+  const before = await page.evaluate(() => window.chart?.priceScale().range());
+  await page.mouse.click(box.x + plot.width - 20, box.y + plot.y + 10);
+  expect(await page.evaluate(() => window.chart?.priceScale().range())).toEqual(before);
 });
 
 test('replays from a bar, steps forward and returns to live', async ({ page }) => {

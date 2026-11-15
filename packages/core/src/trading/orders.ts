@@ -3,8 +3,14 @@ import { font as cssFont } from '../canvas/canvas';
 import { IconCache } from '../canvas/icon-cache';
 import type { DragSession, HitTarget, Point } from '../interaction/types';
 import { LINE_STYLES, type LineStyle } from '../options/types';
-import { MAIN_PANE_ID } from '../panes/pane-store';
-import type { ObjectContext, ObjectDomain, ObjectHit, ObjectPaintContext } from '../objects/types';
+import { MAIN_PANE_ID, RIGHT_SCALE } from '../panes/pane-store';
+import type {
+  ObjectContext,
+  ObjectDomain,
+  ObjectHit,
+  ObjectPaintContext,
+  ObjectPlace
+} from '../objects/types';
 import type { PaneFrame } from '../render/frame';
 import { paneOf } from '../objects/types';
 import { replacement, type Collection } from '../chart/api/collection';
@@ -21,6 +27,7 @@ import {
 import {
   draggedValue,
   hitPriceLines,
+  isPinned,
   layoutPriceLines,
   paintPriceLines,
   validateButtons,
@@ -206,8 +213,13 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
       });
     }
 
-    return layoutPriceLines(views, pane.plot.width, pane.plot.height, font.size, (text, size) =>
-      context.measureText(text, cssFont(size, font.family))
+    return layoutPriceLines(
+      views,
+      pane.plot.width,
+      pane.plot.height,
+      font.size,
+      (text, size) => context.measureText(text, cssFont(size, font.family)),
+      context.options.priceScale.pinLabels
     );
   }
 
@@ -230,7 +242,8 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
     }
 
     const button = hit.part.startsWith('button:');
-    const draggable = order.draggable && !button;
+    // A label kept at an edge is clicked to bring its line into view, not dragged.
+    const draggable = order.draggable && !button && !isPinned(hit.part);
     return {
       target: {
         kind: 'order',
@@ -242,6 +255,11 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
       priority: hit.priority,
       distance: hit.distance
     };
+  }
+
+  reveal(_context: ObjectContext, target: HitTarget): ObjectPlace | null {
+    const order = this.orders.get(target.id);
+    return order ? { pane: MAIN_PANE_ID, scale: RIGHT_SCALE, value: order.price } : null;
   }
 
   beginDrag(context: ObjectContext, target: HitTarget): DragSession | null {
