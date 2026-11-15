@@ -516,6 +516,48 @@ test('builds every timeframe from the same source bars', async ({ page }) => {
   expect(hour.length).toBe(50);
 });
 
+test('keeps a drawing on the bar its time falls in on every timeframe', async ({ page }) => {
+  // An arrow on one 15-minute bar, 45 minutes into its hour and four-hour period.
+  const placed = await page.evaluate(() => {
+    const chart = window.chart;
+    const bar = chart?.data
+      .toArray()
+      .findLast((each) => each.time % (4 * 3_600_000) === 2.75 * 3_600_000);
+
+    if (!chart || !bar) {
+      throw new Error('No bar to mark.');
+    }
+
+    chart.drawings.add({
+      id: 'mark',
+      type: 'arrow-mark-down',
+      points: [{ time: bar.time, price: bar.high }]
+    });
+    return bar.time;
+  });
+
+  for (const timeframe of ['15m', '1h', '4h', '1d']) {
+    // Where the arrow stands against the center of the bar its time falls in.
+    const offset = await page.evaluate(
+      ([value, time]) => {
+        const chart = window.chart;
+        chart?.data.setTimeframe(value ?? '');
+        const containing = chart?.data.toArray().findLast((bar) => bar.time <= (time ?? 0));
+        const box = chart?.drawings.bounds('mark');
+
+        if (!chart || !containing || !box) {
+          throw new Error('The arrow or its bar is not shown.');
+        }
+
+        return box.x + box.width / 2 - (chart.timeScale.timeToX(containing.time) ?? Number.NaN);
+      },
+      [timeframe, placed]
+    );
+
+    expect(Math.abs(offset), timeframe).toBeLessThan(1);
+  }
+});
+
 test('replays from a bar, steps forward and returns to live', async ({ page }) => {
   await page.evaluate(() => {
     const close = window.chart?.data.last()?.close ?? 0;
