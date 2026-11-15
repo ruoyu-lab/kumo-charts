@@ -47,6 +47,28 @@ export function logicalIndex(bars: BarsView, interval: number | null, time: numb
   return index + (time - start) / (bars.time(index + 1) - start);
 }
 
+/**
+ * Whole logical index of the bar whose period contains `time`: what a time is on the bars of a
+ * chart, whatever interval it was set on. A time of a smaller interval, such as a 15-minute bar
+ * seen on daily bars, stands on the daily bar it falls in, not between that bar and the next.
+ * Beyond the bars the periods go on with the interval. `NaN` as {@link logicalIndex} has it.
+ */
+export function barIndex(bars: BarsView, interval: number | null, time: number): number {
+  if (interval === null) {
+    return bars.length === 1 && time === bars.time(0) ? 0 : Number.NaN;
+  }
+
+  const last = bars.length - 1;
+
+  if (time < bars.time(0)) {
+    return Math.floor((time - bars.time(0)) / interval);
+  }
+
+  const after = bars.lowerBound(time);
+  const index = after < bars.length && bars.time(after) === time ? after : after - 1;
+  return index >= last ? last + Math.floor((time - bars.time(last)) / interval) : index;
+}
+
 /** Time at a continuous logical index, the inverse of {@link logicalIndex}. */
 export function logicalTime(bars: BarsView, interval: number | null, logical: number): number {
   if (interval === null) {

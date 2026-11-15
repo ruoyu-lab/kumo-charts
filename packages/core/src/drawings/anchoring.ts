@@ -1,7 +1,8 @@
 import type { Modifiers, Point } from '../interaction/types';
 import { MAIN_PANE_ID } from '../panes/pane-store';
 import type { PaneFrame } from '../render/frame';
-import { timeToX, type ObjectContext } from '../objects/types';
+import { exactTimeToX, timeToX, type ObjectContext } from '../objects/types';
+import type { BarPositions } from './levels';
 import type { MagnetMode } from './options';
 import type { DrawingPoint } from './types';
 
@@ -37,13 +38,28 @@ export function placeable(anchor: DrawingPoint): boolean {
   return Number.isFinite(anchor.time) && Number.isFinite(anchor.price);
 }
 
-/** Plot-relative position of an anchor in `pane`. */
+/**
+ * Plot-relative position of an anchor in `pane`: on the center of the bar its time falls in,
+ * whichever interval it was placed on, or with `exact`, as a stroke drawn by hand has it, where
+ * its time is between the bars.
+ */
 export function anchorPosition(
   context: Pick<ObjectContext, 'bars' | 'timeScale'>,
   pane: PaneFrame,
-  anchor: DrawingPoint
+  anchor: DrawingPoint,
+  exact = false
 ): Point {
-  return { x: timeToX(context, anchor.time), y: pane.scale.valueToY(anchor.price) };
+  const x = exact ? exactTimeToX(context, anchor.time) : timeToX(context, anchor.time);
+  return { x, y: pane.scale.valueToY(anchor.price) };
+}
+
+/**
+ * An anchor as the bars show it: its time moved to the start of the bar it falls in, so that a
+ * drawing placed on 15-minute bars stands on the daily bar of its time, not between two of them.
+ */
+export function anchorOnBars(bars: BarPositions, anchor: DrawingPoint): DrawingPoint {
+  const time = bars.timeOfLogicalIndex(bars.barIndexOf(anchor.time));
+  return Number.isFinite(time) ? { time, price: anchor.price } : anchor;
 }
 
 /** The anchor right under a plot-relative point, between bars too: a stroke drawn by hand. */

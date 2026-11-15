@@ -58,13 +58,17 @@ function translated(
   pane: PaneFrame,
   original: readonly DrawingPoint[],
   start: DragStart,
-  position: Point
+  position: Point,
+  exact: boolean
 ): DrawingPoint[] {
   const { timeScale, bars } = context;
   const steps = Math.round(timeScale.xToIndex(position.x) - start.index);
   const shift = pane.scale.yToScale(position.y) - start.value;
   return original.map((anchor) => ({
-    time: bars.timeOfLogicalIndex(bars.logicalIndexOf(anchor.time) + steps),
+    // A stroke drawn by hand keeps its times between the bars; any other anchor lands on a bar.
+    time: bars.timeOfLogicalIndex(
+      (exact ? bars.logicalIndexOf(anchor.time) : bars.barIndexOf(anchor.time)) + steps
+    ),
     price: pane.scale.fromScale((pane.scale.toScale(anchor.price) ?? Number.NaN) + shift)
   }));
 }
@@ -135,7 +139,7 @@ export function beginDrawingDrag(
       const style = styleOf(current, entry);
       const points =
         handle === null
-          ? translated(current, pane, original, start, position)
+          ? translated(current, pane, original, start, position, entry.definition.freehand === true)
           : moveHandle(
               entry.definition,
               original,

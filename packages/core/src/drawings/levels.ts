@@ -17,6 +17,8 @@ export const LOG_SCALE: LevelScale = {
 /** Continuous positions of times among bars, between them and beyond, as a chart lays them out. */
 export interface BarPositions {
   logicalIndexOf(time: number): number;
+  /** The whole index of the bar a time falls in. */
+  barIndexOf(time: number): number;
   timeOfLogicalIndex(logical: number): number;
 }
 

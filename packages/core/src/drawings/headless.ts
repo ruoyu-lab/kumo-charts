@@ -1,10 +1,11 @@
 import { BarStore } from '../data/bar-store';
-import { logicalIndex, logicalTime, typicalInterval } from '../data/positions';
+import { barIndex, logicalIndex, logicalTime, typicalInterval } from '../data/positions';
 import type { BarInput, BarsView } from '../data/types';
 import { createDefaultOptions } from '../options/defaults';
 import type { ChartOptions } from '../options/types';
 import { checkArray, checkFields, checkObject, checkOneOf, fieldsOf } from '../utils/validate';
 import { validateDefinition } from './api';
+import { anchorOnBars } from './anchoring';
 import { checkPointCount, parsePoints } from './drawing-store';
 import { LINEAR_SCALE, LOG_SCALE, levelContext, levelValue, type BarPositions } from './levels';
 import { checkStyle, resolveStyle } from './style';
@@ -62,6 +63,7 @@ function positionsOf(bars: BarsView): BarPositions {
   const { interval } = entry;
   return {
     logicalIndexOf: (time) => logicalIndex(bars, interval, time),
+    barIndexOf: (time) => barIndex(bars, interval, time),
     timeOfLogicalIndex: (logical) => logicalTime(bars, interval, logical)
   };
 }
@@ -81,16 +83,14 @@ export function drawingLevels(
 ): DrawingLevel[] {
   validateDefinition(definition);
   checkObject('drawing', drawing);
-  const points = parsePoints(drawing.points, 'drawing.points');
-  checkPointCount(definition, points, definition.type);
+  const placed = parsePoints(drawing.points, 'drawing.points');
+  checkPointCount(definition, placed, definition.type);
+  // On the bars the lines are read from, as a chart with them draws the drawing.
+  const positions = positionsOf(bars);
+  const points = placed.map((point) => anchorOnBars(positions, point));
   const style = resolveStyle(defaultOptions(), definition, checkStyle(drawing.style ?? {}));
   return [
-    ...(definition.levels?.(
-      points,
-      scaleOf(options),
-      style,
-      levelContext(bars, positionsOf(bars))
-    ) ?? [])
+    ...(definition.levels?.(points, scaleOf(options), style, levelContext(bars, positions)) ?? [])
   ];
 }
 

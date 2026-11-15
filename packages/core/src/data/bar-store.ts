@@ -3,7 +3,7 @@ import { describeValue, fail } from '../utils/errors';
 import { ChangeLog } from './change-log';
 import { shiftStart, withRoom, type Column } from './columns';
 import { checkAscending } from './points';
-import { logicalIndex, logicalTime, typicalInterval } from './positions';
+import { barIndex, logicalIndex, logicalTime, typicalInterval } from './positions';
 import { toTime } from './time';
 import type { Bar, BarChange, BarInput, BarsView, PriceSource } from './types';
 
@@ -211,6 +211,11 @@ export class BarStore implements BarsView {
    */
   logicalIndexOf(time: number): number {
     return logicalIndex(this, this.interval(), time);
+  }
+
+  /** Whole logical index of the bar whose period contains `time`; see {@link barIndex}. */
+  barIndexOf(time: number): number {
+    return barIndex(this, this.interval(), time);
   }
 
   /** Time at a continuous logical index, the inverse of {@link logicalIndexOf}. */

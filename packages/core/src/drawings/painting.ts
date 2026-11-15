@@ -1,7 +1,7 @@
 import { applyStroke, isolated } from '../canvas/canvas';
-import { timeToX, type ObjectContext, type ObjectPaintContext } from '../objects/types';
+import { exactTimeToX, type ObjectContext, type ObjectPaintContext } from '../objects/types';
 import type { PaneFrame } from '../render/frame';
-import { anchorPosition } from './anchoring';
+import { anchorOnBars, anchorPosition } from './anchoring';
 import { anchorMarks, axisMarksOf, paintAxisMarks } from './axis-marks';
 import type { DrawingEntry } from './drawing-store';
 import { handleOf, handlesOf, paintHandles } from './handles';
@@ -69,9 +69,13 @@ export function geometryOf(
 ): DrawingGeometry {
   const style = styleOf(context, entry);
   const textFontValue = textFont(style, context.options.font.family);
+  // Anchors stand on the bars shown, whichever interval they were placed on; a stroke drawn by
+  // hand keeps its times between them.
+  const exact = entry.definition.freehand === true;
+  const anchors = exact ? points : points.map((point) => anchorOnBars(context.bars, point));
   return {
-    points: points.map((point) => anchorPosition(context, pane, point)),
-    anchors: points,
+    points: anchors.map((point) => anchorPosition(context, pane, point, exact)),
+    anchors,
     width: pane.plot.width,
     height: pane.plot.height,
     style,
@@ -81,7 +85,7 @@ export function geometryOf(
     textFont: textFontValue,
     valueToY: (value) => pane.scale.valueToY(value),
     yToValue: (y) => pane.scale.yToValue(y),
-    timeToX: (time) => timeToX(context, time),
+    timeToX: (time) => exactTimeToX(context, time),
     barIndex: (time) => context.bars.logicalIndexOf(time),
     bars: context.displayed,
     source: context.source,

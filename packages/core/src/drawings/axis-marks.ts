@@ -1,6 +1,6 @@
 import { drawLabel, font } from '../canvas/canvas';
 import { withAlpha } from '../canvas/color';
-import { timeToX, type ObjectPaintContext } from '../objects/types';
+import { exactTimeToX, type ObjectPaintContext } from '../objects/types';
 import type { PaneFrame } from '../render/frame';
 import type { DrawingAxisMarks, DrawingPoint, DrawingStyle, DrawingTypeDefinition } from './types';
 
@@ -72,7 +72,7 @@ export function paintAxisMarks(
   }
 
   const timeAxis = frame.layout.timeAxis;
-  const xs = marks.times.map((time) => timeToX(context, time));
+  const xs = marks.times.map((time) => exactTimeToX(context, time));
   const shownXs = xs.filter((x) => Number.isFinite(x));
 
   if (!timeAxis || shownXs.length === 0) {

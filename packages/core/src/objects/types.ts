@@ -78,8 +78,16 @@ export interface ObjectDomain {
   edit?(id: string): boolean;
 }
 
-/** x of a time in plot coordinates, interpolated and extrapolated between bars. */
+/** x of the center of the bar a time falls in, in plot coordinates, beyond the bars too. */
 export function timeToX(context: Pick<ObjectContext, 'bars' | 'timeScale'>, time: number): number {
+  return context.timeScale.indexToX(context.bars.barIndexOf(time));
+}
+
+/** x of a time in plot coordinates, interpolated and extrapolated between bars. */
+export function exactTimeToX(
+  context: Pick<ObjectContext, 'bars' | 'timeScale'>,
+  time: number
+): number {
   return context.timeScale.indexToX(context.bars.logicalIndexOf(time));
 }
 

@@ -196,3 +196,26 @@ describe('parseBar', () => {
     );
   });
 });
+
+describe('barIndexOf', () => {
+  const HOUR = 60 * MINUTE;
+  // Four-hour bars, 0, 4 and 8 hours after T0.
+  const store = new BarStore();
+  store.set(
+    [0, 1, 2].map((index) => ({ time: T0 + index * 4 * HOUR, open: 1, high: 2, low: 1, close: 1 }))
+  );
+
+  it('puts a time inside a bar on that bar, not between it and the next', () => {
+    expect(store.barIndexOf(T0 + 4 * HOUR)).toBe(1);
+    expect(store.barIndexOf(T0 + 4 * HOUR + 3 * HOUR + 45 * MINUTE)).toBe(1);
+    expect(store.barIndexOf(T0 + 8 * HOUR - 1)).toBe(1);
+    expect(store.logicalIndexOf(T0 + 7 * HOUR + 45 * MINUTE)).toBeCloseTo(1.9375, 6);
+  });
+
+  it('goes on with the interval beyond the bars, in either direction', () => {
+    expect(store.barIndexOf(T0 + 8 * HOUR + 3 * HOUR)).toBe(2);
+    expect(store.barIndexOf(T0 + 12 * HOUR)).toBe(3);
+    expect(store.barIndexOf(T0 - 1)).toBe(-1);
+    expect(store.barIndexOf(T0 - 4 * HOUR)).toBe(-1);
+  });
+});
