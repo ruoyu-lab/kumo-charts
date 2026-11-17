@@ -353,7 +353,9 @@ export function createInteractionHost(core: ChartCore): InteractionHost {
         }
 
         if (core.bus.has('doubleClick')) {
-          core.bus.emit('doubleClick', pointerEvent(core, point, core.hitTest(point)));
+          // On an axis the double click resets its scale: a drawing whose label lies there is not what it was meant for.
+          const target = region.kind === 'plot' ? core.hitTest(point) : null;
+          core.bus.emit('doubleClick', pointerEvent(core, point, target));
         }
       });
     },

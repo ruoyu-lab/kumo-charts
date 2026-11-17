@@ -251,6 +251,31 @@ describe('price scales', () => {
     expect(left.isAutoScale()).toBe(true);
   });
 
+  it('resets the price axis on a double click and reports no drawing there, though a ray reaches under the pointer', () => {
+    const chart = chartWithBars(200);
+    const { panes, leftAxisWidth, plotWidth } = chart.layout();
+    const range = chart.priceScale().range();
+    const price = ((range?.min ?? 0) + (range?.max ?? 0)) / 2;
+    const mid = (panes[0]?.plot.y ?? 0) + (chart.priceScale().priceToY(price) ?? 0);
+    chart.drawings.add({
+      type: 'ray',
+      points: [
+        { time: T0 + 100 * MINUTE, price },
+        { time: T0 + 120 * MINUTE, price }
+      ]
+    });
+    const events: ChartPointerEvent[] = [];
+    chart.on('doubleClick', (event) => events.push(event));
+    const axisX = leftAxisWidth + plotWidth + 10;
+
+    chart.element.dispatchEvent(
+      new MouseEvent('dblclick', { bubbles: true, clientX: axisX, clientY: mid })
+    );
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.target).toBeNull();
+  });
+
   it('lets the right scale follow the left one when nothing else is on the right', () => {
     const chart = chartWithBars(200);
     const pane = chart.indicators.get(chart.indicators.add({ type: 'RSI', scale: 'left' }))?.pane;
