@@ -28,9 +28,11 @@ import {
   draggedValue,
   hitPriceLines,
   isPinned,
+  LABEL_ALIGNS,
   layoutPriceLines,
   paintPriceLines,
   validateButtons,
+  type LabelAlign,
   type PriceLineButton,
   type PriceLineHost,
   type PriceLineLayout,
@@ -59,6 +61,8 @@ export interface OrderInput {
   color?: string;
   lineStyle?: LineStyle;
   buttons?: PriceLineButton[];
+  /** Where along the line its label is: `left`, `center` or `right` of the plot. Default `right`. */
+  labelAlign?: LabelAlign;
 }
 
 export interface Order {
@@ -73,6 +77,7 @@ export interface Order {
   readonly color: string | null;
   readonly lineStyle: LineStyle;
   readonly buttons: readonly PriceLineButton[];
+  readonly labelAlign: LabelAlign;
 }
 
 const ORDER_FIELDS = fieldsOf<OrderInput>({
@@ -86,7 +91,8 @@ const ORDER_FIELDS = fieldsOf<OrderInput>({
   visible: true,
   color: true,
   lineStyle: true,
-  buttons: true
+  buttons: true,
+  labelAlign: true
 });
 
 /** An order but for its id, which the domain gives it. */
@@ -117,7 +123,11 @@ function parseOrder(input: OrderInput, label = 'order'): OrderSettings {
       input.lineStyle === undefined
         ? 'dashed'
         : checkOneOf(`${label}.lineStyle`, input.lineStyle, LINE_STYLES),
-    buttons: validateButtons(input.buttons, `${label}.buttons`)
+    buttons: validateButtons(input.buttons, `${label}.buttons`),
+    labelAlign:
+      input.labelAlign === undefined
+        ? 'right'
+        : checkOneOf(`${label}.labelAlign`, input.labelAlign, LABEL_ALIGNS)
   };
 }
 
@@ -130,6 +140,7 @@ function orderInput(order: Order): OrderInput {
     visible: order.visible,
     lineStyle: order.lineStyle,
     buttons: order.buttons.map((button) => ({ ...button })),
+    labelAlign: order.labelAlign,
     ...(order.label !== null ? { label: order.label } : {}),
     ...(order.quantity !== null ? { quantity: order.quantity } : {}),
     ...(order.color !== null ? { color: order.color } : {})
@@ -209,7 +220,8 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
         axisText: this.host.formatValue(pane, order.price),
         buttons: order.buttons,
         lineStyle: order.lineStyle,
-        emphasized
+        emphasized,
+        align: order.labelAlign
       });
     }
 

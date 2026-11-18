@@ -133,7 +133,14 @@ export interface PriceLineView {
   readonly buttons: readonly PriceLineButton[];
   readonly lineStyle: LineStyle;
   readonly emphasized: boolean;
+  /** Where along the line its label is. Default `right`. */
+  readonly align?: LabelAlign;
 }
+
+/** Where along a price line its label is: at the left of the plot, its middle or its right. */
+export type LabelAlign = 'left' | 'center' | 'right';
+
+export const LABEL_ALIGNS: readonly LabelAlign[] = ['left', 'center', 'right'];
 
 export interface PriceLineLayout {
   readonly view: PriceLineView;
@@ -194,7 +201,8 @@ function labelCenters(
 }
 
 /**
- * Lays out the labels of price lines at the right of the plot, keeping them from overlapping.
+ * Lays out the labels of price lines at the right of the plot, or where each says, keeping those
+ * at the same place along the lines from overlapping.
  * With `pin`, the label of a line above or below the plot stays at the top or bottom edge, those
  * of several lines stacked there in the order of their lines, and no label leaves the plot.
  */
@@ -223,11 +231,25 @@ export function layoutPriceLines(
       return { view, pinned, at: pin && !pinned ? Math.max(view.y, half) : y };
     })
     .sort((left, right) => left.at - right.at || left.view.y - right.view.y);
-  const centers = labelCenters(
-    placed.map(({ view, at }) => ({ ...view, y: at })),
-    plotHeight,
-    height
-  );
+  // Labels at one place along the lines are kept apart from each other, not from those elsewhere.
+  const centers: number[] = [];
+
+  for (const align of LABEL_ALIGNS) {
+    const indexes = placed.flatMap(({ view }, index) =>
+      (view.align ?? 'right') === align ? [index] : []
+    );
+    const column = labelCenters(
+      indexes.map((index) => {
+        const { view, at } = placed[index] as (typeof placed)[number];
+        return { ...view, y: at };
+      }),
+      plotHeight,
+      height
+    );
+    indexes.forEach((index, at) => {
+      centers[index] = column[at] ?? 0;
+    });
+  }
 
   return placed.map(({ view, pinned }, index) => {
     const arrow = pinned ? ARROW_WIDTH : 0;
@@ -240,7 +262,13 @@ export function layoutPriceLines(
     );
     const width = textWidth + buttonWidths.reduce((sum, value) => sum + value, 0);
     const labelY = centers[index] ?? view.y;
-    const left = plotWidth - LABEL_MARGIN - width;
+    const align = view.align ?? 'right';
+    const left =
+      align === 'left'
+        ? LABEL_MARGIN
+        : align === 'center'
+          ? (plotWidth - width) / 2
+          : plotWidth - LABEL_MARGIN - width;
     const top = labelY - height / 2;
     let x = left + textWidth;
     const buttons = view.buttons.map((button, index) => {

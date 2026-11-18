@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { draggedValue, layoutPriceLines, type PriceLineView } from '../../src/objects/price-line';
+import {
+  draggedValue,
+  layoutPriceLines,
+  type LabelAlign,
+  type PriceLineView
+} from '../../src/objects/price-line';
 
 function view(id: string, y: number): PriceLineView {
   return {
@@ -41,6 +46,22 @@ describe('price line labels', () => {
     const labels = layoutPriceLines([view('a', 290), view('b', 400)], 400, 300, 12, measure);
 
     expect(labels.map((label) => label.labelY)).toEqual([290, 400]);
+  });
+
+  it('go at the left, the middle or the right of the plot, as each says, apart only from those at the same place', () => {
+    const at = (id: string, y: number, align?: LabelAlign): PriceLineView =>
+      align === undefined ? view(id, y) : { ...view(id, y), align };
+    const labels = layoutPriceLines(
+      [at('a', 50, 'left'), at('b', 52, 'center'), at('c', 54), at('d', 56, 'left')],
+      400,
+      300,
+      12,
+      measure
+    );
+    // Each label is 6 a letter and 6 each side: 18 wide; 8 from the edges.
+    expect(labels.map((label) => label.label.x)).toEqual([8, 191, 374, 8]);
+    // The two at the left are kept apart; the others stay at their lines.
+    expect(labels.map((label) => label.labelY)).toEqual([50, 52, 54, 72]);
   });
 });
 

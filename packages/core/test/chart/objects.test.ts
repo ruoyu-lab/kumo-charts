@@ -300,6 +300,24 @@ describe('orders', () => {
     }).toThrow('order.pull');
   });
 
+  it('keeps where along the line its label is, the right unless it says, and refuses a place that is none', () => {
+    const chart = chartWithBars(200);
+    chart.orders.set([
+      { id: 'o1', side: 'buy', price: 180 },
+      { id: 'o2', side: 'sell', price: 190, labelAlign: 'left' }
+    ]);
+
+    expect(chart.orders.get('o1')?.labelAlign).toBe('right');
+    expect(chart.orders.get('o2')?.labelAlign).toBe('left');
+    chart.orders.update('o2', { price: 191 });
+    expect(chart.orders.get('o2')?.labelAlign).toBe('left');
+    expect(() => {
+      chart.orders.set([
+        { id: 'o3', side: 'buy', price: 180, labelAlign: 'top' as unknown as 'left' }
+      ]);
+    }).toThrow('orders[0].labelAlign must be one of "left", "center", "right"');
+  });
+
   it('restores the price when the drag is cancelled with Escape', () => {
     const chart = chartWithBars(200);
     chart.orders.set([{ id: 'o1', side: 'sell', price: 180 }]);
