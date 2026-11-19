@@ -286,6 +286,12 @@ export function crosshairView(
     timeText,
     priceText:
       pane && crosshair.price !== null ? formatPaneValue(sources, pane, crosshair.price) : null,
+    priceLines:
+      pane && crosshair.price !== null && options.crosshair.priceLines
+        ? options.crosshair
+            .priceLines(crosshair.price, pane.id)
+            .filter((line) => typeof line === 'string' && line !== '')
+        : [],
     leftPriceText: pane?.left ? leftValueText(sources, pane, crosshair.y) : null
   };
 }

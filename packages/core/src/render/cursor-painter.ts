@@ -4,7 +4,7 @@ import { withAlpha } from '../canvas/color';
 import type { IconCache } from '../canvas/icon-cache';
 import type { Rect } from '../layout/layout';
 import { MAIN_PANE_ID } from '../panes/pane-store';
-import { LABEL_PADDING_X, timeLabelCenter } from './axis-covers';
+import { LABEL_PADDING_X, priceLabelSpan, timeLabelCenter } from './axis-covers';
 import { placeAxisLabels } from './axis-labels';
 import type { Frame } from './frame';
 
@@ -15,6 +15,8 @@ export interface CrosshairView {
   readonly y: number | null;
   readonly timeText: string | null;
   readonly priceText: string | null;
+  /** The lines under the price on the right axis (`crosshair.priceLines`); none without them. */
+  readonly priceLines: readonly string[];
   /** The value on the left axis of the pane, when it has one. */
   readonly leftPriceText: string | null;
 }
@@ -152,10 +154,14 @@ function paintCrosshair(
   };
 
   if (crosshair.priceText !== null && crosshair.y !== null && options.priceScale.visible) {
-    drawLabel(ctx, crosshair.priceText, frame.layout.plotWidth + 1, crosshair.y, {
-      ...label,
-      align: 'left'
-    });
+    if (crosshair.priceLines.length === 0) {
+      drawLabel(ctx, crosshair.priceText, frame.layout.plotWidth + 1, crosshair.y, {
+        ...label,
+        align: 'left'
+      });
+    } else {
+      paintPriceBlock(ctx, frame, options, crosshair.priceText, crosshair.priceLines, crosshair.y);
+    }
   }
 
   if (crosshair.leftPriceText !== null && crosshair.y !== null && options.priceScale.visible) {
@@ -172,6 +178,36 @@ function paintCrosshair(
       align: 'center'
     });
   }
+}
+
+/**
+ * The crosshair's price label with its lines (`crosshair.priceLines`): one box, as wide as its widest text, the price at
+ * the horizontal line and the lines under it, or over it where there is no room under it.
+ */
+function paintPriceBlock(
+  ctx: CanvasRenderingContext2D,
+  frame: Frame,
+  options: ChartOptions,
+  price: string,
+  lines: readonly string[],
+  y: number
+): void {
+  const { theme } = options;
+  const span = priceLabelSpan(frame, options, y, lines.length);
+  const width =
+    Math.max(...[price, ...lines].map((text) => ctx.measureText(text).width)) + LABEL_PADDING_X * 2;
+  const left = frame.layout.plotWidth + 1;
+  ctx.fillStyle = theme.crosshairLabelBackground;
+  ctx.beginPath();
+  ctx.roundRect(left, span.top, width, span.bottom - span.top, 2);
+  ctx.fill();
+  ctx.fillStyle = theme.crosshairLabelText;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(price, left + width / 2, y + 0.5);
+  lines.forEach((line, index) => {
+    ctx.fillText(line, left + width / 2, span.lineY(index) + 0.5);
+  });
 }
 
 /** Paints a legend button: its icon, on a faint square while the pointer is on it. */

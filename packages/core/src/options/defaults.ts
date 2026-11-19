@@ -28,7 +28,8 @@ export function createDefaultOptions(sections: readonly OptionsSection[] = []): 
       horizontal: true,
       labels: true,
       style: 'dashed',
-      snapToBars: true
+      snapToBars: true,
+      priceLines: null
     },
     mainSeries: {
       type: 'candles',

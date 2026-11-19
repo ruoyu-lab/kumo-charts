@@ -58,7 +58,16 @@ export interface CrosshairOptions {
    * it all the same.
    */
   snapToBars: boolean;
+  /**
+   * Lines of text under the crosshair's label on the right price axis, such as how far the price is from the latest:
+   * given the price at the pointer and the id of its pane, in the label's colors. None, or `null`, for the price alone.
+   * They go over the price where there is no room under it.
+   */
+  priceLines: CrosshairPriceLines | null;
 }
+
+/** The lines under the crosshair's price label (`crosshair.priceLines`), of the price at the pointer in a pane. */
+export type CrosshairPriceLines = (price: number, paneId: string) => readonly string[];
 
 /** Formats a time label. `kind` tells where the label is shown. */
 export type TimeFormatter = (time: number, context: TimeFormatContext) => string;

@@ -22,6 +22,40 @@ export const NO_COVERS: CrosshairCovers = { price: [], time: null };
 /** Room on either side of the text of the crosshair's labels. */
 export const LABEL_PADDING_X = 6;
 
+/** The height of the crosshair's labels on the axes, and of each of the lines under its price. */
+const labelHeight = (options: ChartOptions): number => options.font.size + 8;
+const lineHeight = (options: ChartOptions): number => options.font.size + 4;
+
+/**
+ * Where the crosshair's price label at `y` lies with `lines` lines of text (`crosshair.priceLines`): from its top to its
+ * bottom, and the middle of each line. The lines go under the price, or over it where the plot has no room under it.
+ */
+export function priceLabelSpan(
+  frame: Frame,
+  options: ChartOptions,
+  y: number,
+  lines: number
+): { readonly top: number; readonly bottom: number; readonly lineY: (index: number) => number } {
+  const half = labelHeight(options) / 2;
+  const line = lineHeight(options);
+  const extra = lines * line;
+  const plotBottom = frame.layout.timeAxis?.y ?? frame.layout.height;
+
+  if (y + half + extra <= plotBottom) {
+    return {
+      top: y - half,
+      bottom: y + half + extra,
+      lineY: (index) => y + half + line * (index + 0.5)
+    };
+  }
+
+  return {
+    top: y - half - extra,
+    bottom: y + half,
+    lineY: (index) => y - half - extra + line * (index + 0.5)
+  };
+}
+
 /** Where the crosshair's time label of `width` is centered: at its line, within the plot. */
 export function timeLabelCenter(frame: Frame, x: number, width: number): number {
   return Math.min(Math.max(x, width / 2), Math.max(width / 2, frame.layout.plotWidth - width / 2));
@@ -42,21 +76,29 @@ export function crosshairCovers(
   const { y } = crosshair;
 
   if (y !== null && options.priceScale.visible) {
-    const half = (options.font.size + 8) / 2;
+    const half = labelHeight(options) / 2;
+    // The right label is as tall as its lines make it.
+    const right = priceLabelSpan(frame, options, y, crosshair.priceLines.length);
 
     // A label at the edge of a pane covers the axis of the next one too.
     for (const pane of frame.panes) {
-      const top = y - half - pane.axis.y;
-      const bottom = y + half - pane.axis.y;
+      const top = right.top - pane.axis.y;
+      const bottom = right.bottom - pane.axis.y;
 
-      if (bottom > 0 && top < pane.axis.height) {
-        if (crosshair.priceText !== null) {
-          price.push({ axis: pane.axis, top, bottom });
-        }
+      if (crosshair.priceText !== null && bottom > 0 && top < pane.axis.height) {
+        price.push({ axis: pane.axis, top, bottom });
+      }
 
-        if (crosshair.leftPriceText !== null && pane.left) {
-          price.push({ axis: pane.left.axis, top, bottom });
-        }
+      const leftTop = y - half - pane.axis.y;
+      const leftBottom = y + half - pane.axis.y;
+
+      if (
+        crosshair.leftPriceText !== null &&
+        pane.left &&
+        leftBottom > 0 &&
+        leftTop < pane.axis.height
+      ) {
+        price.push({ axis: pane.left.axis, top: leftTop, bottom: leftBottom });
       }
     }
   }

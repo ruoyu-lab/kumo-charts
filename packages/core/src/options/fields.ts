@@ -27,7 +27,8 @@ const SECTION_FIELDS: {
     horizontal: true,
     labels: true,
     style: true,
-    snapToBars: true
+    snapToBars: true,
+    priceLines: true
   }),
   mainSeries: fieldsOf<MainSeriesOptions>({
     type: true,

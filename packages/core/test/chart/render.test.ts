@@ -119,6 +119,81 @@ describe('rendering', () => {
     expect(left).toContain(timeTick?.text);
   });
 
+  it('writes the lines the crosshair is given under its price, and leaves out the ticks under them too', async () => {
+    const asked: [number, string][] = [];
+    const chart = createTestChart({
+      latestPrice: { label: false },
+      crosshair: {
+        priceLines: (price, paneId) => {
+          asked.push([price, paneId]);
+          return [`+${(price - 100).toFixed(2)}`, '0.05'];
+        }
+      }
+    });
+    chart.data.set(createBars(50));
+    chart.priceScale().setRange({ min: 100, max: 160 });
+    const scene = canvasCalls(layer(chart, 'scene'));
+    const cursor = canvasCalls(layer(chart, 'cursor'));
+    const y = chart.priceScale().priceToY(130) ?? 0;
+    const below = chart.priceScale().priceToY(127.5) ?? 0;
+    chart.screenshot();
+    expect(scene.some((call) => call.name === 'fillText' && call.args[0] === '125.00')).toBe(true);
+    scene.length = 0;
+    cursor.length = 0;
+    pointer(chart, 'pointermove', 200, y, { buttons: 0 });
+    await nextFrame();
+    chart.screenshot();
+    const written = cursor
+      .filter((call) => call.name === 'fillText')
+      .map((call) => ({ text: String(call.args[0]), y: Number(call.args[2]) }));
+    const hidden = scene
+      .filter((call) => call.name === 'fillText')
+      .map((call) => String(call.args[0]));
+
+    expect(asked.at(-1)?.[1]).toBe('main');
+    expect(asked.at(-1)?.[0]).toBeCloseTo(130, 0);
+    const price = written.find(
+      (each) => each.text.startsWith('130') || each.text.startsWith('129')
+    );
+    const delta = written.find((each) => each.text.startsWith('+'));
+    const lots = written.find((each) => each.text === '0.05');
+    expect(price).toBeDefined();
+    // Under the price, in its order.
+    expect(delta?.y ?? 0).toBeGreaterThan(price?.y ?? 0);
+    expect(lots?.y ?? 0).toBeGreaterThan(delta?.y ?? 0);
+    expect(lots?.y ?? 0).toBeGreaterThan(below - 30);
+    // The tick under the lines is left out with the one under the price.
+    expect(hidden).not.toContain('130.00');
+    expect(hidden).not.toContain('125.00');
+  });
+
+  it('writes the lines over the price at the bottom of the plot, where there is no room under it', async () => {
+    const chart = createTestChart({
+      latestPrice: { label: false },
+      crosshair: { priceLines: () => ['+1.00', '0.05'] }
+    });
+    chart.data.set(createBars(50));
+    chart.priceScale().setRange({ min: 100, max: 160 });
+    const cursor = canvasCalls(layer(chart, 'cursor'));
+    const y = chart.priceScale().priceToY(100.5) ?? 0;
+    cursor.length = 0;
+    pointer(chart, 'pointermove', 200, y, { buttons: 0 });
+    await nextFrame();
+    chart.screenshot();
+    const written = cursor
+      .filter((call) => call.name === 'fillText')
+      .map((call) => ({ text: String(call.args[0]), y: Number(call.args[2]) }));
+    const lots = written.find((each) => each.text === '0.05');
+
+    expect(lots?.y ?? Infinity).toBeLessThan(y);
+  });
+
+  it('refuses lines of the crosshair that are not a function', () => {
+    expect(() => createTestChart({ crosshair: { priceLines: 'lines' as never } })).toThrow(
+      'options.crosshair.priceLines'
+    );
+  });
+
   it.each(SERIES_TYPES)('paints the main series as %s', (type) => {
     const chart = chartWithBars(120);
     chart.applyOptions({ mainSeries: { type } });

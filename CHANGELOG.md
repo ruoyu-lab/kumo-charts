@@ -11,6 +11,7 @@ The packages of KumoChart share one version. Each release lists what changed for
 
 **Added**
 
+- `crosshair.priceLines`: lines of text under the crosshair's label on the right price axis, given the price at the pointer and its pane, such as how far it is from the latest price. They share the label's box and colors, go over the price where there is no room under it, and leave out the ticks they cover. `null` by default.
 - `lastValueLabel` of an indicator, in `indicators.add()` and `update()`, in `Indicator` and in the saved state: marks the latest value of each of its lines and histograms on the price axis, in their colors. Off by default.
 - `priceScale.pinLabels`, on by default: the label of an order or an alert whose line lies above or below the plot stays at its top or bottom edge, with an arrow, those of several lines stacked in the order of their lines. A click on it brings the line to the middle of its pane; it is not dragged. Off, it is out of sight with its line, as before.
 - `pivotOf()` of a drawing type: where `Shift` constrains a dragged handle that is no anchor from, such as the other end of the line it is the end of. The ends of the parallel line of a channel, the two corners of a rectangle or a Gann box that are no anchor and the corners of a rotated rectangle follow `Shift` now, as the handles that are anchors did.

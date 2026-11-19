@@ -101,6 +101,7 @@ export type {
   ChartOptions,
   ChartTexts,
   CrosshairOptions,
+  CrosshairPriceLines,
   FontOptions,
   GridOptions,
   InteractionOptions,
