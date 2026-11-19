@@ -266,7 +266,8 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
         kind: 'order',
         id: order.id,
         part: hit.part,
-        cursor: draggable ? 'ns-resize' : 'pointer',
+        // The line says it moves; its label, which is clicked as much as it is dragged, that it can be taken.
+        cursor: draggable && hit.part === 'line' ? 'ns-resize' : 'pointer',
         draggable
       },
       priority: hit.priority,

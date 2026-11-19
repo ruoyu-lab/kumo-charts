@@ -319,7 +319,7 @@ describe('orders', () => {
     }).toThrow('orders[0].labelAlign must be one of "left", "center", "right"');
   });
 
-  it('keeps its line width under the pointer, which only the cursor tells, and is drawn thicker selected', async () => {
+  it('keeps its line width under the pointer, where the cursor says it moves (a hand over its label), and is drawn thicker selected', async () => {
     const chart = chartWithBars(200);
     chart.priceScale().setRange({ min: 150, max: 210 });
     chart.orders.set([{ id: 'o1', side: 'buy', price: 180, color: '#123456' }]);
@@ -347,6 +347,10 @@ describe('orders', () => {
     await nextFrame();
     expect(chart.element.style.cursor).toBe('ns-resize');
     expect(width()).toBe(1);
+    // Its label, which ends 8px left of the plot edge, is clicked as much as dragged: a hand.
+    pointer(chart, 'pointermove', chart.layout().plotWidth - 8 - 2, y, { buttons: 0 });
+    await nextFrame();
+    expect(chart.element.style.cursor).toBe('pointer');
     chart.select({ kind: 'order', id: 'o1' });
     expect(width()).toBe(2);
   });
