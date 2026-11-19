@@ -215,9 +215,8 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
       }
 
       const name = order.label ?? (order.side === 'buy' ? 'BUY' : 'SELL');
-      const emphasized =
-        (context.selection?.kind === 'order' && context.selection.id === order.id) ||
-        (context.hovered?.kind === 'order' && context.hovered.id === order.id);
+      // Selected, its line is drawn thicker; under the pointer only the cursor says it can be taken, as over a drawing.
+      const emphasized = context.selection?.kind === 'order' && context.selection.id === order.id;
       views.push({
         id: order.id,
         y: pane.scale.valueToY(order.price),

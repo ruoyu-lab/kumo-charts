@@ -4,7 +4,7 @@ import { BarStore } from '../../src/data/bar-store';
 import type { MarkerInput } from '../../src/trading/markers';
 import type { OrderInput } from '../../src/trading/orders';
 import { createBars, MINUTE, T0 } from '../helpers/bars';
-import { chartWithBars, click, drag, key, pointer } from '../helpers/chart';
+import { chartWithBars, click, drag, key, nextFrame, pointer } from '../helpers/chart';
 import { canvasCalls } from '../setup';
 
 function at(chart: Chart, index: number, price: number): [number, number] {
@@ -317,6 +317,38 @@ describe('orders', () => {
         { id: 'o3', side: 'buy', price: 180, labelAlign: 'top' as unknown as 'left' }
       ]);
     }).toThrow('orders[0].labelAlign must be one of "left", "center", "right"');
+  });
+
+  it('keeps its line width under the pointer, which only the cursor tells, and is drawn thicker selected', async () => {
+    const chart = chartWithBars(200);
+    chart.priceScale().setRange({ min: 150, max: 210 });
+    chart.orders.set([{ id: 'o1', side: 'buy', price: 180, color: '#123456' }]);
+    const canvas = chart.element.querySelector<HTMLCanvasElement>('canvas[data-layer="objects"]');
+    const ctx = canvas?.getContext('2d') ?? expect.unreachable('No objects layer.');
+    const widths: number[] = [];
+    ctx.stroke = () => {
+      if (ctx.strokeStyle === '#123456') {
+        widths.push(ctx.lineWidth);
+      }
+    };
+    let label = 0;
+    // The line drawn again as it is now (its label changed so that it is): the width it has.
+    const width = () => {
+      widths.length = 0;
+      label += 1;
+      chart.orders.update('o1', { label: `L${String(label)}` });
+      chart.screenshot();
+      return widths.at(-1);
+    };
+    const [x, y] = at(chart, 120, 180);
+
+    expect(width()).toBe(1);
+    pointer(chart, 'pointermove', x, y, { buttons: 0 });
+    await nextFrame();
+    expect(chart.element.style.cursor).toBe('ns-resize');
+    expect(width()).toBe(1);
+    chart.select({ kind: 'order', id: 'o1' });
+    expect(width()).toBe(2);
   });
 
   it('marks its price on the price axis unless it says not to, as where its label says it', () => {

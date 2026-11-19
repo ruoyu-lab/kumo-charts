@@ -9,6 +9,7 @@ The packages of KumoChart share one version. Each release lists what changed for
 - A drawing is taken by its lines and its content, never by its fill: a click or a drag inside a filled rectangle, channel, circle, Fibonacci or Gann tool, pattern, pitchfork, VWAP band, price or date range, position or fixed range volume profile reaches what is under it, and pans the chart where nothing is. Text, the boxes of labels and callouts and marks painted solid still take it, as `body` hits. A drawing type of an application's own should return `body` only on such content: the `hitTest` of the custom drawings guide no longer returns it inside its zone.
 - A position is taken by its outline and its line at the entry.
 - A label of several lines on the price axis is centered on its line: the latest price's with the countdown, and the crosshair's with `crosshair.priceLines`. `priceScale.labelAnchor: 'firstLine'` puts its first line on the line and the others under it, as before.
+- The line of an order keeps its width under the pointer, as a drawing does: only the cursor says it can be taken. It is drawn thicker while it is selected.
 
 **Added**
 
