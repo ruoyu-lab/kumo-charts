@@ -64,6 +64,11 @@ export interface OrderInput {
   labelAlign?: LabelAlign;
   /** Its price on the price axis. Off where the label says it. Default `true`. */
   axisLabel?: boolean;
+  /**
+   * A short text the browser shows after a moment while the pointer rests on its line or its label (not on its buttons),
+   * such as what it says that its label does not. None by default.
+   */
+  tooltip?: string;
 }
 
 export interface Order {
@@ -80,6 +85,7 @@ export interface Order {
   readonly buttons: readonly PriceLineButton[];
   readonly labelAlign: LabelAlign;
   readonly axisLabel: boolean;
+  readonly tooltip: string | null;
 }
 
 const ORDER_FIELDS = fieldsOf<OrderInput>({
@@ -95,7 +101,8 @@ const ORDER_FIELDS = fieldsOf<OrderInput>({
   lineStyle: true,
   buttons: true,
   labelAlign: true,
-  axisLabel: true
+  axisLabel: true,
+  tooltip: true
 });
 
 /** An order but for its id, which the domain gives it. */
@@ -110,6 +117,10 @@ function parseOrder(input: OrderInput, label = 'order'): OrderSettings {
 
   if (input.quantity !== undefined && typeof input.quantity !== 'string') {
     checkNumber(`${label}.quantity`, input.quantity);
+  }
+
+  if (input.tooltip !== undefined) {
+    checkString(`${label}.tooltip`, input.tooltip);
   }
 
   return {
@@ -132,7 +143,8 @@ function parseOrder(input: OrderInput, label = 'order'): OrderSettings {
         ? 'right'
         : checkOneOf(`${label}.labelAlign`, input.labelAlign, LABEL_ALIGNS),
     axisLabel:
-      input.axisLabel === undefined ? true : checkBoolean(`${label}.axisLabel`, input.axisLabel)
+      input.axisLabel === undefined ? true : checkBoolean(`${label}.axisLabel`, input.axisLabel),
+    tooltip: input.tooltip === undefined || input.tooltip === '' ? null : input.tooltip
   };
 }
 
@@ -149,7 +161,8 @@ function orderInput(order: Order): OrderInput {
     axisLabel: order.axisLabel,
     ...(order.label !== null ? { label: order.label } : {}),
     ...(order.quantity !== null ? { quantity: order.quantity } : {}),
-    ...(order.color !== null ? { color: order.color } : {})
+    ...(order.color !== null ? { color: order.color } : {}),
+    ...(order.tooltip !== null ? { tooltip: order.tooltip } : {})
   };
 }
 
@@ -268,7 +281,8 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
         part: hit.part,
         // The line says it moves; its label, which is clicked as much as it is dragged, that it can be taken.
         cursor: draggable && hit.part === 'line' ? 'ns-resize' : 'pointer',
-        draggable
+        draggable,
+        ...(order.tooltip === null || button ? {} : { tooltip: order.tooltip })
       },
       priority: hit.priority,
       distance: hit.distance

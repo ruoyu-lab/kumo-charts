@@ -14,6 +14,7 @@ The packages of KumoChart share one version. Each release lists what changed for
 **Added**
 
 - `axisLabel` of an order, in `orders.set()`, `add()` and `update()`: off, its price is not marked on the price axis, as where its label says it. On by default.
+- `tooltip` of an order, in `orders.set()`, `add()` and `update()`: a short text the browser shows after a moment while the pointer rests on its line or its label (not on its buttons, nor while it is dragged), such as what it says that its label does not. None by default.
 - `crosshair.avoidLabels`: the crosshair's label on the right price axis keeps clear of the labels there of the latest price and the latest values. Where it would cover them it sits against them, above or below on the side of the pointer, and stays there as the pointer moves over them. Off by default, over them.
 - `crosshair.priceLines`: lines of text under the crosshair's label on the right price axis, given the price at the pointer and its pane, such as how far it is from the latest price. They share the label's box and colors, lie as `priceScale.labelAnchor` says, and leave out the ticks they cover. `null` by default.
 - `lastValueLabel` of an indicator, in `indicators.add()` and `update()`, in `Indicator` and in the saved state: marks the latest value of each of its lines and histograms on the price axis, in their colors. Off by default.

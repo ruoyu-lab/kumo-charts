@@ -355,6 +355,44 @@ describe('orders', () => {
     expect(width()).toBe(2);
   });
 
+  it('has its tooltip shown by the browser while the pointer rests on its line or its label, not its buttons', async () => {
+    const chart = chartWithBars(200);
+    chart.priceScale().setRange({ min: 150, max: 210 });
+    chart.orders.set([
+      {
+        id: 'o1',
+        side: 'sell',
+        price: 180,
+        label: 'SL 0.002',
+        tooltip: 'Closes at 180.00',
+        buttons: [{ id: 'close', text: 'X' }]
+      },
+      { id: 'o2', side: 'buy', price: 160 }
+    ]);
+    const [x, y] = at(chart, 120, 180);
+    const rest = async (px: number, py: number) => {
+      pointer(chart, 'pointermove', px, py, { buttons: 0 });
+      await nextFrame();
+      return chart.element.getAttribute('title');
+    };
+
+    expect(await rest(x, y)).toBe('Closes at 180.00');
+    // The button is the right-most part of the label, which ends 8px left of the plot edge.
+    expect(await rest(chart.layout().plotWidth - 8 - 4, y)).toBeNull();
+    expect(await rest(x, at(chart, 120, 160)[1])).toBeNull();
+    expect(await rest(x, at(chart, 120, 200)[1])).toBeNull();
+    expect(await rest(x, y)).toBe('Closes at 180.00');
+    // Dragged, it moves: no tooltip.
+    pointer(chart, 'pointerdown', x, y);
+    pointer(chart, 'pointermove', x, y - 20);
+    expect(chart.element.getAttribute('title')).toBeNull();
+    pointer(chart, 'pointerup', x, y - 20);
+    expect(chart.orders.get('o1')?.tooltip).toBe('Closes at 180.00');
+    expect(() => {
+      chart.orders.update('o2', { tooltip: 3 as unknown as string });
+    }).toThrow('order.tooltip');
+  });
+
   it('marks its price on the price axis unless it says not to, as where its label says it', () => {
     const chart = chartWithBars(200);
     chart.priceScale().setRange({ min: 150, max: 210 });

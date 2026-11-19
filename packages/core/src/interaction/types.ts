@@ -36,6 +36,8 @@ export interface HitTarget {
   /** CSS cursor while hovering it. */
   readonly cursor: string;
   readonly draggable: boolean;
+  /** What the browser shows in a tooltip, after a moment, while the pointer rests on it. */
+  readonly tooltip?: string;
 }
 
 /** Modifier keys held during a pointer action. */

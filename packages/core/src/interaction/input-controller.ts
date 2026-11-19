@@ -367,6 +367,7 @@ export class InputController {
     };
     this.gesture = pan;
     this.root.style.cursor = 'grabbing';
+    this.showTooltip(null);
     this.movePan(pan, point, performance.now());
   }
 
@@ -514,7 +515,19 @@ export class InputController {
     }
   }
 
+  /** The tooltip of what is under the pointer, as the root's `title`: the browser shows it after a moment. */
+  private showTooltip(text: string | null): void {
+    if (text === null) {
+      this.root.removeAttribute('title');
+    } else if (this.root.getAttribute('title') !== text) {
+      this.root.setAttribute('title', text);
+    }
+  }
+
   private updateCursor(target: HitTarget | null, point: Point | null): void {
+    // Only to a pointer that rests: a drag moves what it is of.
+    this.showTooltip(this.gesture.kind === 'idle' ? (target?.tooltip ?? null) : null);
+
     if (target) {
       this.root.style.cursor = target.cursor;
       return;
