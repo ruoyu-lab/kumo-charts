@@ -5,6 +5,7 @@ import type { MarkerInput } from '../../src/trading/markers';
 import type { OrderInput } from '../../src/trading/orders';
 import { createBars, MINUTE, T0 } from '../helpers/bars';
 import { chartWithBars, click, drag, key, pointer } from '../helpers/chart';
+import { canvasCalls } from '../setup';
 
 function at(chart: Chart, index: number, price: number): [number, number] {
   const x = chart.timeScale.timeToX(T0 + index * MINUTE);
@@ -316,6 +317,33 @@ describe('orders', () => {
         { id: 'o3', side: 'buy', price: 180, labelAlign: 'top' as unknown as 'left' }
       ]);
     }).toThrow('orders[0].labelAlign must be one of "left", "center", "right"');
+  });
+
+  it('marks its price on the price axis unless it says not to, as where its label says it', () => {
+    const chart = chartWithBars(200);
+    chart.priceScale().setRange({ min: 150, max: 210 });
+    const layer = chart.element.querySelector<HTMLCanvasElement>('canvas[data-layer="objects"]');
+    const calls = layer ? canvasCalls(layer) : [];
+    const written = () => {
+      calls.length = 0;
+      chart.screenshot();
+      return calls.filter((call) => call.name === 'fillText').map((call) => String(call.args[0]));
+    };
+    chart.orders.set([
+      { id: 'o1', side: 'buy', price: 180.5, label: 'SL 180.50' },
+      { id: 'o2', side: 'sell', price: 190.5, label: 'TP 190.50', axisLabel: false }
+    ]);
+    const texts = written();
+
+    expect(texts).toContain('180.50');
+    expect(texts).not.toContain('190.50');
+    expect(texts).toContain('TP 190.50');
+    expect(chart.orders.get('o2')?.axisLabel).toBe(false);
+    chart.orders.update('o2', { price: 191 });
+    expect(chart.orders.get('o2')?.axisLabel).toBe(false);
+    expect(() => {
+      chart.orders.set([{ id: 'o3', side: 'buy', price: 180, axisLabel: 'no' as never }]);
+    }).toThrow('orders[0].axisLabel');
   });
 
   it('restores the price when the drag is cancelled with Escape', () => {

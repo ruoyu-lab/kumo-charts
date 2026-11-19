@@ -129,7 +129,8 @@ export interface PriceLineView {
   readonly y: number;
   readonly color: string;
   readonly text: string;
-  readonly axisText: string;
+  /** Its price on the price axis; `null` for none, as where the label says it. */
+  readonly axisText: string | null;
   readonly buttons: readonly PriceLineButton[];
   readonly lineStyle: LineStyle;
   readonly emphasized: boolean;
@@ -440,7 +441,7 @@ export function paintPriceLines(
       }
     }
 
-    if (options.showAxis && view.y >= 0 && view.y <= plot.height) {
+    if (options.showAxis && view.axisText !== null && view.y >= 0 && view.y <= plot.height) {
       const height = options.fontSize + 8;
       ctx.fillStyle = view.color;
       ctx.beginPath();

@@ -63,6 +63,8 @@ export interface OrderInput {
   buttons?: PriceLineButton[];
   /** Where along the line its label is: `left`, `center` or `right` of the plot. Default `right`. */
   labelAlign?: LabelAlign;
+  /** Its price on the price axis. Off where the label says it. Default `true`. */
+  axisLabel?: boolean;
 }
 
 export interface Order {
@@ -78,6 +80,7 @@ export interface Order {
   readonly lineStyle: LineStyle;
   readonly buttons: readonly PriceLineButton[];
   readonly labelAlign: LabelAlign;
+  readonly axisLabel: boolean;
 }
 
 const ORDER_FIELDS = fieldsOf<OrderInput>({
@@ -92,7 +95,8 @@ const ORDER_FIELDS = fieldsOf<OrderInput>({
   color: true,
   lineStyle: true,
   buttons: true,
-  labelAlign: true
+  labelAlign: true,
+  axisLabel: true
 });
 
 /** An order but for its id, which the domain gives it. */
@@ -127,7 +131,9 @@ function parseOrder(input: OrderInput, label = 'order'): OrderSettings {
     labelAlign:
       input.labelAlign === undefined
         ? 'right'
-        : checkOneOf(`${label}.labelAlign`, input.labelAlign, LABEL_ALIGNS)
+        : checkOneOf(`${label}.labelAlign`, input.labelAlign, LABEL_ALIGNS),
+    axisLabel:
+      input.axisLabel === undefined ? true : checkBoolean(`${label}.axisLabel`, input.axisLabel)
   };
 }
 
@@ -141,6 +147,7 @@ function orderInput(order: Order): OrderInput {
     lineStyle: order.lineStyle,
     buttons: order.buttons.map((button) => ({ ...button })),
     labelAlign: order.labelAlign,
+    axisLabel: order.axisLabel,
     ...(order.label !== null ? { label: order.label } : {}),
     ...(order.quantity !== null ? { quantity: order.quantity } : {}),
     ...(order.color !== null ? { color: order.color } : {})
@@ -217,7 +224,7 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
         y: pane.scale.valueToY(order.price),
         color: order.color ?? (order.side === 'buy' ? theme.buy : theme.sell),
         text: order.quantity === null ? name : `${name} ${String(order.quantity)}`,
-        axisText: this.host.formatValue(pane, order.price),
+        axisText: order.axisLabel ? this.host.formatValue(pane, order.price) : null,
         buttons: order.buttons,
         lineStyle: order.lineStyle,
         emphasized,
