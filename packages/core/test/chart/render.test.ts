@@ -123,6 +123,7 @@ describe('rendering', () => {
     const asked: [number, string][] = [];
     const chart = createTestChart({
       latestPrice: { label: false },
+      priceScale: { labelAnchor: 'firstLine' },
       crosshair: {
         priceLines: (price, paneId) => {
           asked.push([price, paneId]);
@@ -172,6 +173,7 @@ describe('rendering', () => {
   it('writes the lines over the price at the bottom of the plot, where there is no room under it', async () => {
     const chart = createTestChart({
       latestPrice: { label: false },
+      priceScale: { labelAnchor: 'firstLine' },
       crosshair: { priceLines: () => ['+1.00', '0.05'] }
     });
     chart.data.set(createBars(50));
@@ -188,6 +190,92 @@ describe('rendering', () => {
     const lots = written.find((each) => each.text === '0.05');
 
     expect(lots?.y ?? Infinity).toBeLessThan(y);
+  });
+
+  it('centers the crosshair’s label with its lines on the pointer by default', async () => {
+    const chart = createTestChart({
+      latestPrice: { label: false },
+      crosshair: { priceLines: () => ['+1.00', '0.05'] }
+    });
+    chart.data.set(createBars(50));
+    chart.priceScale().setRange({ min: 100, max: 160 });
+    const cursor = canvasCalls(layer(chart, 'cursor'));
+    const y = chart.priceScale().priceToY(130) ?? 0;
+    cursor.length = 0;
+    pointer(chart, 'pointermove', 200, y, { buttons: 0 });
+    await nextFrame();
+    chart.screenshot();
+    const written = cursor
+      .filter((call) => call.name === 'fillText')
+      .map((call) => ({ text: String(call.args[0]), y: Number(call.args[2]) }));
+    const price = written.find(
+      (each) => each.text.startsWith('130') || each.text.startsWith('129')
+    );
+    const delta = written.find((each) => each.text === '+1.00');
+    const lots = written.find((each) => each.text === '0.05');
+
+    // Three rows, the middle one on the line.
+    expect(delta?.y ?? 0).toBeCloseTo(y + 0.5, 0);
+    expect(price?.y ?? 0).toBeLessThan(delta?.y ?? 0);
+    expect(lots?.y ?? 0).toBeGreaterThan(delta?.y ?? 0);
+  });
+
+  it('centers the latest price’s label with the countdown on its line, or puts the price on it as asked', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(T0 + 119.5 * MINUTE);
+    const chart = chartWithBars(120, { latestPrice: { countdown: true } });
+    chart.data.set(createBars(120), { interval: '1m' });
+    const close = chart.data.toArray().at(-1)?.close ?? 0;
+    const y = chart.priceScale().priceToY(close) ?? 0;
+    const size = chart.options().font.size;
+    const one = size + 8;
+    const two = (one - 6) * 2 + 6;
+    const middleOf = () => {
+      const calls = canvasCalls(layer(chart, 'cursor'));
+      calls.length = 0;
+      chart.applyOptions({});
+      chart.screenshot();
+      const box = calls.find((call) => call.name === 'roundRect' && call.args[3] === two);
+      return Number(box?.args[1]) + two / 2;
+    };
+
+    expect(middleOf()).toBeCloseTo(y, 5);
+
+    chart.applyOptions({ priceScale: { labelAnchor: 'firstLine' } });
+    expect(middleOf()).toBeCloseTo(y - one / 2 + two / 2, 5);
+    vi.restoreAllMocks();
+  });
+
+  it('keeps the crosshair’s label clear of the latest price’s, against it on the side of the pointer', async () => {
+    const chart = chartWithBars(120, { crosshair: { avoidLabels: true } });
+    const close = chart.data.toArray().at(-1)?.close ?? 0;
+    const y = chart.priceScale().priceToY(close) ?? 0;
+    const one = chart.options().font.size + 8;
+    const cursor = canvasCalls(layer(chart, 'cursor'));
+    const crosshairAt = async (at: number) => {
+      cursor.length = 0;
+      pointer(chart, 'pointermove', 200, at, { buttons: 0 });
+      await nextFrame();
+      chart.screenshot();
+      // The crosshair's label is painted last, after the latest price's.
+      const texts = cursor.filter((call) => call.name === 'fillText');
+      return Number(texts.at(-2)?.args[2]);
+    };
+
+    // Just over the latest price, it sits on top of its label; just under, under it; it stays as the pointer moves.
+    expect(await crosshairAt(y - 2)).toBeCloseTo(y - one + 0.5, 0);
+    expect(await crosshairAt(y - 4)).toBeCloseTo(y - one + 0.5, 0);
+    expect(await crosshairAt(y + 2)).toBeCloseTo(y + one + 0.5, 0);
+    // Away from it, at the pointer.
+    expect(await crosshairAt(y + 100)).toBeCloseTo(y + 100 + 0.5, 0);
+
+    chart.applyOptions({ crosshair: { avoidLabels: false } });
+    expect(await crosshairAt(y - 2)).toBeCloseTo(y - 2 + 0.5, 0);
+  });
+
+  it('refuses a label anchor it does not know', () => {
+    expect(() => createTestChart({ priceScale: { labelAnchor: 'top' as never } })).toThrow(
+      'options.priceScale.labelAnchor'
+    );
   });
 
   it('refuses lines of the crosshair that are not a function', () => {

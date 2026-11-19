@@ -4,7 +4,12 @@ import { withAlpha } from '../canvas/color';
 import type { IconCache } from '../canvas/icon-cache';
 import type { Rect } from '../layout/layout';
 import { MAIN_PANE_ID } from '../panes/pane-store';
-import { LABEL_PADDING_X, priceLabelSpan, timeLabelCenter } from './axis-covers';
+import {
+  LABEL_PADDING_X,
+  priceLabelSpan,
+  timeLabelCenter,
+  type PriceLabelSpan
+} from './axis-covers';
 import { placeAxisLabels } from './axis-labels';
 import type { Frame } from './frame';
 
@@ -154,13 +159,15 @@ function paintCrosshair(
   };
 
   if (crosshair.priceText !== null && crosshair.y !== null && options.priceScale.visible) {
+    const span = priceLabelSpan(frame, options, crosshair.y, crosshair.priceLines.length);
+
     if (crosshair.priceLines.length === 0) {
-      drawLabel(ctx, crosshair.priceText, frame.layout.plotWidth + 1, crosshair.y, {
+      drawLabel(ctx, crosshair.priceText, frame.layout.plotWidth + 1, span.priceY, {
         ...label,
         align: 'left'
       });
     } else {
-      paintPriceBlock(ctx, frame, options, crosshair.priceText, crosshair.priceLines, crosshair.y);
+      paintPriceBlock(ctx, frame, options, crosshair.priceText, crosshair.priceLines, span);
     }
   }
 
@@ -181,8 +188,8 @@ function paintCrosshair(
 }
 
 /**
- * The crosshair's price label with its lines (`crosshair.priceLines`): one box, as wide as its widest text, the price at
- * the horizontal line and the lines under it, or over it where there is no room under it.
+ * The crosshair's price label with its lines (`crosshair.priceLines`): one box, as wide as its widest text, where `span`
+ * puts it and its texts.
  */
 function paintPriceBlock(
   ctx: CanvasRenderingContext2D,
@@ -190,10 +197,9 @@ function paintPriceBlock(
   options: ChartOptions,
   price: string,
   lines: readonly string[],
-  y: number
+  span: PriceLabelSpan
 ): void {
   const { theme } = options;
-  const span = priceLabelSpan(frame, options, y, lines.length);
   const width =
     Math.max(...[price, ...lines].map((text) => ctx.measureText(text).width)) + LABEL_PADDING_X * 2;
   const left = frame.layout.plotWidth + 1;
@@ -204,7 +210,7 @@ function paintPriceBlock(
   ctx.fillStyle = theme.crosshairLabelText;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(price, left + width / 2, y + 0.5);
+  ctx.fillText(price, left + width / 2, span.priceY + 0.5);
   lines.forEach((line, index) => {
     ctx.fillText(line, left + width / 2, span.lineY(index) + 0.5);
   });

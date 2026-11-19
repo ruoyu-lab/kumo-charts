@@ -9,6 +9,16 @@ export function labelHeight(options: ChartOptions, lines: number): number {
 }
 
 /**
+ * The middle of the first line of a label of `lines` lines whose line is at `y`: there, or above it as much as centers
+ * the whole label on it (`priceScale.labelAnchor`).
+ */
+export function firstLineY(options: ChartOptions, y: number, lines: number): number {
+  return options.priceScale.labelAnchor === 'middle'
+    ? y - (labelHeight(options, lines) - labelHeight(options, 1)) / 2
+    : y;
+}
+
+/**
  * Where the labels of series' values go on an axis, at their values where they do not overlap:
  * moved apart, as charting platforms do, those above the latest price's label (`fixed`, which
  * stays) up from it and the others down, each past the one before.
@@ -65,6 +75,8 @@ export function placeAxisLabels(
   const lines = countdown ? 2 : 1;
   const height = labelHeight(options, 1);
   const live = latest?.live ?? null;
+  // The countdown under the price, the label as `priceScale.labelAnchor` puts it on the line.
+  const latestY = latest ? firstLineY(options, latest.y, lines) : 0;
   const placed: PlacedLabel[] = [];
 
   for (const pane of frame.panes) {
@@ -75,7 +87,7 @@ export function placeAxisLabels(
         ...pane.marks.filter((mark) => mark.side === side),
         ...(main && live && Number.isFinite(live.y) ? [live] : [])
       ];
-      const top = latest ? latest.y - height / 2 : 0;
+      const top = latestY - height / 2;
       const fixed =
         latest && main && Number.isFinite(latest.y)
           ? { top, bottom: top + labelHeight(options, lines) }
@@ -95,7 +107,7 @@ export function placeAxisLabels(
   }
 
   if (latest) {
-    placed.push({ axis: frame.main.axis, y: latest.y, lines, mark: null });
+    placed.push({ axis: frame.main.axis, y: latestY, lines, mark: null });
   }
 
   return placed;

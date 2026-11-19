@@ -29,7 +29,8 @@ export function createDefaultOptions(sections: readonly OptionsSection[] = []): 
       labels: true,
       style: 'dashed',
       snapToBars: true,
-      priceLines: null
+      priceLines: null,
+      avoidLabels: false
     },
     mainSeries: {
       type: 'candles',
@@ -53,7 +54,8 @@ export function createDefaultOptions(sections: readonly OptionsSection[] = []): 
       precision: 'auto',
       formatter: null,
       minWidth: 48,
-      pinLabels: true
+      pinLabels: true,
+      labelAnchor: 'middle'
     },
     latestPrice: {
       line: true,

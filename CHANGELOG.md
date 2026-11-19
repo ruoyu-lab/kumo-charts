@@ -8,12 +8,15 @@ The packages of KumoChart share one version. Each release lists what changed for
 
 - A drawing is taken by its lines and its content, never by its fill: a click or a drag inside a filled rectangle, channel, circle, Fibonacci or Gann tool, pattern, pitchfork, VWAP band, price or date range, position or fixed range volume profile reaches what is under it, and pans the chart where nothing is. Text, the boxes of labels and callouts and marks painted solid still take it, as `body` hits. A drawing type of an application's own should return `body` only on such content: the `hitTest` of the custom drawings guide no longer returns it inside its zone.
 - A position is taken by its outline and its line at the entry.
+- A label of several lines on the price axis is centered on its line: the latest price's with the countdown, and the crosshair's with `crosshair.priceLines`. `priceScale.labelAnchor: 'firstLine'` puts its first line on the line and the others under it, as before.
 
 **Added**
 
 - `axisLabel` of an order, in `orders.set()`, `add()` and `update()`: off, its price is not marked on the price axis, as where its label says it. On by default.
-- `crosshair.priceLines`: lines of text under the crosshair's label on the right price axis, given the price at the pointer and its pane, such as how far it is from the latest price. They share the label's box and colors, go over the price where there is no room under it, and leave out the ticks they cover. `null` by default.
+- `crosshair.avoidLabels`: the crosshair's label on the right price axis keeps clear of the labels there of the latest price and the latest values. Where it would cover them it sits against them, above or below on the side of the pointer, and stays there as the pointer moves over them. Off by default, over them.
+- `crosshair.priceLines`: lines of text under the crosshair's label on the right price axis, given the price at the pointer and its pane, such as how far it is from the latest price. They share the label's box and colors, lie as `priceScale.labelAnchor` says, and leave out the ticks they cover. `null` by default.
 - `lastValueLabel` of an indicator, in `indicators.add()` and `update()`, in `Indicator` and in the saved state: marks the latest value of each of its lines and histograms on the price axis, in their colors. Off by default.
+- `priceScale.labelAnchor`: where a label of several lines lies on its line, `middle` (the default) or `firstLine`.
 - `priceScale.pinLabels`, on by default: the label of an order or an alert whose line lies above or below the plot stays at its top or bottom edge, with an arrow, those of several lines stacked in the order of their lines. A click on it brings the line to the middle of its pane; dragged, it moves its line as the line itself does, where the order or the alert is draggable. Off, it is out of sight with its line, as before.
 - `pivotOf()` of a drawing type: where `Shift` constrains a dragged handle that is no anchor from, such as the other end of the line it is the end of. The ends of the parallel line of a channel, the two corners of a rectangle or a Gann box that are no anchor and the corners of a rotated rectangle follow `Shift` now, as the handles that are anchors did.
 

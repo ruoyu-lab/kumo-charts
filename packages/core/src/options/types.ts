@@ -64,6 +64,12 @@ export interface CrosshairOptions {
    * They go over the price where there is no room under it.
    */
   priceLines: CrosshairPriceLines | null;
+  /**
+   * Keeps the crosshair's label on the right price axis clear of the labels there of the latest price and the latest
+   * values: where it would cover them it sits against them, above or below, on the side of the pointer, and stays
+   * there as the pointer moves over them. Otherwise it is at the pointer, over them.
+   */
+  avoidLabels: boolean;
 }
 
 /** The lines under the crosshair's price label (`crosshair.priceLines`), of the price at the pointer in a pane. */
@@ -121,7 +127,17 @@ export interface PriceScaleOptions {
    * sight with its line.
    */
   pinLabels: boolean;
+  /**
+   * Where a label of several lines on the price axis lies on its line, such as the latest price's with the countdown
+   * under it or the crosshair's with `crosshair.priceLines`: `middle`, the whole label centered on it; `firstLine`, its
+   * first line on it and the others under it.
+   */
+  labelAnchor: LabelAnchor;
 }
+
+/** Where a label of several lines on the price axis lies on its line (`priceScale.labelAnchor`). */
+export const LABEL_ANCHORS = ['middle', 'firstLine'] as const;
+export type LabelAnchor = (typeof LABEL_ANCHORS)[number];
 
 export interface TimeScaleOptions {
   visible: boolean;

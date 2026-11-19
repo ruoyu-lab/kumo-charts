@@ -28,7 +28,8 @@ const SECTION_FIELDS: {
     labels: true,
     style: true,
     snapToBars: true,
-    priceLines: true
+    priceLines: true,
+    avoidLabels: true
   }),
   mainSeries: fieldsOf<MainSeriesOptions>({
     type: true,
@@ -52,7 +53,8 @@ const SECTION_FIELDS: {
     precision: true,
     formatter: true,
     minWidth: true,
-    pinLabels: true
+    pinLabels: true,
+    labelAnchor: true
   }),
   latestPrice: fieldsOf<LatestPriceOptions>({
     line: true,

@@ -71,7 +71,7 @@ export type {
   ValueSource
 } from './data/types';
 export { PRICE_SOURCES } from './data/types';
-export { LINE_STYLES } from './options/types';
+export { LABEL_ANCHORS, LINE_STYLES } from './options/types';
 export type {
   BarTransformDefinition,
   BarTransformInput,
@@ -105,6 +105,7 @@ export type {
   FontOptions,
   GridOptions,
   InteractionOptions,
+  LabelAnchor,
   LatestPriceOptions,
   LegendButton,
   LegendItem,

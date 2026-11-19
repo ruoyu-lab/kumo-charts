@@ -1,6 +1,7 @@
 import type { Rect } from '../layout/layout';
 import type { ChartOptions } from '../options/types';
 import type { CrosshairView } from './cursor-painter';
+import { labelHeight as axisLabelHeight, placeAxisLabels } from './axis-labels';
 import type { Frame, TimeLabel } from './frame';
 
 /** The room a label takes on a price axis, from the top of the axis. */
@@ -28,30 +29,57 @@ const labelHeight = (options: ChartOptions): number => options.font.size + 8;
 const lineHeight = (options: ChartOptions): number => options.font.size + 2;
 const BLOCK_PADDING = 3;
 
+/** Where the crosshair's price label lies on the right price axis, in the chart's coordinates. */
+export interface PriceLabelSpan {
+  readonly top: number;
+  readonly bottom: number;
+  /** The middle of the price. */
+  readonly priceY: number;
+  /** The middle of each of the lines with it (`crosshair.priceLines`). */
+  readonly lineY: (index: number) => number;
+}
+
 /**
- * Where the crosshair's price label at `y` lies with `lines` lines of text (`crosshair.priceLines`): from its top to its
- * bottom, and the middle of each line. The price stays at `y`, the lines evenly under it, or over it where the plot has
- * no room under it. Without lines, the label is as the time label is.
+ * Where the crosshair's price label at `y` lies with `lines` lines of text (`crosshair.priceLines`). As
+ * `priceScale.labelAnchor` says, the whole label is centered on `y`, within the plot, or the price stays at `y` and the
+ * lines are evenly under it, or over it where the plot has no room under it. Without lines, the label is as the time
+ * label is. With `crosshair.avoidLabels`, it is moved clear of the labels of the latest price and values.
  */
 export function priceLabelSpan(
   frame: Frame,
   options: ChartOptions,
   y: number,
   lines: number
-): { readonly top: number; readonly bottom: number; readonly lineY: (index: number) => number } {
+): PriceLabelSpan {
+  const at = labelAt(frame, options, y, lines);
+  return options.crosshair.avoidLabels ? clearOf(frame, at, y, occupied(frame, options)) : at;
+}
+
+/** Where the label lies at the pointer. */
+function labelAt(frame: Frame, options: ChartOptions, y: number, lines: number): PriceLabelSpan {
   if (lines === 0) {
     const half = labelHeight(options) / 2;
-    return { top: y - half, bottom: y + half, lineY: () => y };
+    return { top: y - half, bottom: y + half, priceY: y, lineY: () => y };
   }
 
   const line = lineHeight(options);
   const half = line / 2 + BLOCK_PADDING;
   const plotBottom = frame.layout.timeAxis?.y ?? frame.layout.height;
 
+  if (options.priceScale.labelAnchor === 'middle') {
+    const height = 2 * half + lines * line;
+    const top = Math.max(0, Math.min(y - height / 2, plotBottom - height));
+    return moved(
+      { top: 0, bottom: height, priceY: half, lineY: (index) => half + line * (index + 1) },
+      top
+    );
+  }
+
   if (y + half + lines * line <= plotBottom) {
     return {
       top: y - half,
       bottom: y + half + lines * line,
+      priceY: y,
       lineY: (index) => y + line * (index + 1)
     };
   }
@@ -59,8 +87,67 @@ export function priceLabelSpan(
   return {
     top: y - half - lines * line,
     bottom: y + half,
+    priceY: y,
     lineY: (index) => y - line * (lines - index)
   };
+}
+
+/** The label `by` lower. */
+function moved(span: PriceLabelSpan, by: number): PriceLabelSpan {
+  return {
+    top: span.top + by,
+    bottom: span.bottom + by,
+    priceY: span.priceY + by,
+    lineY: (index) => span.lineY(index) + by
+  };
+}
+
+/** Where the labels of the latest price and values lie on the right price axes, in the chart's coordinates. */
+function occupied(frame: Frame, options: ChartOptions): { top: number; bottom: number }[] {
+  const right = new Set(frame.panes.map((pane) => pane.axis));
+  const first = axisLabelHeight(options, 1) / 2;
+  return placeAxisLabels(frame, options, (frame.latest?.countdown ?? null) !== null)
+    .filter((label) => right.has(label.axis))
+    .map((label) => {
+      const top = label.axis.y + label.y - first;
+      return { top, bottom: top + axisLabelHeight(options, label.lines) };
+    });
+}
+
+/**
+ * The label clear of `taken`: where it would cover some, against them on the side of the pointer at `y`, or on the
+ * other where the plot has no room there. Labels closer together than the label is tall are passed as one.
+ */
+function clearOf(
+  frame: Frame,
+  span: PriceLabelSpan,
+  y: number,
+  taken: readonly { top: number; bottom: number }[]
+): PriceLabelSpan {
+  const height = span.bottom - span.top;
+  const groups: { top: number; bottom: number }[] = [];
+
+  for (const each of [...taken].sort((a, b) => a.top - b.top)) {
+    const last = groups[groups.length - 1];
+
+    if (last && each.top < last.bottom + height) {
+      last.bottom = Math.max(last.bottom, each.bottom);
+    } else {
+      groups.push({ ...each });
+    }
+  }
+
+  const covered = groups.find((group) => span.top < group.bottom && span.bottom > group.top);
+
+  if (!covered) {
+    return span;
+  }
+
+  const plotBottom = frame.layout.timeAxis?.y ?? frame.layout.height;
+  const above = covered.top - height >= 0;
+  const below = covered.bottom + height <= plotBottom;
+  const up = (y < (covered.top + covered.bottom) / 2 && above) || !below;
+  return moved(span, up ? covered.top - span.bottom : covered.bottom - span.top);
 }
 
 /** Where the crosshair's time label of `width` is centered: at its line, within the plot. */
