@@ -24,11 +24,14 @@ export const LABEL_PADDING_X = 6;
 
 /** The height of the crosshair's labels on the axes, and of each of the lines under its price. */
 const labelHeight = (options: ChartOptions): number => options.font.size + 8;
-const lineHeight = (options: ChartOptions): number => options.font.size + 4;
+/** With lines under it, the price and each line take as much room, close together inside `BLOCK_PADDING`. */
+const lineHeight = (options: ChartOptions): number => options.font.size + 2;
+const BLOCK_PADDING = 3;
 
 /**
  * Where the crosshair's price label at `y` lies with `lines` lines of text (`crosshair.priceLines`): from its top to its
- * bottom, and the middle of each line. The lines go under the price, or over it where the plot has no room under it.
+ * bottom, and the middle of each line. The price stays at `y`, the lines evenly under it, or over it where the plot has
+ * no room under it. Without lines, the label is as the time label is.
  */
 export function priceLabelSpan(
   frame: Frame,
@@ -36,23 +39,27 @@ export function priceLabelSpan(
   y: number,
   lines: number
 ): { readonly top: number; readonly bottom: number; readonly lineY: (index: number) => number } {
-  const half = labelHeight(options) / 2;
+  if (lines === 0) {
+    const half = labelHeight(options) / 2;
+    return { top: y - half, bottom: y + half, lineY: () => y };
+  }
+
   const line = lineHeight(options);
-  const extra = lines * line;
+  const half = line / 2 + BLOCK_PADDING;
   const plotBottom = frame.layout.timeAxis?.y ?? frame.layout.height;
 
-  if (y + half + extra <= plotBottom) {
+  if (y + half + lines * line <= plotBottom) {
     return {
       top: y - half,
-      bottom: y + half + extra,
-      lineY: (index) => y + half + line * (index + 0.5)
+      bottom: y + half + lines * line,
+      lineY: (index) => y + line * (index + 1)
     };
   }
 
   return {
-    top: y - half - extra,
+    top: y - half - lines * line,
     bottom: y + half,
-    lineY: (index) => y - half - extra + line * (index + 0.5)
+    lineY: (index) => y - line * (lines - index)
   };
 }
 

@@ -161,6 +161,8 @@ describe('rendering', () => {
     // Under the price, in its order.
     expect(delta?.y ?? 0).toBeGreaterThan(price?.y ?? 0);
     expect(lots?.y ?? 0).toBeGreaterThan(delta?.y ?? 0);
+    // Evenly apart.
+    expect((lots?.y ?? 0) - (delta?.y ?? 0)).toBeCloseTo((delta?.y ?? 0) - (price?.y ?? 0), 5);
     expect(lots?.y ?? 0).toBeGreaterThan(below - 30);
     // The tick under the lines is left out with the one under the price.
     expect(hidden).not.toContain('130.00');
