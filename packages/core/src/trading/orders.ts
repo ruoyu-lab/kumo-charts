@@ -27,7 +27,6 @@ import {
 import {
   draggedValue,
   hitPriceLines,
-  isPinned,
   LABEL_ALIGNS,
   layoutPriceLines,
   paintPriceLines,
@@ -261,8 +260,8 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
     }
 
     const button = hit.part.startsWith('button:');
-    // A label kept at an edge is clicked to bring its line into view, not dragged.
-    const draggable = order.draggable && !button && !isPinned(hit.part);
+    // A label kept at an edge drags its line as the line itself does; a click on it brings the line into view.
+    const draggable = order.draggable && !button;
     return {
       target: {
         kind: 'order',

@@ -17,7 +17,6 @@ import {
 import {
   draggedValue,
   hitPriceLines,
-  isPinned,
   layoutPriceLines,
   paintPriceLines,
   type PriceDragEvent,
@@ -228,8 +227,8 @@ export class AlertsDomain implements ObjectDomain, Collection<AlertInput, Alert>
       const config = line ? this.book.config(line.id) : undefined;
 
       if (hit && line && config) {
-        const draggable =
-          config.draggable && !hit.part.startsWith('button:') && !isPinned(hit.part);
+        // A label kept at an edge drags its line as the line itself does.
+        const draggable = config.draggable && !hit.part.startsWith('button:');
         return {
           target: {
             kind: 'alert',
