@@ -44,6 +44,27 @@ function command(core: ChartCore, name: ChartCommand): boolean {
   return false;
 }
 
+/**
+ * Brings the line a label kept at an edge of the plot stands for to the middle of its pane, the
+ * price scale then kept as it is by hand.
+ */
+function revealPinned(core: ChartCore, target: HitTarget): void {
+  const place = core.objects.reveal(core.objectContext(), target);
+  const pane = place && core.shownFrame().panes.find((each) => each.id === place.pane);
+  const scale = place && core.panes.findScale(place.pane, place.scale)?.scale;
+
+  if (!place || !pane || !scale) {
+    return;
+  }
+
+  const y = scale.valueToY(place.value);
+
+  if (Number.isFinite(y)) {
+    scale.lead.pan(pane.plot.height / 2 - y);
+    core.invalidate();
+  }
+}
+
 export function regionAt(frame: Frame, point: Point): Region {
   const { layout } = frame;
 
@@ -332,7 +353,7 @@ export function createInteractionHost(core: ChartCore): InteractionHost {
         }
 
         if (target && isPinned(target.part)) {
-          core.revealPinned(target);
+          revealPinned(core, target);
         }
 
         core.selectByUser(target ? { kind: target.kind, id: target.id } : null);
@@ -403,6 +424,8 @@ export function createInteractionHost(core: ChartCore): InteractionHost {
         }
       });
     },
+    scalesPrice: (paneId, scale) =>
+      core.isDestroyed || core.panes.findScale(paneId, scale)?.scale.lead.mode !== 'percent',
     beginPaneResize: (above, below) => paneResize(core, above, below),
     command: (name) => act(core, () => command(core, name), false),
     editObject: (target) => act(core, () => core.objects.edit(target), false),
@@ -413,5 +436,3 @@ export function createInteractionHost(core: ChartCore): InteractionHost {
     }
   };
 }
-    scalesPrice: (paneId, scale) =>
-      core.isDestroyed || core.panes.findScale(paneId, scale)?.scale.lead.mode !== 'percent',

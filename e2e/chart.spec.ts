@@ -558,15 +558,25 @@ test('keeps a drawing on the bar its time falls in on every timeframe', async ({
   }
 });
 
-test('keeps the label of an order beyond the plot at its edge, and a click brings the line in', async ({
+test('keeps the label of an order beyond the plot at its edge: a click brings the line in, a drag moves it', async ({
   page
 }) => {
-  const price = await page.evaluate(() => {
+  const far = await page.evaluate(() => {
     const high = Math.max(...(window.chart?.data.toArray().map((bar) => bar.high) ?? [0]));
-    window.chart?.orders.add({ id: 'far', side: 'sell', price: high * 1.5, label: 'TP' });
     return high * 1.5;
   });
-  const lineY = () => page.evaluate((value) => window.chart?.priceScale().priceToY(value), price);
+  const add = (id: string) =>
+    page.evaluate(
+      ([order, price]) => window.chart?.orders.add({ id: order, side: 'sell', price, label: 'TP' }),
+      [id, far] as const
+    );
+  const lineY = (id: string) =>
+    page.evaluate((order) => {
+      const price = window.chart?.orders.get(order)?.price ?? Number.NaN;
+      return window.chart?.priceScale().priceToY(price);
+    }, id);
+  const price = (id: string) =>
+    page.evaluate((order) => window.chart?.orders.get(order)?.price, id);
   const box = await page.locator('#chart').boundingBox();
   const layout = await page.evaluate(() => window.chart?.layout());
   const plot = layout?.panes[0]?.plot;
@@ -575,22 +585,27 @@ test('keeps the label of an order beyond the plot at its edge, and a click bring
     throw new Error('The chart has no layout.');
   }
 
-  // The line is above the plot; its label is at the top edge, in reach of the pointer.
-  expect(await lineY()).toBeLessThan(0);
   const label = { x: box.x + plot.width - 20, y: box.y + plot.y + 10 };
+
+  // The line is above the plot; its label is at the top edge, in reach of the pointer. Dragged,
+  // it moves the order as its line does, into the plot.
+  await add('dragged');
+  expect(await lineY('dragged')).toBeLessThan(0);
   await page.mouse.move(label.x, label.y);
   await page.mouse.down();
   await page.mouse.move(label.x, label.y + 40, { steps: 4 });
   await page.mouse.up();
+  expect(await price('dragged')).toBeLessThan(far);
+  expect(await lineY('dragged')).toBeGreaterThan(0);
 
-  // Pressing and moving did not drag the order away: it is not draggable by its pinned label.
-  expect(await page.evaluate(() => window.chart?.orders.get('far')?.price)).toBe(price);
-
+  // Clicked, it brings its line into the plot and leaves the order where it is.
+  await add('clicked');
+  expect(await lineY('clicked')).toBeLessThan(0);
   await page.mouse.click(label.x, label.y);
-  const y = await lineY();
+  const y = (await lineY('clicked')) ?? Number.NaN;
   expect(y).toBeGreaterThan(0);
   expect(y).toBeLessThan(plot.height);
-  expect(await page.evaluate(() => window.chart?.orders.get('far')?.price)).toBe(price);
+  expect(await price('clicked')).toBe(far);
 });
 
 test('leaves a label out of sight with its line when it is not to be pinned', async ({ page }) => {
