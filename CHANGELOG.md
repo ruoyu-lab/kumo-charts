@@ -24,7 +24,7 @@ The packages of KumoChart share one version. Each release lists what changed for
 
 **Fixed**
 
-- A price scale in percent mode is not scaled by dragging its axis or by the wheel over it, nor does the pointer show a resize cursor there: its figures are measured from the first bar in view, which a range set by hand would leave behind. Double-clicking it still returns it to automatic scaling.
+- A price scale in percent or indexed mode is not scaled by dragging its axis or by the wheel over it, nor does the pointer show a resize cursor there: its figures are measured from the first bar in view, which a range set by hand would leave behind. Double-clicking it still returns it to automatic scaling.
 - A drawing stands on the bar its time falls in, whichever interval it was placed on: an arrow placed on a 15-minute bar no longer shifts to the right on larger timeframes, up to the next bar, and a trend line keeps its ends on the bars of its times. Strokes drawn by hand keep their times between the bars. The lines that alerts read from a drawing follow the same bars.
 
 ## 1.0.0-beta.6

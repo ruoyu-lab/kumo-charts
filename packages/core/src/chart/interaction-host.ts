@@ -424,8 +424,10 @@ export function createInteractionHost(core: ChartCore): InteractionHost {
         }
       });
     },
-    scalesPrice: (paneId, scale) =>
-      core.isDestroyed || core.panes.findScale(paneId, scale)?.scale.lead.mode !== 'percent',
+    scalesPrice: (paneId, scale) => {
+      const mode = core.isDestroyed ? null : core.panes.findScale(paneId, scale)?.scale.lead.mode;
+      return mode !== 'percent' && mode !== 'indexed';
+    },
     beginPaneResize: (above, below) => paneResize(core, above, below),
     command: (name) => act(core, () => command(core, name), false),
     editObject: (target) => act(core, () => core.objects.edit(target), false),

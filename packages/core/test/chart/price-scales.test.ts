@@ -276,35 +276,38 @@ describe('price scales', () => {
     expect(events[0]?.target).toBeNull();
   });
 
-  it('neither drags nor wheels the price axis on a percent scale, and keeps no resize cursor there', async () => {
-    const chart = chartWithBars(200);
-    const scale = chart.priceScale();
-    const { panes, leftAxisWidth, plotWidth } = chart.layout();
-    const axisX = leftAxisWidth + plotWidth + 10;
-    const middle = (panes[0]?.plot.y ?? 0) + (panes[0]?.plot.height ?? 0) / 2;
-    scale.setMode('percent');
-    const range = scale.range();
+  it.each(['percent', 'indexed'] as const)(
+    'neither drags nor wheels the price axis on a %s scale, and keeps no resize cursor there',
+    async (mode) => {
+      const chart = chartWithBars(200);
+      const scale = chart.priceScale();
+      const { panes, leftAxisWidth, plotWidth } = chart.layout();
+      const axisX = leftAxisWidth + plotWidth + 10;
+      const middle = (panes[0]?.plot.y ?? 0) + (panes[0]?.plot.height ?? 0) / 2;
+      scale.setMode(mode);
+      const range = scale.range();
 
-    pointer(chart, 'pointermove', axisX, middle, { buttons: 0 });
-    await nextFrame();
-    expect(chart.element.style.cursor).not.toBe('ns-resize');
-    drag(chart, [axisX, middle], [axisX, middle - 60]);
-    chart.element.dispatchEvent(
-      new WheelEvent('wheel', { deltaY: 100, clientX: axisX, clientY: middle, cancelable: true })
-    );
-    await nextFrame();
+      pointer(chart, 'pointermove', axisX, middle, { buttons: 0 });
+      await nextFrame();
+      expect(chart.element.style.cursor).not.toBe('ns-resize');
+      drag(chart, [axisX, middle], [axisX, middle - 60]);
+      chart.element.dispatchEvent(
+        new WheelEvent('wheel', { deltaY: 100, clientX: axisX, clientY: middle, cancelable: true })
+      );
+      await nextFrame();
 
-    expect([scale.isAutoScale(), scale.range()]).toEqual([true, range]);
+      expect([scale.isAutoScale(), scale.range()]).toEqual([true, range]);
 
-    // Back on prices, the axis scales again.
-    scale.setMode('normal');
-    pointer(chart, 'pointermove', axisX, middle, { buttons: 0 });
-    await nextFrame();
-    expect(chart.element.style.cursor).toBe('ns-resize');
-    drag(chart, [axisX, middle], [axisX, middle - 60]);
+      // Back on prices, the axis scales again.
+      scale.setMode('normal');
+      pointer(chart, 'pointermove', axisX, middle, { buttons: 0 });
+      await nextFrame();
+      expect(chart.element.style.cursor).toBe('ns-resize');
+      drag(chart, [axisX, middle], [axisX, middle - 60]);
 
-    expect(scale.isAutoScale()).toBe(false);
-  });
+      expect(scale.isAutoScale()).toBe(false);
+    }
+  );
 
   it('lets the right scale follow the left one when nothing else is on the right', () => {
     const chart = chartWithBars(200);
