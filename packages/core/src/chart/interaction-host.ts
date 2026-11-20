@@ -413,3 +413,5 @@ export function createInteractionHost(core: ChartCore): InteractionHost {
     }
   };
 }
+    scalesPrice: (paneId, scale) =>
+      core.isDestroyed || core.panes.findScale(paneId, scale)?.scale.lead.mode !== 'percent',

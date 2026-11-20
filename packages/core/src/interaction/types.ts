@@ -122,6 +122,11 @@ export interface InteractionHost {
   isAutoScale(paneId: string): boolean;
   panPrice(paneId: string, deltaY: number): void;
   zoomPrice(paneId: string, scale: string, factor: number, anchorY: number): void;
+  /**
+   * Whether the price axis of `scale` in the pane may be dragged or wheeled to scale it: not in
+   * percent mode, whose figures are measured from the first visible bar.
+   */
+  scalesPrice(paneId: string, scale: string): boolean;
   beginPaneResize(above: string, below: string): PaneResizeSession;
   /**
    * Runs a command of the modules, such as undo; returns whether one did anything. Escape that no

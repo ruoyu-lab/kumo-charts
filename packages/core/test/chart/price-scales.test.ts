@@ -3,7 +3,7 @@ import type { Chart } from '../helpers/chart';
 import type { ChartPointerEvent } from '../../src/chart/events';
 import type { ToolEndEvent } from '../../src/drawings/module';
 import { createBars, MINUTE, T0 } from '../helpers/bars';
-import { chartWithBars, click, drag, pointer } from '../helpers/chart';
+import { chartWithBars, click, drag, nextFrame, pointer } from '../helpers/chart';
 import { spreadLabels } from '../../src/render/axis-labels';
 import { canvasCalls } from '../setup';
 
@@ -274,6 +274,36 @@ describe('price scales', () => {
 
     expect(events).toHaveLength(1);
     expect(events[0]?.target).toBeNull();
+  });
+
+  it('neither drags nor wheels the price axis on a percent scale, and keeps no resize cursor there', async () => {
+    const chart = chartWithBars(200);
+    const scale = chart.priceScale();
+    const { panes, leftAxisWidth, plotWidth } = chart.layout();
+    const axisX = leftAxisWidth + plotWidth + 10;
+    const middle = (panes[0]?.plot.y ?? 0) + (panes[0]?.plot.height ?? 0) / 2;
+    scale.setMode('percent');
+    const range = scale.range();
+
+    pointer(chart, 'pointermove', axisX, middle, { buttons: 0 });
+    await nextFrame();
+    expect(chart.element.style.cursor).not.toBe('ns-resize');
+    drag(chart, [axisX, middle], [axisX, middle - 60]);
+    chart.element.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: 100, clientX: axisX, clientY: middle, cancelable: true })
+    );
+    await nextFrame();
+
+    expect([scale.isAutoScale(), scale.range()]).toEqual([true, range]);
+
+    // Back on prices, the axis scales again.
+    scale.setMode('normal');
+    pointer(chart, 'pointermove', axisX, middle, { buttons: 0 });
+    await nextFrame();
+    expect(chart.element.style.cursor).toBe('ns-resize');
+    drag(chart, [axisX, middle], [axisX, middle - 60]);
+
+    expect(scale.isAutoScale()).toBe(false);
   });
 
   it('lets the right scale follow the left one when nothing else is on the right', () => {

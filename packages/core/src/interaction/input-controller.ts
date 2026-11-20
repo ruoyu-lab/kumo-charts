@@ -196,6 +196,10 @@ export class InputController {
     }
 
     if (region.kind === 'price-axis' && this.host.enabled('axisScale')) {
+      if (!this.host.scalesPrice(region.paneId, region.scale)) {
+        return;
+      }
+
       this.gesture = {
         kind: 'price-axis',
         pointerId,
@@ -543,7 +547,9 @@ export class InputController {
     this.root.style.cursor =
       region.kind === 'separator'
         ? 'row-resize'
-        : region.kind === 'price-axis' && axisScale
+        : region.kind === 'price-axis' &&
+            axisScale &&
+            this.host.scalesPrice(region.paneId, region.scale)
           ? 'ns-resize'
           : region.kind === 'time-axis' && axisScale
             ? 'ew-resize'
@@ -649,6 +655,10 @@ export class InputController {
     const region = this.host.regionAt(point);
 
     if (region.kind === 'price-axis') {
+      if (!this.host.scalesPrice(region.paneId, region.scale)) {
+        return;
+      }
+
       this.host.zoomPrice(
         region.paneId,
         region.scale,
