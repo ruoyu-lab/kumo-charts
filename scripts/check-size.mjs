@@ -34,8 +34,11 @@ const BUDGETS = [
   // zigzag plot with its labels and markers that write their value took it from 114.6 to 122.9 kB;
   // their words in four languages took the script of the words from 6.1 to 9.4 kB. Outputs drawn as
   // candles and `refresh()` for calculators reading data besides the bars, to 123.5 kB. A price
-  // pulled out of an order line, markers linked and room above the legend, to 124.0 kB.
-  { file: 'packages/core/dist/kumo-charts.iife.js', gzip: 124.5 },
+  // pulled out of an order line, markers linked and room above the legend, to 124.0 kB. The
+  // labels of 1.0.0-beta.7 (pinned at the edges, centered, the crosshair's lines and room for the
+  // latest values, those of indicators), the tooltips of orders and drawings taken by their lines
+  // only took it to 126.0 kB on CI.
+  { file: 'packages/core/dist/kumo-charts.iife.js', gzip: 126.5 },
   { file: 'packages/core/dist/kumo-charts-indicator-texts.iife.js', gzip: 9.8 },
   { file: 'packages/vue/dist/index.js', gzip: 3 },
   { file: 'packages/react/dist/index.js', gzip: 3 }
@@ -66,10 +69,13 @@ for (const budget of BUDGETS) {
  * given, and the options, events and state of modules of applications; each module grew by its
  * own fixes besides. The view kept in place as the bars are replaced, a drag kept under the pointer
  * as the view moves, a crosshair that need not snap to the bars and how many bars `loadMore`
- * wants took the core to 47.6 kB, and each application with it.
+ * wants took the core to 47.6 kB, and each application with it. The labels of 1.0.0-beta.7
+ * (pinned at the edges, centered, the crosshair's lines and room for the latest values, those of
+ * indicators), the tooltips of orders and drawings taken by their lines only took the core to
+ * 49.0 kB on CI, and each application 0.6 to 1.7 kB with it.
  */
 const APPS = [
-  { name: 'the core', code: `export { createChart } from 'core';`, gzip: 48.5 },
+  { name: 'the core', code: `export { createChart } from 'core';`, gzip: 49.5 },
   {
     name: 'the core with every indicator',
     code: `export { createChart } from 'core'; export { indicators, allIndicators } from 'core/indicators';`,
@@ -78,7 +84,7 @@ const APPS = [
     // their words in the chart's language 0.3 kB. Thirty-seven indicators, the zigzag plot and
     // markers that write their value took it from 68.4 to 76.7 kB; outputs drawn as candles and
     // `refresh()` for calculators reading data besides the bars to 77.3 kB.
-    gzip: 77.8
+    gzip: 79.3
   },
   {
     // Only the three definitions go in, 50.5 kB; MACD picks its averages and RSI has its own
@@ -87,14 +93,14 @@ const APPS = [
     // 61.5 kB; outputs drawn as candles and `refresh()` to 62.1 kB.
     name: 'the core with MA, MACD and RSI',
     code: `export { createChart } from 'core'; export { indicators, MA, MACD, RSI } from 'core/indicators';`,
-    gzip: 62.6
+    gzip: 64
   },
   {
     // The fixes of the drawings' tools, editors and drags took the drawings module up 0.5 kB;
     // the thirteen drawing types after the review 1.5 kB.
     name: 'the core with every drawing type',
     code: `export { createChart } from 'core'; export { drawings, allDrawings } from 'core/drawings';`,
-    gzip: 77
+    gzip: 78.1
   },
   {
     // The price ticks the axis labels cover, and the transform kept in saved states, add 0.1 kB;
@@ -102,39 +108,39 @@ const APPS = [
     // took it from 61.8 to 62 kB.
     name: 'the core with trend and horizontal lines',
     code: `export { createChart } from 'core'; export { drawings, trendLine, horizontalLine } from 'core/drawings';`,
-    gzip: 62.3
+    gzip: 63.7
   },
   {
     name: 'the core with every chart type',
     code: `export { createChart } from 'core'; export { chartTypes, allChartTypes } from 'core/chart-types';`,
-    gzip: 53
+    gzip: 54.4
   },
   {
     name: 'the core with alerts',
     code: `export { createChart } from 'core'; export { alerts } from 'core/alerts';`,
-    gzip: 53
+    gzip: 54.9
   },
   {
     // A price pulled out of an order line, markers linked and outlined took it to 52.0 kB on CI.
     name: 'the core with orders and markers',
     code: `export { createChart } from 'core'; export { orders, markers } from 'core/trading';`,
-    gzip: 52.5
+    gzip: 54.2
   },
   {
     name: 'the core with replay',
     code: `export { createChart } from 'core'; export { replay } from 'core/replay';`,
-    gzip: 49
+    gzip: 50.4
   },
   {
     // The profiles of the bars in view and of the trading days, their cache and their state.
     name: 'the core with volume profiles',
     code: `export { createChart } from 'core'; export { volumeProfiles } from 'core/volume-profile';`,
-    gzip: 51
+    gzip: 52.3
   },
   {
     name: 'the core with the watermark',
     code: `export { createChart } from 'core'; export { watermark } from 'core/watermark';`,
-    gzip: 48.5
+    gzip: 49.9
   },
   {
     // The fixes of the indicators add 0.4 kB; their averages to pick from and new options 1.3 kB;
@@ -148,7 +154,7 @@ const APPS = [
     // 123.1 kB.
     name: 'everything',
     code: `export { createChart } from 'core'; export { allModules } from 'core/all';`,
-    gzip: 123.5
+    gzip: 125.7
   },
   {
     // MACD picks EMAs or SMAs, which brings the averages to pick from: 8.5 kB; the checks of a
