@@ -135,8 +135,9 @@ function paintCandles(
       // Clipping to the bodies keeps the border inside them, so it never widens a candle.
       ctx.save();
       ctx.clip();
+      // A hollow body is outlined as a border is: in the border's color, unless a color is chosen for the bar.
       ctx.strokeStyle =
-        filled && color === null ? (up ? style.upBorderColor : style.downBorderColor) : bodyColor;
+        color === null ? (up ? style.upBorderColor : style.downBorderColor) : bodyColor;
       ctx.lineWidth = 2 * Math.max(hairline, alignToDevice(1, pixelRatio));
       ctx.stroke();
       ctx.restore();

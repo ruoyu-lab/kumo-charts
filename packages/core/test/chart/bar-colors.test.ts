@@ -140,6 +140,14 @@ describe('bar colors', () => {
         '#0d9488'
       ]);
       expect(falling).toContainEqual({ kind: 'stroke', color: lightTheme.down });
+
+      // Outlined in the border's color, its switch off.
+      const outlined = paint(series, points(), null, {
+        hollowUp: true,
+        border: false,
+        upBorderColor: '#123456'
+      });
+      expect(outlined).toContainEqual({ kind: 'stroke', color: '#123456' });
     }
   );
 

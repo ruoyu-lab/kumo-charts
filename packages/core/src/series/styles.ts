@@ -12,11 +12,12 @@ export interface CandleStyle {
   /** Body width as a fraction of the bar spacing. */
   bodyRatio: number;
   /**
-   * Candles that close above their open are drawn hollow, their bodies outlined in the up color, as
-   * many traders read them. Candles and volume candles. Default `false`.
+   * Candles that close above their open are drawn hollow, their bodies outlined in `upBorderColor`
+   * whether `border` is on or not, as many traders read them. Candles and volume candles. Default
+   * `false`.
    */
   hollowUp: boolean;
-  /** Candles that close below their open are drawn hollow, outlined in the down color. Default `false`. */
+  /** Candles that close below their open are drawn hollow, outlined in `downBorderColor`. Default `false`. */
   hollowDown: boolean;
 }
 
