@@ -13,6 +13,7 @@ The packages of KumoChart share one version. Each release lists what changed for
 
 - `labelDraggable` of an order, in `orders.set()`, `add()` and `update()`: the user drags its label along its line, which stays where it is let go, and `orderLabelDrag` tells each phase with its `position` and `initialPosition`; Escape puts it back. Where the order is `draggable` too, a drag from its label that starts across the plot moves the label, one that starts up or down moves the line, and the cursor over the label is a move cursor. Off by default.
 - `crosshair.mirrorOpacity`, 0.45 by default: the crosshair the code sets with `crosshair.set()`, such as the one another linked chart's pointer shows, is drawn this opaque, its lines and labels, lighter than the pointer's own. `1` draws it as before.
+- `hollowUp` of the style of candles and volume candles, off by default: those that close above their open are drawn hollow, outlined in the up color, those that fall filled.
 - `legend.extraRows`: rows of the application's own in the legend, each an item and its title, listed after the indicators of its pane as `rows` and `buttons` have them, such as of what it draws over the bars apart from the indicators, to set or remove it from its buttons.
 - `priceScale.hideCoveredTicks`, off by default: leaves out the price ticks the labels of the latest price and values and of the crosshair would cover.
 

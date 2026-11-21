@@ -11,6 +11,11 @@ export interface CandleStyle {
   border: boolean;
   /** Body width as a fraction of the bar spacing. */
   bodyRatio: number;
+  /**
+   * Candles that close above their open are drawn hollow, their bodies outlined in the up color, as
+   * many traders read them; those that fall stay filled. Candles and volume candles. Default `false`.
+   */
+  hollowUp: boolean;
 }
 
 export interface OhlcStyle {

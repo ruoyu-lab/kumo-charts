@@ -29,14 +29,29 @@ function paintVolumeCandles(context: SeriesPaintContext<CandleStyle>): void {
   for (const group of groupsOf(points)) {
     const { up, color } = group;
     const bodyColor = color ?? (up ? style.upColor : style.downColor);
+    const filled = !(up && style.hollowUp);
 
     if (style.wick) {
       ctx.beginPath();
 
       for (const index of group.indices) {
         const x = snap(points.x(index), 1, pixelRatio);
-        ctx.moveTo(x, points.high(index));
-        ctx.lineTo(x, points.low(index));
+        const high = points.high(index);
+        const low = points.low(index);
+
+        if (filled) {
+          ctx.moveTo(x, high);
+          ctx.lineTo(x, low);
+          continue;
+        }
+
+        // Up to a hollow body and on from it, not through it.
+        const open = points.open(index);
+        const close = points.close(index);
+        ctx.moveTo(x, Math.min(high, low));
+        ctx.lineTo(x, Math.min(open, close));
+        ctx.moveTo(x, Math.max(open, close));
+        ctx.lineTo(x, Math.max(high, low));
       }
 
       ctx.strokeStyle = color ?? (up ? style.upWickColor : style.downWickColor);
@@ -58,13 +73,16 @@ function paintVolumeCandles(context: SeriesPaintContext<CandleStyle>): void {
       );
     }
 
-    ctx.fillStyle = bodyColor;
-    ctx.fill();
+    if (filled) {
+      ctx.fillStyle = bodyColor;
+      ctx.fill();
+    }
 
-    if (style.border) {
+    if (style.border || !filled) {
       ctx.save();
       ctx.clip();
-      ctx.strokeStyle = color ?? (up ? style.upBorderColor : style.downBorderColor);
+      ctx.strokeStyle =
+        filled && color === null ? (up ? style.upBorderColor : style.downBorderColor) : bodyColor;
       ctx.lineWidth = 2 * Math.max(hairline, alignToDevice(1, pixelRatio));
       ctx.stroke();
       ctx.restore();

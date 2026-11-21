@@ -191,7 +191,8 @@ export function candleStyle(up: string, down: string): CandleStyle {
     downBorderColor: down,
     wick: true,
     border: false,
-    bodyRatio: 0.72
+    bodyRatio: 0.72,
+    hollowUp: false
   };
 }
 
@@ -202,7 +203,10 @@ export const candlesSeries: SeriesTypeDefinition<CandleStyle> = {
   paint: (context) => {
     paintCandles(
       context,
-      groupsOf(context.points).map((group) => ({ ...group, filled: true }))
+      groupsOf(context.points).map((group) => ({
+        ...group,
+        filled: !(group.up && context.style.hollowUp)
+      }))
     );
   }
 };

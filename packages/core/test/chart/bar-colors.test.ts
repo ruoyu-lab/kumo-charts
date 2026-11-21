@@ -7,6 +7,7 @@ import {
   hollowGroupsOf,
   ohlcSeries
 } from '../../src/series/bars';
+import { volumeCandlesSeries } from '../../src/chart-types/volume-candles';
 import { PointBuffer, type SeriesTypeDefinition } from '../../src/series/types';
 import { lightTheme } from '../../src/options/themes';
 import { chartWithBars } from '../helpers/chart';
@@ -55,7 +56,8 @@ function barsOf(bars: ReadonlyArray<readonly [open: number, close: number]>): Ba
 function paint<Style extends object>(
   definition: SeriesTypeDefinition<Style>,
   points: PointBuffer,
-  bars: BarsView | null = null
+  bars: BarsView | null = null,
+  style: Partial<Style> = {}
 ) {
   const { ctx, painted } = recorder();
   definition.paint({
@@ -64,7 +66,7 @@ function paint<Style extends object>(
     width: 400,
     height: 300,
     barSpacing: 10,
-    style: definition.defaultStyle(lightTheme, lightTheme.accent),
+    style: { ...definition.defaultStyle(lightTheme, lightTheme.accent), ...style },
     points,
     valueToY: (value) => value,
     bars,
@@ -112,6 +114,24 @@ describe('bar colors', () => {
       '#0d9488'
     ]);
   });
+
+  it.each([
+    ['candles', candlesSeries],
+    ['volume candles', volumeCandlesSeries]
+  ])(
+    'draws the %s that rise hollow, outlined in their color, where the style asks',
+    (_, series) => {
+      const painted = paint(series, points(), null, { hollowUp: true });
+      const fills = painted.filter((item) => item.kind === 'fill').map((item) => item.color);
+
+      // Only the falling ones are filled, in the down color and the chosen one; the rising ones are outlined.
+      expect(fills).toEqual([lightTheme.down, '#0d9488']);
+      expect(painted).toContainEqual({ kind: 'stroke', color: lightTheme.up });
+      expect(
+        painted.filter((item) => item.kind === 'stroke' && item.color === '#0d9488').length
+      ).toBeGreaterThanOrEqual(2);
+    }
+  );
 
   it('reads the color of each bar once, however many colors there are', () => {
     const count = 500;
