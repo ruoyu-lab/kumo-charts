@@ -1,5 +1,4 @@
 import { alignToDevice, snap } from '../canvas/canvas';
-import { barWidth } from './bar-width';
 import type { CandleStyle, HighLowStyle, OhlcStyle } from './styles';
 import type { SeriesPaintContext, SeriesPoints, SeriesTypeDefinition } from './types';
 
@@ -70,7 +69,7 @@ function paintCandles(
   groups: readonly CandleGroup[]
 ): void {
   const { ctx, points, style, pixelRatio, barSpacing } = context;
-  const width = barWidth(barSpacing, style.bodyRatio, style.gap, pixelRatio);
+  const width = Math.max(1 / pixelRatio, alignToDevice(barSpacing * style.bodyRatio, pixelRatio));
   const thin = width * pixelRatio < 3;
   const hairline = 1 / pixelRatio;
   ctx.setLineDash([]);
@@ -195,8 +194,7 @@ export function candleStyle(up: string, down: string): CandleStyle {
     border: false,
     bodyRatio: 0.72,
     hollowUp: false,
-    hollowDown: false,
-    gap: null
+    hollowDown: false
   };
 }
 
@@ -231,14 +229,10 @@ export const ohlcSeries: SeriesTypeDefinition<OhlcStyle> = {
     upColor: theme.up,
     downColor: theme.down,
     lineWidth: 1,
-    ticks: true,
-    gap: null
+    ticks: true
   }),
   paint: ({ ctx, points, style, pixelRatio, barSpacing }) => {
-    const tick = Math.max(
-      1,
-      style.gap === null ? Math.min(barSpacing * 0.4, 8) : (barSpacing - style.gap) / 2
-    );
+    const tick = Math.max(1, Math.min(barSpacing * 0.4, 8));
     const ticks = style.ticks && barSpacing >= 3;
     ctx.lineWidth = style.lineWidth;
     ctx.setLineDash([]);

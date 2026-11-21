@@ -1,5 +1,4 @@
 import { alignToDevice, snap } from '../canvas/canvas';
-import { barWidth } from '../series/bar-width';
 import { candleStyle, groupsOf } from '../series/bars';
 import type { CandleStyle } from '../series/styles';
 import type { SeriesPaintContext, SeriesTypeDefinition } from '../series/types';
@@ -17,12 +16,13 @@ function paintVolumeCandles(context: SeriesPaintContext<CandleStyle>): void {
     most = Math.max(most, points.volume(index) || 0);
   }
 
-  // The bar with the most volume is as wide as a candle, the others their share of it.
-  const widest = barWidth(barSpacing, style.bodyRatio, style.gap, pixelRatio);
   const widthOf = (index: number) =>
     Math.max(
       hairline,
-      alignToDevice((widest * (points.volume(index) || 0)) / (most || 1), pixelRatio)
+      alignToDevice(
+        (barSpacing * style.bodyRatio * (points.volume(index) || 0)) / (most || 1),
+        pixelRatio
+      )
     );
   ctx.setLineDash([]);
 
