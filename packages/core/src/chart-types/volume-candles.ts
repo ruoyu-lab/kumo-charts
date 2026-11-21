@@ -29,7 +29,7 @@ function paintVolumeCandles(context: SeriesPaintContext<CandleStyle>): void {
   for (const group of groupsOf(points)) {
     const { up, color } = group;
     const bodyColor = color ?? (up ? style.upColor : style.downColor);
-    const filled = !(up && style.hollowUp);
+    const filled = !(up ? style.hollowUp : style.hollowDown);
 
     if (style.wick) {
       ctx.beginPath();

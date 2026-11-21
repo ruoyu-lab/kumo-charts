@@ -192,7 +192,8 @@ export function candleStyle(up: string, down: string): CandleStyle {
     wick: true,
     border: false,
     bodyRatio: 0.72,
-    hollowUp: false
+    hollowUp: false,
+    hollowDown: false
   };
 }
 
@@ -205,7 +206,7 @@ export const candlesSeries: SeriesTypeDefinition<CandleStyle> = {
       context,
       groupsOf(context.points).map((group) => ({
         ...group,
-        filled: !(group.up && context.style.hollowUp)
+        filled: !(group.up ? context.style.hollowUp : context.style.hollowDown)
       }))
     );
   }

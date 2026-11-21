@@ -119,7 +119,7 @@ describe('bar colors', () => {
     ['candles', candlesSeries],
     ['volume candles', volumeCandlesSeries]
   ])(
-    'draws the %s that rise hollow, outlined in their color, where the style asks',
+    'draws the %s that rise or fall hollow, outlined in their color, where the style asks',
     (_, series) => {
       const painted = paint(series, points(), null, { hollowUp: true });
       const fills = painted.filter((item) => item.kind === 'fill').map((item) => item.color);
@@ -130,6 +130,16 @@ describe('bar colors', () => {
       expect(
         painted.filter((item) => item.kind === 'stroke' && item.color === '#0d9488').length
       ).toBeGreaterThanOrEqual(2);
+
+      // Those that fall hollow too, or alone.
+      const both = paint(series, points(), null, { hollowUp: true, hollowDown: true });
+      expect(both.filter((item) => item.kind === 'fill')).toEqual([]);
+      const falling = paint(series, points(), null, { hollowDown: true });
+      expect(falling.filter((item) => item.kind === 'fill').map((item) => item.color)).toEqual([
+        lightTheme.up,
+        '#0d9488'
+      ]);
+      expect(falling).toContainEqual({ kind: 'stroke', color: lightTheme.down });
     }
   );
 
