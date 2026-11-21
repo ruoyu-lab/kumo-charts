@@ -137,3 +137,25 @@ describe('legend buttons', () => {
     );
   });
 });
+
+describe('the bounds of the legend', () => {
+  it('say where the rows of a pane were painted, and are null while it shows none', () => {
+    const chart = chartWithBars(120);
+    chart.indicators.add({ type: 'MA', params: { periods: [5] } });
+    chart.screenshot();
+    const { leftAxisWidth } = chart.layout();
+    const bounds = chart.legendBounds();
+    expect(bounds?.x).toBeGreaterThanOrEqual(leftAxisWidth);
+    expect(bounds?.height).toBeGreaterThan(0);
+
+    // A row fewer, the legend is shorter.
+    chart.applyOptions({ legend: { rows: (item) => item.kind === 'main' } });
+    chart.screenshot();
+    expect(chart.legendBounds()?.height).toBeLessThan(bounds?.height ?? 0);
+
+    chart.applyOptions({ legend: { rows: () => false } });
+    chart.screenshot();
+    expect(chart.legendBounds()).toBeNull();
+    expect(chart.legendBounds('nowhere')).toBeNull();
+  });
+});

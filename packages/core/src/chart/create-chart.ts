@@ -1,7 +1,7 @@
 import { toTime, type TimeInput } from '../data/time';
 import type { Unsubscribe } from '../events/event-bus';
 import type { ChartOptionsInput } from '../options/resolve';
-import { chartLayout, type Layout } from '../layout/layout';
+import { chartLayout, type Layout, type Rect } from '../layout/layout';
 import type { ChartOptions } from '../options/types';
 import { MAIN_PANE_ID, RIGHT_SCALE } from '../panes/pane-store';
 import { fail } from '../utils/errors';
@@ -81,6 +81,11 @@ export interface ChartBase<Options = unknown, Events = unknown, State = unknown>
   applyOptions(options: DeepPartial<ChartOptions & Options>): void;
   /** Rectangles of the panes, the price axis and the time axis, for positioning custom overlays. */
   layout(): Layout;
+  /**
+   * Where the legend of a pane (the main one by default) was last painted, in CSS pixels as `layout()` gives them, such
+   * as for a button under it; `null` while it shows no row there.
+   */
+  legendBounds(paneId?: string): Rect | null;
   /** Sets the size in CSS pixels; with `autoSize` the container size wins on its next change. */
   resize(width: number, height: number): void;
   /** Runs several API calls and dispatches their events once afterwards. */
@@ -259,6 +264,21 @@ export function createChart<const M extends readonly ChartModule[] = readonly []
       });
     },
     layout: () => chartLayout(core.frame().layout),
+    legendBounds: (paneId = MAIN_PANE_ID) => {
+      const rows = core.legend.layout.rows.filter((row) => row.item.paneId === paneId);
+
+      if (rows.length === 0) {
+        return null;
+      }
+
+      // The legend keeps its rows in the plot's coordinates: across from the left price axis.
+      const left = core.frame().layout.leftAxisWidth;
+      const x = Math.min(...rows.map(({ rect }) => rect.x));
+      const y = Math.min(...rows.map(({ rect }) => rect.y));
+      const right = Math.max(...rows.map(({ rect }) => rect.x + rect.width));
+      const bottom = Math.max(...rows.map(({ rect }) => rect.y + rect.height));
+      return { x: x + left, y, width: right - x, height: bottom - y };
+    },
     resize: (width, height) => {
       checkNumber('width', width, { min: 0 });
       checkNumber('height', height, { min: 0 });
