@@ -165,10 +165,17 @@ function buildLegends(
       hoveredButton: hovered ? hover.button : null
     });
   };
-  add(
-    { kind: 'main', id: 'main', type: null, paneId: MAIN_PANE_ID, visible: true },
-    mainLegend(sources, frame, index)
-  );
+  const main: LegendItem = {
+    kind: 'main',
+    id: 'main',
+    type: null,
+    paneId: MAIN_PANE_ID,
+    visible: true
+  };
+
+  if (listed(main)) {
+    add(main, mainLegend(sources, frame, index));
+  }
 
   for (const provider of sources.legendRows) {
     for (const row of provider(frame, index)) {

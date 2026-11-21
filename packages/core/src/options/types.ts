@@ -198,8 +198,9 @@ export interface LegendOptions {
   /** Shows the OHLC values and indicator values of the hovered (or latest) bar in each pane. */
   visible: boolean;
   /**
-   * Which rows to list; `null` (default) lists the main series and the visible indicators and
-   * series. List hidden ones too, and they show dimmed, e.g. for a button that shows them again.
+   * Which rows to list, the main series' row of its values among them; `null` (default) lists the
+   * main series and the visible indicators and series. List hidden ones too, and they show dimmed,
+   * e.g. for a button that shows them again; leave the main series out to put its values away.
    */
   rows: ((item: LegendItem) => boolean) | null;
   /**
