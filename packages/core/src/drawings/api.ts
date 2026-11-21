@@ -327,6 +327,7 @@ export function createDrawingsApi(core: ChartCore, domain: DrawingsDomain): Draw
         }
 
         store.registry.replace(definition);
+        store.redefine(definition);
         domain.repaintAll();
         core.bus.emit('typesChange', { kind: 'drawing', type, registered: true });
       });

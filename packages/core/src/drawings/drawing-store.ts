@@ -29,7 +29,8 @@ const HISTORY_LIMIT = 100;
 export interface DrawingEntry {
   readonly id: string;
   readonly type: string;
-  readonly definition: DrawingTypeDefinition;
+  /** The definition registered for its type: the one that replaces it takes its place here. */
+  definition: DrawingTypeDefinition;
   pane: string;
   points: readonly DrawingPoint[];
   style: Readonly<Partial<DrawingStyle>>;
@@ -248,6 +249,15 @@ export class DrawingStore {
     return this.entries.some((entry) => entry.type === type);
   }
 
+  /** Gives the drawings of a definition's type that definition, which replaced the one registered. */
+  redefine(definition: DrawingTypeDefinition): void {
+    for (const entry of this.entries) {
+      if (entry.type === definition.type) {
+        entry.definition = definition;
+      }
+    }
+  }
+
   snapshot(): DrawingSnapshot {
     return this.entries.map((entry) => {
       let copy = this.copies.get(entry);
@@ -261,9 +271,10 @@ export class DrawingStore {
     });
   }
 
+  /** Brings a snapshot back: each drawing as its type is defined now, which may have been replaced since. */
   restore(snapshot: DrawingSnapshot): void {
     this.entries = snapshot.map((copy) => {
-      const entry = { ...copy };
+      const entry = { ...copy, definition: this.registry.require(copy.type) };
       this.copies.set(entry, copy);
       this.ids.note(entry.id);
       return entry;

@@ -399,6 +399,34 @@ describe('registered types', () => {
     }).toThrow(/Unknown drawing type "nothing"/);
   });
 
+  it('paints the drawings placed before a definition was replaced as the new one defines them, undone ones too', async () => {
+    const chart = chartWithBars(200);
+    const painted = { before: 0, after: 0 };
+    const counting =
+      (key: keyof typeof painted) => (context: Parameters<typeof trendLine.paint>[0]) => {
+        painted[key] += 1;
+        trendLine.paint(context);
+      };
+    chart.drawings.register({ ...trendLine, type: 'cross', paint: counting('before') });
+    chart.drawings.add(line({ type: 'cross' }));
+    await nextFrame();
+    expect(painted.before).toBeGreaterThan(0);
+
+    chart.drawings.replace({ ...trendLine, type: 'cross', paint: counting('after') });
+    const { before } = painted;
+    await nextFrame();
+    expect(painted).toEqual({ before, after: expect.any(Number) as number });
+    expect(painted.after).toBeGreaterThan(0);
+
+    // One removed and brought back by undo is of the type as it is defined now.
+    chart.drawings.remove('line');
+    expect(chart.drawings.undo()).toBe(true);
+    const { after } = painted;
+    await nextFrame();
+    expect(painted.before).toBe(before);
+    expect(painted.after).toBeGreaterThan(after);
+  });
+
   it('paints the drawings again as asked, for what their types read besides them', async () => {
     const chart = chartWithBars(200);
     let painted = 0;
