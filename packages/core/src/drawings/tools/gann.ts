@@ -5,17 +5,21 @@ import { boundsOf, cornersOf, extendSegment, insideRect, type Segment } from '..
 import type {
   Anchors,
   DrawingBounds,
+  DrawingField,
   DrawingGeometry,
   DrawingLevel,
   DrawingLevelStyle,
   DrawingPaintContext,
   DrawingPoint,
-  DrawingTypeDefinition
+  DrawingTypeDefinition,
+  LevelRange
 } from '../types';
 import { boxHandles, boxPivot, corners, moveBoxHandle } from './shapes';
 import {
   fillArea,
   LABEL_GAP,
+  levelText,
+  measured,
   ratioText,
   segmentsHit,
   shownLevels,
@@ -33,6 +37,19 @@ const BOX_STYLE = () => ({
   timeLevels: BOX_RATIOS.map((value) => ({ value }))
 });
 
+/** What the forms of the tools that measure in price and in time offer. */
+const BOX_FIELDS: readonly DrawingField[] = [
+  'color',
+  'lineWidth',
+  'lineStyle',
+  'levels',
+  'timeLevels',
+  'levelRange',
+  'timeLevelRange',
+  'levelLabel',
+  'fill'
+];
+
 /** A level of a box: its ratio, where it is across the box and its color. */
 interface BoxLevel {
   readonly ratio: number;
@@ -42,17 +59,22 @@ interface BoxLevel {
 }
 
 /**
- * The levels shown, lowest ratio first, placed from `from` (ratio 0) to `to` (ratio 1): the
- * box is divided on screen, as it is drawn, also on a logarithmic scale.
+ * The levels shown, lowest first, placed along the measure from `from` (its start) to `to` (its
+ * end) by their `range`: the box is divided on screen, as it is drawn, also on a logarithmic scale.
  */
 function boxLevels(
   levels: readonly DrawingLevelStyle[],
+  range: LevelRange,
   geometry: DrawingGeometry,
   from: number,
   to: number
 ): BoxLevel[] {
-  return shownLevels(levels, geometry.style, geometry.theme.palette)
-    .map(({ value, color }) => ({ ratio: value, at: from + (to - from) * value, color }))
+  return shownLevels(levels, geometry.style, geometry.theme.palette, range)
+    .map(({ value, color }) => ({
+      ratio: value,
+      at: from + (to - from) * measured(value, range),
+      color
+    }))
     .sort((a, b) => a.ratio - b.ratio);
 }
 
@@ -98,7 +120,11 @@ function labelledBounds(
   box: Sides,
   levels: readonly BoxLevel[]
 ): DrawingBounds {
-  const width = Math.max(0, ...levels.map(({ ratio }) => geometry.measureText(ratioText(ratio))));
+  const { levelLabel } = geometry.style;
+  const width = Math.max(
+    0,
+    ...levels.map(({ ratio }) => geometry.measureText(levelText(ratio, levelLabel)))
+  );
   const across = LABEL_GAP + width;
   const along = LABEL_GAP + geometry.style.fontSize;
   return {
@@ -117,15 +143,16 @@ function paintBoxLabels(
   prices: readonly BoxLevel[],
   times: readonly BoxLevel[]
 ): void {
+  const text = (ratio: number) => levelText(ratio, geometry.style.levelLabel);
   setLabelFont(ctx, geometry);
   ctx.textBaseline = 'middle';
 
   for (const { ratio, at, color } of prices) {
     ctx.fillStyle = color;
     ctx.textAlign = 'right';
-    ctx.fillText(ratioText(ratio), box.left - LABEL_GAP, at);
+    ctx.fillText(text(ratio), box.left - LABEL_GAP, at);
     ctx.textAlign = 'left';
-    ctx.fillText(ratioText(ratio), box.right + LABEL_GAP, at);
+    ctx.fillText(text(ratio), box.right + LABEL_GAP, at);
   }
 
   ctx.textAlign = 'center';
@@ -133,9 +160,9 @@ function paintBoxLabels(
   for (const { ratio, at, color } of times) {
     ctx.fillStyle = color;
     ctx.textBaseline = 'bottom';
-    ctx.fillText(ratioText(ratio), at, box.top - LABEL_GAP);
+    ctx.fillText(text(ratio), at, box.top - LABEL_GAP);
     ctx.textBaseline = 'top';
-    ctx.fillText(ratioText(ratio), at, box.bottom + LABEL_GAP);
+    ctx.fillText(text(ratio), at, box.bottom + LABEL_GAP);
   }
 }
 
@@ -151,11 +178,12 @@ interface GannBox {
 
 function gannBoxOf(geometry: DrawingGeometry<Anchors<2>>): GannBox {
   const [first, second] = geometry.points;
+  const { style } = geometry;
   return {
     first,
     second,
-    prices: boxLevels(geometry.style.levels, geometry, first.y, second.y),
-    times: boxLevels(geometry.style.timeLevels, geometry, first.x, second.x)
+    prices: boxLevels(style.levels, style.levelRange, geometry, first.y, second.y),
+    times: boxLevels(style.timeLevels, style.timeLevelRange, geometry, first.x, second.x)
   };
 }
 
@@ -183,14 +211,14 @@ function gannLines({ first, second, prices, times }: GannBox): Array<{
 }
 
 /**
- * A Gann box: the box from the first anchor to the second divided in price and
- * in time at `levels` and `timeLevels`, ratios from the first anchor (0) to the second (1), each
- * labelled on both sides. Alerts watch the price levels shown, by their ratio.
+ * A Gann box: the box from the first anchor to the second divided in price and in time at
+ * `levels` and `timeLevels`, each labelled on both sides. Both measure from the first anchor, 0 by
+ * default, to the second, 1. Alerts watch the price levels shown, by their level.
  */
 export const gannBox: DrawingTypeDefinition<Anchors<2>> = {
   type: 'gann-box',
   points: 2,
-  fields: ['color', 'lineWidth', 'lineStyle', 'levels', 'timeLevels', 'fill'],
+  fields: BOX_FIELDS,
   defaultStyle: BOX_STYLE,
   paint: (context) => {
     const { ctx, geometry } = context;
@@ -250,7 +278,7 @@ export const gannBox: DrawingTypeDefinition<Anchors<2>> = {
     const start = Math.min(first.time, second.time);
     const end = Math.max(first.time, second.time);
     return shownLevels(style.levels, style).map(({ value }): DrawingLevel => {
-      const price = scale.fromScale(from + (to - from) * value);
+      const price = scale.fromScale(from + (to - from) * measured(value, style.levelRange));
       return { key: ratioText(value), from: { time: start, price }, to: { time: end, price } };
     });
   }
@@ -273,9 +301,9 @@ interface Fan {
 
 function fanOf(geometry: DrawingGeometry<Anchors<2>>): Fan {
   const [origin, corner] = geometry.points;
-  // Ratios run from the second anchor (0) back to the first (1).
-  const prices = boxLevels(geometry.style.levels, geometry, corner.y, origin.y);
-  const times = boxLevels(geometry.style.timeLevels, geometry, corner.x, origin.x);
+  const { style } = geometry;
+  const prices = boxLevels(style.levels, style.levelRange, geometry, origin.y, corner.y);
+  const times = boxLevels(style.timeLevels, style.timeLevelRange, geometry, origin.x, corner.x);
   const ray = (through: Point): Segment =>
     extendSegment(origin, through, geometry.width, geometry.height, 'ray');
   return {
@@ -320,18 +348,22 @@ function wedgesOf(
 }
 
 /**
- * A Fibonacci speed resistance fan: rays from the first anchor through the
- * levels of the box it spans with the second, the price levels on the second anchor's side and
- * the time levels on its other side, ratios from the second anchor (0) back to the first (1), so
- * 0 is the trend line itself. A grid marks the levels in the box, labelled on every side. Alerts
- * watch the rays of the price levels shown, by their ratio, and those of the time levels as
- * `time-0.382`.
+ * A Fibonacci speed resistance fan: rays from the first anchor through the levels of the box it
+ * spans with the second, the price levels on the second anchor's side and the time levels on its
+ * other side. Both measure from the first anchor to the second, by default from 1 there back to
+ * 0 at the second, so 0 is the trend line itself. A grid marks the levels in the box, labelled on
+ * every side. Alerts watch the rays of the price levels shown, by their level, and those of the
+ * time levels as `time-0.382`.
  */
 export const fibSpeedFan: DrawingTypeDefinition<Anchors<2>> = {
   type: 'fib-speed-fan',
   points: 2,
-  fields: ['color', 'lineWidth', 'lineStyle', 'levels', 'timeLevels', 'fill'],
-  defaultStyle: BOX_STYLE,
+  fields: BOX_FIELDS,
+  defaultStyle: () => ({
+    ...BOX_STYLE(),
+    levelRange: { start: 1, end: 0 },
+    timeLevelRange: { start: 1, end: 0 }
+  }),
   paint: (context) => {
     const { ctx, geometry } = context;
     const fan = fanOf(geometry);
@@ -368,8 +400,8 @@ export const fibSpeedFan: DrawingTypeDefinition<Anchors<2>> = {
     return boundsOf([...raysOf(fan).flat(), ...cornersOf(box)]);
   },
   levels: ([origin, corner], scale, style, { barIndex, timeAt }) => {
-    const from = scale.toScale(corner.price);
-    const to = scale.toScale(origin.price);
+    const from = scale.toScale(origin.price);
+    const to = scale.toScale(corner.price);
     const shown = (levels: readonly DrawingLevelStyle[]) =>
       shownLevels(levels, style).map((level) => level.value);
     const ray = (key: string, through: DrawingPoint): DrawingLevel => ({
@@ -378,21 +410,23 @@ export const fibSpeedFan: DrawingTypeDefinition<Anchors<2>> = {
       to: through,
       extend: 'end'
     });
-    const start = barIndex(corner.time);
-    const span = barIndex(origin.time) - start;
+    const start = barIndex(origin.time);
+    const span = barIndex(corner.time) - start;
     return [
       ...shown(style.levels).map((ratio) =>
         ray(ratioText(ratio), {
           time: corner.time,
-          price: scale.fromScale(from + (to - from) * ratio)
+          price: scale.fromScale(from + (to - from) * measured(ratio, style.levelRange))
         })
       ),
       // A time level at the first anchor's time is a vertical line, which no price crosses.
       ...shown(style.timeLevels)
-        .filter((ratio) => ratio !== 1 && origin.time !== corner.time)
+        .filter(
+          (ratio) => measured(ratio, style.timeLevelRange) !== 0 && origin.time !== corner.time
+        )
         .map((ratio) =>
           ray(`time-${ratioText(ratio)}`, {
-            time: timeAt(start + span * ratio),
+            time: timeAt(start + span * measured(ratio, style.timeLevelRange)),
             price: corner.price
           })
         )

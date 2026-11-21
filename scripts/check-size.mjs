@@ -38,7 +38,7 @@ const BUDGETS = [
   // labels of 1.0.0-beta.7 (pinned at the edges, centered, the crosshair's lines and room for the
   // latest values, those of indicators), the tooltips of orders and drawings taken by their lines
   // only took it to 126.0 kB on CI.
-  { file: 'packages/core/dist/kumo-charts.iife.js', gzip: 126.5 },
+  { file: 'packages/core/dist/kumo-charts.iife.js', gzip: 127 },
   { file: 'packages/core/dist/kumo-charts-indicator-texts.iife.js', gzip: 9.8 },
   { file: 'packages/vue/dist/index.js', gzip: 3 },
   { file: 'packages/react/dist/index.js', gzip: 3 }
@@ -100,7 +100,7 @@ const APPS = [
     // the thirteen drawing types after the review 1.5 kB.
     name: 'the core with every drawing type',
     code: `export { createChart } from 'core'; export { drawings, allDrawings } from 'core/drawings';`,
-    gzip: 78.1
+    gzip: 78.8
   },
   {
     // The price ticks the axis labels cover, and the transform kept in saved states, add 0.1 kB;
@@ -108,7 +108,7 @@ const APPS = [
     // took it from 61.8 to 62 kB.
     name: 'the core with trend and horizontal lines',
     code: `export { createChart } from 'core'; export { drawings, trendLine, horizontalLine } from 'core/drawings';`,
-    gzip: 63.7
+    gzip: 64.2
   },
   {
     name: 'the core with every chart type',
@@ -154,7 +154,7 @@ const APPS = [
     // 123.1 kB.
     name: 'everything',
     code: `export { createChart } from 'core'; export { allModules } from 'core/all';`,
-    gzip: 125.7
+    gzip: 126.3
   },
   {
     // MACD picks EMAs or SMAs, which brings the averages to pick from: 8.5 kB; the checks of a
@@ -169,13 +169,13 @@ const APPS = [
     // the evaluation of the alerts, without anything drawn: 27.8 kB.
     name: 'alerts evaluated without a chart',
     code: `export { createAlertEngine } from 'core/alert-engine';`,
-    gzip: 28.3
+    gzip: 28.7
   },
   {
     // One way to write a level, and the anchors a type has, typed: 7.9 kB.
     name: 'the lines of a Fibonacci retracement without a chart',
     code: `export { computeDrawingLevels, fibRetracement } from 'core/drawings';`,
-    gzip: 8.5
+    gzip: 8.8
   }
 ];
 

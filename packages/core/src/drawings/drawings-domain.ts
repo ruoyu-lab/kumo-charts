@@ -350,6 +350,11 @@ export class DrawingsDomain implements ObjectDomain {
    * After the drawings changed: the editor of a drawing that is gone closes without its text, the
    * selection and the hover of drawings gone drop, and the drawings repaint.
    */
+  /** Repaints every drawing, as after the definition of a type changed. */
+  repaintAll(): void {
+    this.host.repaint(true);
+  }
+
   private settle(user: boolean): void {
     const edited = this.text.edited;
 

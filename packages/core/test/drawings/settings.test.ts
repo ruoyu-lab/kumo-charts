@@ -5,7 +5,7 @@ import { withAlpha } from '../../src/canvas/color';
 import { trendLine } from '../../src/drawings/tools/lines';
 import type { DrawingInput, DrawingStyle, DrawingTimeframes } from '../../src/drawings/types';
 import { createBars, MINUTE, T0 } from '../helpers/bars';
-import { chartWithBars, click, createTestChart } from '../helpers/chart';
+import { chartWithBars, click, createTestChart, nextFrame } from '../helpers/chart';
 
 /** Chart coordinates of bar `index` at `price`. */
 function at(chart: Chart, index: number, price: number): [number, number] {
@@ -152,6 +152,25 @@ describe('styles of tools', () => {
     expect(() => {
       chart.drawings.setToolStyle('fib-retracement', { levels: [{ value: Number.NaN }] });
     }).toThrow(/style.levels\[0\].value must be a finite number/);
+    expect(() => {
+      chart.drawings.setToolStyle('fib-retracement', { levelRange: { start: 1, end: 1 } });
+    }).toThrow(/style.levelRange needs two different levels at its ends/);
+    expect(() => {
+      chart.drawings.setToolStyle('gann-box', {
+        timeLevelRange: { start: 0 } as unknown as { start: number; end: number }
+      });
+    }).toThrow(/style.timeLevelRange.end must be a finite number/);
+    expect(() => {
+      chart.drawings.setToolStyle('fib-retracement', {
+        levelLabel: {
+          level: true,
+          format: 'ratio',
+          prefix: '',
+          suffix: 'R'.repeat(13),
+          price: true
+        }
+      });
+    }).toThrow(/style.levelLabel.suffix must be a text of at most 12 characters/);
     expect(() => chart.drawings.toolStyle('nothing')).toThrow(/Unknown drawing type "nothing"/);
   });
 
@@ -346,6 +365,61 @@ describe('registered types', () => {
     // Registered again, the type starts afresh.
     chart.drawings.register({ ...trendLine, type: 'cross' });
     expect(chart.drawings.toolStyle('cross')).toEqual({});
+  });
+
+  it('replaces the definition of a type, whose drawings stay and repaint as it defines them', () => {
+    const chart = chartWithBars(200);
+    const events: TypesChangeEvent[] = [];
+    chart.drawings.register({ ...trendLine, type: 'cross' });
+    chart.drawings.add(line({ type: 'cross' }));
+    chart.on('typesChange', (event) => events.push(event));
+    chart.drawings.startTool('cross');
+
+    const fields = ['color'] as const;
+    chart.drawings.replace({ ...trendLine, type: 'cross', fields });
+
+    expect(chart.drawings.fields('cross')).toEqual(['color']);
+    expect(chart.drawings.list()).toHaveLength(1);
+    expect(chart.drawings.activeTool()).toBeNull();
+    expect(events).toEqual([{ kind: 'drawing', type: 'cross', registered: true }]);
+
+    // Another number of anchors waits for the drawings of the type to go.
+    expect(() => {
+      chart.drawings.replace({ ...trendLine, type: 'cross', points: 3 });
+    }).toThrow(/Drawings of type "cross" are on the chart with 2 anchors/);
+    chart.drawings.remove('line');
+    chart.drawings.replace({ ...trendLine, type: 'cross', points: 3 });
+    expect(chart.drawings.definition('cross')?.points).toBe(3);
+    // Undo cannot bring back the drawing of two anchors.
+    expect(chart.drawings.undo()).toBe(true);
+    expect(chart.drawings.list()).toHaveLength(0);
+
+    expect(() => {
+      chart.drawings.replace({ ...trendLine, type: 'nothing' });
+    }).toThrow(/Unknown drawing type "nothing"/);
+  });
+
+  it('paints the drawings again as asked, for what their types read besides them', async () => {
+    const chart = chartWithBars(200);
+    let painted = 0;
+    chart.drawings.register({
+      ...trendLine,
+      type: 'counted',
+      paint: (context: Parameters<typeof trendLine.paint>[0]) => {
+        painted += 1;
+        trendLine.paint(context);
+      }
+    });
+    chart.drawings.add(line({ type: 'counted' }));
+    await nextFrame();
+    const before = painted;
+    expect(before).toBeGreaterThan(0);
+
+    await nextFrame();
+    expect(painted).toBe(before);
+    chart.drawings.refresh();
+    await nextFrame();
+    expect(painted).toBeGreaterThan(before);
   });
 
   it('unregisters the types of the module as any other, but keeps an active tool', () => {

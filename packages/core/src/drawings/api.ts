@@ -112,6 +112,18 @@ export interface DrawingsApi {
   /** Adds a drawing type to this chart, named by its `type`. */
   register(definition: DrawingTypeDefinition): void;
   /**
+   * Puts a definition in place of the registered one of its type, such as a newer version of a
+   * type a page brings: the drawings of it stay and repaint as it defines them, and its tool, if
+   * active, is cancelled. One of another number of anchors replaces it only while no drawing of it
+   * is on the chart; copies of them in the undo history are then forgotten.
+   */
+  replace(definition: DrawingTypeDefinition): void;
+  /**
+   * Paints the drawings again: for a type whose definition paints what it reads besides the
+   * drawing, such as values a page computes for it, as that changes, which the chart cannot tell.
+   */
+  refresh(): void;
+  /**
    * Removes a drawing type. Fails while drawings of it are on the chart or its tool is active;
    * copies of them in the undo history are forgotten, and the text of one being placed dropped.
    */
@@ -288,6 +300,35 @@ export function createDrawingsApi(core: ChartCore, domain: DrawingsDomain): Draw
         validateDefinition(definition);
         store.registry.register(definition);
         core.bus.emit('typesChange', { kind: 'drawing', type: definition.type, registered: true });
+      });
+    },
+    refresh: () => {
+      domain.repaintAll();
+    },
+    replace: (definition) => {
+      core.run(() => {
+        validateDefinition(definition);
+        const { type } = definition;
+        const current = store.registry.require(type);
+
+        if (definition.points !== current.points) {
+          if (store.hasType(type)) {
+            fail(
+              `Drawings of type "${type}" are on the chart with ${current.points || 'any number of'} ` +
+                `anchors; remove them before giving it ${definition.points || 'any number of'}.`
+            );
+          }
+
+          domain.history.forgetType(type);
+        }
+
+        if (domain.activeToolType() === type) {
+          domain.cancelTool();
+        }
+
+        store.registry.replace(definition);
+        domain.repaintAll();
+        core.bus.emit('typesChange', { kind: 'drawing', type, registered: true });
       });
     },
     unregister: (type) => {

@@ -40,6 +40,7 @@ export { datePriceRange, dateRange, priceRange } from './tools/ranges';
 export { regressionTrend } from './tools/regression';
 export { anchoredVwap } from './tools/vwap';
 export { computeDrawingLevels, drawingLevels, drawingLevelValue } from './headless';
+export { checkStyle as checkDrawingStyle } from './style';
 export type { DrawingLevelsInput, DrawingLevelsOptions } from './headless';
 export type {
   Anchors,
@@ -63,6 +64,8 @@ export type {
   DrawingTimeframes,
   DrawingTypeDefinition,
   LevelContext,
+  LevelLabelStyle,
+  LevelRange,
   LevelScale,
   Positions,
   TextAlign,

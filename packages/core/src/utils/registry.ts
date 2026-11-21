@@ -38,6 +38,19 @@ export class Registry<Definition extends Typed> {
     this.definitions.set(type, definition);
   }
 
+  /** Puts `definition` in place of the one of its type, which is registered and not fixed. */
+  replace(definition: Definition): void {
+    checkObject(`${this.kind} definition`, definition);
+    const type = checkString(`${this.kind} definition type`, definition.type);
+
+    if (this.fixed.has(type)) {
+      fail(`"${type}" is a ${this.kind} of every chart and cannot be replaced.`);
+    }
+
+    this.require(type);
+    this.definitions.set(type, definition);
+  }
+
   unregister(type: string): void {
     checkString(this.kind, type);
 

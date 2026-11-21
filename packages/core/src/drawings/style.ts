@@ -1,13 +1,14 @@
 import { font } from '../canvas/canvas';
 import { checkColor } from '../canvas/color';
 import { LINE_STYLES, type ChartOptions } from '../options/types';
-import { fail } from '../utils/errors';
+import { describeValue, fail } from '../utils/errors';
 import { deepFreeze, deepMerge } from '../utils/merge';
 import {
   checkArray,
   checkBoolean,
   checkFields,
   checkNumber,
+  checkObject,
   checkOneOf,
   fieldsOf
 } from '../utils/validate';
@@ -17,6 +18,8 @@ import type {
   DrawingLevelStyle,
   DrawingStyle,
   DrawingTypeDefinition,
+  LevelLabelStyle,
+  LevelRange,
   WaveDegree
 } from './types';
 
@@ -49,6 +52,9 @@ const FLAGS = [
   'endArrow'
 ] as const;
 const MAX_LEVELS = 32;
+const LEVEL_FORMATS = ['ratio', 'percent'] as const;
+/** Text around a level, such as `R`, kept short enough to stay beside it. */
+const MAX_AFFIX = 12;
 
 /** What a form offers for a type that does not say. */
 export const DEFAULT_FIELDS: readonly DrawingField[] = ['color', 'lineWidth', 'lineStyle'];
@@ -79,6 +85,54 @@ function checkLevels(key: 'levels' | 'timeLevels', levels: readonly DrawingLevel
   return levels.map((level, index) => checkLevel(`style.${key}[${index}]`, level));
 }
 
+const RANGE_FIELDS = fieldsOf<LevelRange>({ start: true, end: true });
+
+function checkRange(key: 'levelRange' | 'timeLevelRange', range: LevelRange): LevelRange {
+  const path = `style.${key}`;
+  checkObject(path, range);
+  checkFields(path, range, RANGE_FIELDS);
+  const start = checkNumber(`${path}.start`, range.start);
+  const end = checkNumber(`${path}.end`, range.end);
+
+  if (start === end) {
+    fail(`${path} needs two different levels at its ends, received ${start} at both.`);
+  }
+
+  return { start, end };
+}
+
+const LABEL_FIELDS = fieldsOf<LevelLabelStyle>({
+  level: true,
+  format: true,
+  prefix: true,
+  suffix: true,
+  price: true
+});
+
+/** Text around a level: none, or a few characters. */
+function checkAffix(path: string, text: unknown): string {
+  if (typeof text !== 'string' || text.length > MAX_AFFIX) {
+    return fail(
+      `${path} must be a text of at most ${MAX_AFFIX} characters, received ${describeValue(text)}.`
+    );
+  }
+
+  return text;
+}
+
+function checkLabel(label: LevelLabelStyle): LevelLabelStyle {
+  const path = 'style.levelLabel';
+  checkObject(path, label);
+  checkFields(path, label, LABEL_FIELDS);
+  return {
+    level: checkBoolean(`${path}.level`, label.level),
+    format: checkOneOf(`${path}.format`, label.format, LEVEL_FORMATS),
+    prefix: checkAffix(`${path}.prefix`, label.prefix),
+    suffix: checkAffix(`${path}.suffix`, label.suffix),
+    price: checkBoolean(`${path}.price`, label.price)
+  };
+}
+
 /** Every field of a drawing's style, to reject one misspelled. */
 const STYLE_FIELDS = fieldsOf<DrawingStyle>({
   color: true,
@@ -98,11 +152,17 @@ const STYLE_FIELDS = fieldsOf<DrawingStyle>({
   endArrow: true,
   levels: true,
   timeLevels: true,
+  levelRange: true,
+  timeLevelRange: true,
+  levelLabel: true,
   source: true,
   degree: true
 });
 
-/** Validates the fields of a style that are given, leaving the others out. */
+/**
+ * Validates the fields of a style that are given, leaving the others out: fails with what is wrong,
+ * as a chart would take it.
+ */
 export function checkStyle(style: Partial<DrawingStyle>): Partial<DrawingStyle> {
   checkFields('style', style, STYLE_FIELDS);
   const result: Partial<DrawingStyle> = {};
@@ -145,6 +205,16 @@ export function checkStyle(style: Partial<DrawingStyle>): Partial<DrawingStyle> 
     }
   }
 
+  for (const key of ['levelRange', 'timeLevelRange'] as const) {
+    if (style[key] !== undefined) {
+      result[key] = checkRange(key, style[key]);
+    }
+  }
+
+  if (style.levelLabel !== undefined) {
+    result.levelLabel = checkLabel(style.levelLabel);
+  }
+
   if (style.source !== undefined) {
     result.source = checkOneOf('style.source', style.source, PRICE_SOURCES);
   }
@@ -177,6 +247,9 @@ function chartStyle(options: ChartOptions): DrawingStyle {
     endArrow: false,
     levels: [],
     timeLevels: [],
+    levelRange: { start: 0, end: 1 },
+    timeLevelRange: { start: 0, end: 1 },
+    levelLabel: { level: true, format: 'ratio', prefix: '', suffix: '', price: true },
     source: 'close',
     degree: 'intermediate'
   };

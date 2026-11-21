@@ -5,7 +5,14 @@ import type { Theme } from '../../options/types';
 import { paletteColor } from '../../render/contributors';
 import { LruCache } from '../../utils/lru-cache';
 import { distanceToSegment, type Segment } from '../geometry';
-import type { DrawingHit, DrawingLevelStyle, DrawingPaintContext, DrawingStyle } from '../types';
+import type {
+  DrawingHit,
+  DrawingLevelStyle,
+  DrawingPaintContext,
+  DrawingStyle,
+  LevelLabelStyle,
+  LevelRange
+} from '../types';
 
 /** A hit on a drawing's content: its text, the box of a label, a mark painted solid; never a fill. */
 export const bodyHit: DrawingHit = { part: 'body', distance: 0 };
@@ -102,23 +109,35 @@ export interface ShownLevel {
   readonly color: string;
 }
 
+/** Ratios from 0 at the start to 1 at the end, as tools that do not measure have them. */
+const UNIT: LevelRange = { start: 0, end: 1 };
+
 /**
  * The levels that show, in their order, each in its own color, else the drawing's; with a
- * `palette`, as Fibonacci ratios and Gann boxes color them: the drawing's color for 0 and 1 and
- * the palette's in turn for the others, hidden ones counted.
+ * `palette`, as Fibonacci ratios and Gann boxes color them: the drawing's color for the levels at
+ * the ends of the `range` and the palette's in turn for the others, hidden ones counted.
  */
 export function shownLevels(
   levels: readonly DrawingLevelStyle[],
   style: DrawingStyle,
-  palette: Theme['palette'] | null = null
+  palette: Theme['palette'] | null = null,
+  range: LevelRange = UNIT
 ): ShownLevel[] {
   let inner = 0;
   return levels.flatMap(({ value, color, visible }) => {
-    const outer = value === 0 || value === 1;
+    const outer = value === range.start || value === range.end;
     const auto = outer || !palette ? style.color : paletteColor(palette, inner);
     inner += outer ? 0 : 1;
     return visible === false ? [] : [{ value, color: color ?? auto }];
   });
+}
+
+/**
+ * Where a level lies along what its tool measures, by its `range`: 0 at the measure's start, 1 at
+ * its end, the others in proportion before, between or beyond.
+ */
+export function measured(value: number, range: LevelRange): number {
+  return (value - range.start) / (range.end - range.start);
 }
 
 /**
@@ -127,6 +146,19 @@ export function shownLevels(
  */
 export function ratioText(value: number): string {
   return String(Math.round(value * 1000) / 1000);
+}
+
+/**
+ * A level as its tool writes it by `label`: `0.618`, `61.8%` or `2R`; empty when the label leaves
+ * the level out.
+ */
+export function levelText(value: number, label: LevelLabelStyle): string {
+  if (!label.level) {
+    return '';
+  }
+
+  const number = label.format === 'percent' ? `${ratioText(value * 100)}%` : ratioText(value);
+  return `${label.prefix}${number}${label.suffix}`;
 }
 
 /**

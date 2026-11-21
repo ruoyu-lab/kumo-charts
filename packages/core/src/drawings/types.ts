@@ -30,6 +30,31 @@ export interface DrawingLevelStyle {
   readonly visible?: boolean;
 }
 
+/**
+ * What the levels of a tool measure from: the level at the start of its measure and the level at
+ * its end, the others placed in proportion, before, between or beyond them. A Fibonacci
+ * retracement measures from its first anchor to its second, `{ start: 1, end: 0 }` by default;
+ * `{ start: 0, end: -1 }` counts multiples of the move from the first anchor, as risk multiples
+ * from an entry to a stop. Each tool says what it measures.
+ */
+export interface LevelRange {
+  readonly start: number;
+  /** Differs from `start`. */
+  readonly end: number;
+}
+
+/** How a tool writes its levels: the level and the price beside it, each where it does. */
+export interface LevelLabelStyle {
+  /** Writes the level, as a ratio (`0.618`) or as a percent (`61.8%`). */
+  readonly level: boolean;
+  readonly format: 'ratio' | 'percent';
+  /** Around the level, such as `R` after it: `2R`. */
+  readonly prefix: string;
+  readonly suffix: string;
+  /** Writes the price after the level, where the tool's levels are prices. */
+  readonly price: boolean;
+}
+
 export type TextAlign = 'left' | 'center' | 'right';
 /** Degrees of Elliott waves, from the largest; each labels its waves its own way. */
 export type WaveDegree =
@@ -80,6 +105,12 @@ export interface DrawingStyle {
   levels: readonly DrawingLevelStyle[];
   /** The time levels of tools that divide time too, such as a Gann box: ratios of its width. */
   timeLevels: readonly DrawingLevelStyle[];
+  /** What `levels` measure from, of the tools that measure: the level at each end. */
+  levelRange: LevelRange;
+  /** What `timeLevels` measure from. */
+  timeLevelRange: LevelRange;
+  /** How the tools that measure write their levels. */
+  levelLabel: LevelLabelStyle;
   /** The price of each bar a tool computes from, such as a regression channel or a VWAP. */
   source: PriceSource;
   /** The degree of Elliott waves, which sets how their waves are labelled. */

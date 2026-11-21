@@ -131,6 +131,9 @@ function geometryOf(
       endArrow: false,
       levels: [],
       timeLevels: [],
+      levelRange: { start: 0, end: 1 },
+      timeLevelRange: { start: 0, end: 1 },
+      levelLabel: { level: true, format: 'ratio', prefix: '', suffix: '', price: true },
       source: 'close',
       degree: 'intermediate',
       ...registry.require(type).defaultStyle?.(darkTheme),
@@ -448,9 +451,10 @@ describe('fib-retracement', () => {
     const dashed = strokes.filter(isDashed);
 
     // Level 0 where the move ended, the second anchor; 1 where it began, the first.
-    expect(lines.map((line) => line.segments[0]?.[0].y)).toEqual(
-      levels.map((level) => 200 + (100 - 200) * level)
-    );
+    lines.forEach((line, index) => {
+      expect(line.segments[0]?.[0].y).toBeCloseTo(200 + (100 - 200) * (levels[index] ?? 0), 9);
+    });
+    expect(lines).toHaveLength(levels.length);
     expect(lines.every(({ segments: [line] }) => line?.[0].x === 10 && line[1].x === 90)).toBe(
       true
     );
@@ -494,6 +498,61 @@ describe('fib-retracement', () => {
     expect(
       calls.filter(({ method }) => method === 'fillText').every(({ args }) => args[1] === 14)
     ).toBe(true);
+  });
+
+  it('measures from where its style says: 0 at the first anchor and -1 at the second counts multiples of the move', () => {
+    const multiples = geometryOf(
+      'fib-retracement',
+      [
+        [10, 100],
+        [90, 200]
+      ],
+      '',
+      {
+        levels: [{ value: -1 }, { value: 0 }, { value: 1 }, { value: 2 }],
+        levelRange: { start: 0, end: -1 },
+        levelLabel: { level: true, format: 'ratio', prefix: '', suffix: 'R', price: false }
+      }
+    );
+    const calls = paint('fib-retracement', multiples);
+    const lines = pathsOf(calls, 'stroke').filter((path) => !isDashed(path));
+
+    expect(lines.map((line) => line.segments[0]?.[0].y)).toEqual([200, 100, 0, -100]);
+    expect(textsOf(calls)).toEqual(['-1R', '0R', '1R', '2R']);
+    // The levels at the ends of the measure take the drawing's color, as 0 and 1 do by default.
+    expect(lines[0]?.state.strokeStyle).toBe(darkTheme.accent);
+    expect(lines[1]?.state.strokeStyle).toBe(darkTheme.accent);
+    expect(lines[2]?.state.strokeStyle).not.toBe(darkTheme.accent);
+  });
+
+  it('writes its levels as percents, or its prices alone, as its style says', () => {
+    const style = (levelLabel: DrawingStyle['levelLabel']) =>
+      geometryOf(
+        'fib-retracement',
+        [
+          [10, 100],
+          [90, 200]
+        ],
+        '',
+        { levels: [{ value: 0.5 }], levelLabel }
+      );
+
+    expect(
+      textsOf(
+        paint(
+          'fib-retracement',
+          style({ level: true, format: 'percent', prefix: '', suffix: '', price: true })
+        )
+      )
+    ).toEqual(['50%  150.00']);
+    expect(
+      textsOf(
+        paint(
+          'fib-retracement',
+          style({ level: false, format: 'ratio', prefix: '', suffix: '', price: true })
+        )
+      )
+    ).toEqual(['150.00']);
   });
 
   it('labels the levels at the left edge of the plot as they extend there', () => {
