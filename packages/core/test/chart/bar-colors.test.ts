@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { BarColorContext } from '../../src/options/types';
-import { candlesSeries, hollowCandlesSeries, ohlcSeries } from '../../src/series/bars';
+import type { BarsView } from '../../src/data/types';
+import {
+  candlesSeries,
+  hollowCandlesSeries,
+  hollowGroupsOf,
+  ohlcSeries
+} from '../../src/series/bars';
 import { PointBuffer, type SeriesTypeDefinition } from '../../src/series/types';
 import { lightTheme } from '../../src/options/themes';
 import { chartWithBars } from '../helpers/chart';
@@ -30,7 +36,27 @@ function recorder() {
   return { ctx: ctx as unknown as CanvasRenderingContext2D, painted };
 }
 
-function paint<Style extends object>(definition: SeriesTypeDefinition<Style>, points: PointBuffer) {
+/** The raw bars behind the points, by their opens and closes. */
+function barsOf(bars: ReadonlyArray<readonly [open: number, close: number]>): BarsView {
+  return {
+    length: bars.length,
+    revision: 0,
+    time: (index) => index,
+    open: (index) => bars[index]?.[0] ?? NaN,
+    high: (index) => Math.max(...(bars[index] ?? [NaN])),
+    low: (index) => Math.min(...(bars[index] ?? [NaN])),
+    close: (index) => bars[index]?.[1] ?? NaN,
+    volume: () => 0,
+    bar: () => null,
+    lowerBound: () => 0
+  };
+}
+
+function paint<Style extends object>(
+  definition: SeriesTypeDefinition<Style>,
+  points: PointBuffer,
+  bars: BarsView | null = null
+) {
   const { ctx, painted } = recorder();
   definition.paint({
     ctx,
@@ -41,12 +67,19 @@ function paint<Style extends object>(definition: SeriesTypeDefinition<Style>, po
     style: definition.defaultStyle(lightTheme, lightTheme.accent),
     points,
     valueToY: (value) => value,
-    bars: null,
+    bars,
     first: 0,
     transform: null
   });
   return painted;
 }
+
+/** The bars of `points()`: up from the open, and from the close before. */
+const RISING = barsOf([
+  [10, 12],
+  [12, 14],
+  [15, 13]
+]);
 
 /** A rising bar, a rising bar in teal and a falling bar in teal. */
 function points(): PointBuffer {
@@ -68,7 +101,7 @@ describe('bar colors', () => {
     expect(fills.filter((color) => color === '#0d9488')).toHaveLength(2);
     // Hollow candles keep rising bars hollow, in their chosen color.
     expect(
-      paint(hollowCandlesSeries, points()).filter(
+      paint(hollowCandlesSeries, points(), RISING).filter(
         (item) => item.kind === 'stroke' && item.color === '#0d9488'
       ).length
     ).toBeGreaterThanOrEqual(2);
@@ -107,7 +140,8 @@ describe('bar colors', () => {
     };
 
     expect(readsOf(() => paint(candlesSeries, counted))).toBe(count);
-    expect(readsOf(() => paint(hollowCandlesSeries, counted))).toBe(count);
+    const flat = barsOf(Array.from({ length: count }, () => [50, 50] as const));
+    expect(readsOf(() => paint(hollowCandlesSeries, counted, flat))).toBe(count);
     expect(readsOf(() => paint(ohlcSeries, counted))).toBe(count);
   });
 
@@ -144,5 +178,48 @@ describe('bar colors', () => {
     expect(() => {
       chart.applyOptions({ mainSeries: { barColor: 'red' as never } });
     }).toThrow('options.mainSeries.barColor');
+  });
+});
+
+describe('hollow candles', () => {
+  it('take their color from the close before, and are hollow when they close above their open', () => {
+    const bars = barsOf([
+      [10, 12], // the first of all, against its own open: up, hollow
+      [13, 11], // below the close before: down; under its open: filled
+      [9, 11.5], // above the close before: up; over its open: hollow
+      [12, 11.8], // above the close before: up; under its open: filled
+      [10, 11] // below the close before: down; over its open: hollow
+    ]);
+    const buffer = new PointBuffer();
+    buffer.reset(5);
+
+    for (let index = 0; index < 5; index += 1) {
+      buffer.pushOhlc(index * 10, 60, 40, 80, 50, 100, true);
+    }
+
+    const groups = hollowGroupsOf({
+      ctx: recorder().ctx,
+      pixelRatio: 1,
+      width: 400,
+      height: 300,
+      barSpacing: 10,
+      style: hollowCandlesSeries.defaultStyle(lightTheme, lightTheme.accent),
+      points: buffer,
+      valueToY: (value) => value,
+      bars,
+      first: 0,
+      transform: null
+    });
+
+    expect(
+      groups
+        .map((group) => ({ up: group.up, filled: group.filled, indices: group.indices }))
+        .sort((a, b) => (a.indices[0] ?? 0) - (b.indices[0] ?? 0))
+    ).toEqual([
+      { up: true, filled: false, indices: [0, 2] },
+      { up: false, filled: true, indices: [1] },
+      { up: true, filled: true, indices: [3] },
+      { up: false, filled: false, indices: [4] }
+    ]);
   });
 });

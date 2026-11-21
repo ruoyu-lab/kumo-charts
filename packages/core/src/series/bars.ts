@@ -55,17 +55,28 @@ export function groupsOf(points: SeriesPoints): PointGroup[] {
   ];
 }
 
-function paintCandles(context: SeriesPaintContext<CandleStyle>, hollow: boolean): void {
+/** Candles drawn alike: in one color, filled or hollow. */
+interface CandleGroup {
+  readonly up: boolean;
+  /** The chosen color, or `null` for the style's up or down colors. */
+  readonly color: string | null;
+  readonly filled: boolean;
+  readonly indices: readonly number[];
+}
+
+function paintCandles(
+  context: SeriesPaintContext<CandleStyle>,
+  groups: readonly CandleGroup[]
+): void {
   const { ctx, points, style, pixelRatio, barSpacing } = context;
   const width = Math.max(1 / pixelRatio, alignToDevice(barSpacing * style.bodyRatio, pixelRatio));
   const thin = width * pixelRatio < 3;
   const hairline = 1 / pixelRatio;
   ctx.setLineDash([]);
 
-  for (const group of groupsOf(points)) {
-    const { up, color } = group;
+  for (const group of groups) {
+    const { up, color, filled } = group;
     const bodyColor = color ?? (up ? style.upColor : style.downColor);
-    const filled = !(hollow && up);
 
     if (style.wick || thin) {
       ctx.beginPath();
@@ -117,6 +128,43 @@ function paintCandles(context: SeriesPaintContext<CandleStyle>, hollow: boolean)
   }
 }
 
+/**
+ * The groups of hollow candles. Each takes its color from where it closed against the close before it (up at or above it,
+ * down below), the first bar of all against its own open; and it is hollow when it closed above its open, filled when
+ * at or below it. So a candle can rise within its bar and still be down from the bar before: hollow, in the down color.
+ */
+export function hollowGroupsOf(context: SeriesPaintContext<CandleStyle>): CandleGroup[] {
+  const { points, bars, first } = context;
+  const groups = new Map<
+    string,
+    { up: boolean; color: string | null; filled: boolean; indices: number[] }
+  >();
+
+  if (!bars) {
+    return [];
+  }
+
+  for (let index = 0; index < points.count; index += 1) {
+    const bar = first + index;
+    const close = bars.close(bar);
+    const before = bar > 0 ? bars.close(bar - 1) : bars.open(bar);
+    const up = close >= before;
+    const filled = close <= bars.open(bar);
+    const color = points.color(index);
+    const key = `${String(up)}|${String(filled)}|${color ?? ''}`;
+    let group = groups.get(key);
+
+    if (!group) {
+      group = { up, color, filled, indices: [] };
+      groups.set(key, group);
+    }
+
+    group.indices.push(index);
+  }
+
+  return [...groups.values()];
+}
+
 export function candleStyle(up: string, down: string): CandleStyle {
   return {
     upColor: up,
@@ -136,7 +184,10 @@ export const candlesSeries: SeriesTypeDefinition<CandleStyle> = {
   input: 'ohlc',
   defaultStyle: (theme) => candleStyle(theme.up, theme.down),
   paint: (context) => {
-    paintCandles(context, false);
+    paintCandles(
+      context,
+      groupsOf(context.points).map((group) => ({ ...group, filled: true }))
+    );
   }
 };
 
@@ -145,7 +196,7 @@ export const hollowCandlesSeries: SeriesTypeDefinition<CandleStyle> = {
   input: 'ohlc',
   defaultStyle: (theme) => candleStyle(theme.up, theme.down),
   paint: (context) => {
-    paintCandles(context, true);
+    paintCandles(context, hollowGroupsOf(context));
   }
 };
 
