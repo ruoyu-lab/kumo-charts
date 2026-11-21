@@ -18,6 +18,7 @@ import { boxHandles, boxPivot, corners, moveBoxHandle } from './shapes';
 import {
   fillArea,
   LABEL_GAP,
+  type LevelStroke,
   levelText,
   measured,
   ratioText,
@@ -30,9 +31,11 @@ import {
 /** The levels of a Gann box and a speed resistance fan, in price and in time. */
 const BOX_RATIOS: readonly number[] = [0, 0.25, 0.382, 0.5, 0.618, 0.75, 1];
 /** Bands between levels are this faint, in each direction of a box. */
-const BAND_ALPHA = 0.08;
+/** How opaque the bands of the Gann tools are by default, fainter than others for their many. */
+const BAND_OPACITY = 0.08;
 
 const BOX_STYLE = () => ({
+  bandOpacity: BAND_OPACITY,
   levels: BOX_RATIOS.map((value) => ({ value })),
   timeLevels: BOX_RATIOS.map((value) => ({ value }))
 });
@@ -56,6 +59,7 @@ interface BoxLevel {
   /** Y of a price level, x of a time level. */
   readonly at: number;
   readonly color: string;
+  readonly stroke: LevelStroke;
 }
 
 /**
@@ -70,20 +74,17 @@ function boxLevels(
   to: number
 ): BoxLevel[] {
   return shownLevels(levels, geometry.style, geometry.theme.palette, range)
-    .map(({ value, color }) => ({
+    .map(({ value, color, stroke }) => ({
       ratio: value,
       at: from + (to - from) * measured(value, range),
-      color
+      color,
+      stroke
     }))
     .sort((a, b) => a.ratio - b.ratio);
 }
 
-/** Strokes a line of a box or a fan in `color`, and `lineWidth` when not the drawing's. */
-function strokeLine(
-  context: DrawingPaintContext,
-  line: Segment,
-  stroke: { readonly color: string; readonly lineWidth?: number }
-): void {
+/** Strokes a line of a box or a fan in `color`, and its width and style when not the drawing's. */
+function strokeLine(context: DrawingPaintContext, line: Segment, stroke: LevelStroke): void {
   strokeDrawing(
     context,
     (path) => {
@@ -190,22 +191,22 @@ function gannBoxOf(geometry: DrawingGeometry<Anchors<2>>): GannBox {
 /** The lines of a box in the colors of their levels: across it at prices, down it at times. */
 function gannLines({ first, second, prices, times }: GannBox): Array<{
   readonly line: Segment;
-  readonly color: string;
+  readonly stroke: LevelStroke;
 }> {
   return [
-    ...prices.map(({ at, color }) => ({
+    ...prices.map(({ at, stroke }) => ({
       line: [
         { x: first.x, y: at },
         { x: second.x, y: at }
       ] as const,
-      color
+      stroke
     })),
-    ...times.map(({ at, color }) => ({
+    ...times.map(({ at, stroke }) => ({
       line: [
         { x: at, y: first.y },
         { x: at, y: second.y }
       ] as const,
-      color
+      stroke
     }))
   ];
 }
@@ -234,7 +235,7 @@ export const gannBox: DrawingTypeDefinition<Anchors<2>> = {
           fillArea(
             ctx,
             corners({ x: first.x, y: at }, { x: second.x, y: next.at }),
-            withAlpha(color, BAND_ALPHA)
+            withAlpha(color, geometry.style.bandOpacity)
           );
         }
       });
@@ -245,14 +246,14 @@ export const gannBox: DrawingTypeDefinition<Anchors<2>> = {
           fillArea(
             ctx,
             corners({ x: at, y: first.y }, { x: next.at, y: second.y }),
-            withAlpha(color, BAND_ALPHA)
+            withAlpha(color, geometry.style.bandOpacity)
           );
         }
       });
     }
 
-    for (const { line, color } of gannLines(box)) {
-      strokeLine(context, line, { color });
+    for (const { line, stroke } of gannLines(box)) {
+      strokeLine(context, line, stroke);
     }
 
     paintBoxLabels(ctx, geometry, sidesOf(first, second), prices, times);
@@ -371,7 +372,7 @@ export const fibSpeedFan: DrawingTypeDefinition<Anchors<2>> = {
 
     if (geometry.style.fill) {
       for (const { area, color } of [...wedgesOf(origin, prices), ...wedgesOf(origin, times)]) {
-        fillArea(ctx, area, withAlpha(color, BAND_ALPHA));
+        fillArea(ctx, area, withAlpha(color, geometry.style.bandOpacity));
       }
     }
 
@@ -379,8 +380,8 @@ export const fibSpeedFan: DrawingTypeDefinition<Anchors<2>> = {
       strokeLine(context, line, { color: withAlpha(geometry.style.color, 0.5), lineWidth: 1 });
     }
 
-    for (const { ray, color } of [...prices, ...times]) {
-      strokeLine(context, ray, { color });
+    for (const { ray, stroke } of [...prices, ...times]) {
+      strokeLine(context, ray, stroke);
     }
 
     paintBoxLabels(ctx, geometry, sidesOf(origin, corner), prices, times);
@@ -453,6 +454,7 @@ export function gannAngleText(ratio: number): string {
 interface GannAngle {
   readonly ratio: number;
   readonly color: string;
+  readonly stroke: LevelStroke;
   readonly ray: Segment;
 }
 
@@ -468,7 +470,7 @@ function gannFanOf(geometry: DrawingGeometry<Anchors<2>>): GannAngle[] {
   return shownLevels(geometry.style.levels, geometry.style, geometry.theme.palette)
     .filter(({ value }) => value > 0)
     .sort((a, b) => b.value - a.value)
-    .map(({ value, color }) => {
+    .map(({ value, color, stroke }) => {
       // Flatter than the 1×1, the angle leaves the box by its far side; steeper, by its top or bottom.
       const edge =
         value <= 1
@@ -477,6 +479,7 @@ function gannFanOf(geometry: DrawingGeometry<Anchors<2>>): GannAngle[] {
       return {
         ratio: value,
         color,
+        stroke,
         ray: extendSegment(origin, edge, geometry.width, geometry.height, 'ray')
       };
     });
@@ -542,7 +545,10 @@ export const gannFan: DrawingTypeDefinition<Anchors<2>> = {
   type: 'gann-fan',
   points: 2,
   fields: ['color', 'lineWidth', 'lineStyle', 'levels', 'fill'],
-  defaultStyle: () => ({ levels: GANN_ANGLES.map((value) => ({ value })) }),
+  defaultStyle: () => ({
+    bandOpacity: BAND_OPACITY,
+    levels: GANN_ANGLES.map((value) => ({ value }))
+  }),
   paint: (context) => {
     const { ctx, geometry } = context;
     const angles = gannFanOf(geometry);
@@ -553,13 +559,17 @@ export const gannFan: DrawingTypeDefinition<Anchors<2>> = {
         const next = angles[index + 1];
 
         if (next) {
-          fillArea(ctx, [origin, ray[1], next.ray[1]], withAlpha(color, BAND_ALPHA));
+          fillArea(
+            ctx,
+            [origin, ray[1], next.ray[1]],
+            withAlpha(color, geometry.style.bandOpacity)
+          );
         }
       });
     }
 
-    for (const { ray, color } of angles) {
-      strokeLine(context, ray, { color });
+    for (const { ray, stroke } of angles) {
+      strokeLine(context, ray, stroke);
     }
 
     setLabelFont(ctx, geometry);
