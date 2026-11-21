@@ -179,6 +179,7 @@ function validateOptions(options: ChartOptions): void {
   checkNumber('options.panes.separatorHeight', options.panes.separatorHeight, { min: 0 });
   checkFunctionOrNull('options.legend.rows', options.legend.rows);
   checkFunctionOrNull('options.legend.buttons', options.legend.buttons);
+  checkFunctionOrNull('options.legend.extraRows', options.legend.extraRows);
 
   checkNumber('options.panes.separatorWidth', options.panes.separatorWidth, { min: 0 });
 

@@ -31,6 +31,26 @@ describe('legend rows', () => {
   });
 });
 
+describe('rows of the application’s own', () => {
+  it('list after the indicators, as `rows` has them', () => {
+    const extra = {
+      item: { kind: 'indicator', id: 'vp', type: 'VP', paneId: 'main', visible: true },
+      title: 'VP 24'
+    } as const;
+    const chart = chartWithBars(120, { legend: { extraRows: () => [extra] } });
+    chart.indicators.add({ id: 'ma', type: 'MA' });
+    const texts = legendTexts(chart);
+    const at = (start: string) => texts.findIndex((text) => text.startsWith(start));
+
+    expect(at('VP 24')).toBeGreaterThan(at('MA'));
+    chart.applyOptions({ legend: { rows: (item) => item.id !== 'vp' } });
+    expect(legendTexts(chart)).not.toContain('VP 24');
+    expect(() => {
+      chart.applyOptions({ legend: { extraRows: [] as never } });
+    }).toThrow('options.legend.extraRows must be a function');
+  });
+});
+
 describe('room above the legend', () => {
   it('moves the main pane\u2019s rows down by it, those of the other panes staying', () => {
     const chart = chartWithBars(120);

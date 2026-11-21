@@ -70,6 +70,7 @@ export function createDefaultOptions(sections: readonly OptionsSection[] = []): 
       visible: true,
       rows: null,
       buttons: null,
+      extraRows: null,
       hideValuesOnHover: true,
       top: 0
     },

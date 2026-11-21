@@ -193,6 +193,13 @@ export interface LegendItem {
   readonly visible: boolean;
 }
 
+/** A row of the application's own in the legend, such as of what it draws apart from the indicators. */
+export interface LegendExtraRow {
+  readonly item: LegendItem;
+  /** What the row says, in the color of the titles. */
+  readonly title: string;
+}
+
 /** A button of a legend row. */
 export interface LegendButton {
   readonly id: string;
@@ -214,6 +221,12 @@ export interface LegendOptions {
    * A click emits `legendButtonClick`. `null` (default) shows none.
    */
   buttons: ((item: LegendItem) => readonly LegendButton[]) | null;
+  /**
+   * Rows of the application's own, listed after the indicators of their pane as `rows` and
+   * `buttons` have them, such as of what it draws over the bars apart from the indicators, to set
+   * or remove it from its buttons. `null` (default) adds none.
+   */
+  extraRows: (() => readonly LegendExtraRow[]) | null;
   /** Hides the values of the row under the pointer while its buttons show. */
   hideValuesOnHover: boolean;
   /**

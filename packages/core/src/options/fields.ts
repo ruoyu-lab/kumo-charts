@@ -69,6 +69,7 @@ const SECTION_FIELDS: {
     visible: true,
     rows: true,
     buttons: true,
+    extraRows: true,
     hideValuesOnHover: true,
     top: true
   }),

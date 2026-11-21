@@ -185,6 +185,12 @@ function buildLegends(
     }
   }
 
+  for (const { item, title } of options.legend.extraRows?.() ?? []) {
+    if (listed(item)) {
+      add(item, [{ text: title, color: theme.textMuted }]);
+    }
+  }
+
   const time = sources.bars.time(index);
 
   series.list().forEach((entry, position) => {

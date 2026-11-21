@@ -114,6 +114,7 @@ export type {
   LabelAnchor,
   LatestPriceOptions,
   LegendButton,
+  LegendExtraRow,
   LegendItem,
   LegendOptions,
   LineStyle,
