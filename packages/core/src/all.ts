@@ -60,6 +60,7 @@ const EVENT_NAMES: { readonly [K in keyof AllEventMap]-?: true } = {
   drawingsChange: true,
   toolEnd: true,
   orderDrag: true,
+  orderLabelDrag: true,
   alertDrag: true,
   alertTrigger: true,
   replay: true

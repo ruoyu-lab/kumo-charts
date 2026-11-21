@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   draggedValue,
+  labelPositionAt,
   layoutPriceLines,
-  type LabelAlign,
   type PriceLineView
 } from '../../src/objects/price-line';
 
@@ -48,20 +48,31 @@ describe('price line labels', () => {
     expect(labels.map((label) => label.labelY)).toEqual([290, 400]);
   });
 
-  it('go at the left, the middle or the right of the plot, as each says, apart only from those at the same place', () => {
-    const at = (id: string, y: number, align?: LabelAlign): PriceLineView =>
-      align === undefined ? view(id, y) : { ...view(id, y), align };
+  it('go where along the plot each says, apart only from those they would overlap', () => {
+    const at = (id: string, y: number, position?: number): PriceLineView =>
+      position === undefined ? view(id, y) : { ...view(id, y), position };
     const labels = layoutPriceLines(
-      [at('a', 50, 'left'), at('b', 52, 'center'), at('c', 54), at('d', 56, 'left')],
+      [at('a', 50, 0), at('b', 52, 0.5), at('c', 54), at('d', 56, 0.01), at('e', 58, 0.2)],
       400,
       300,
       12,
       measure
     );
     // Each label is 6 a letter and 6 each side: 18 wide; 8 from the edges.
-    expect(labels.map((label) => label.label.x)).toEqual([8, 191, 374, 8]);
-    // The two at the left are kept apart; the others stay at their lines.
-    expect(labels.map((label) => label.labelY)).toEqual([50, 52, 54, 72]);
+    expect(labels.map((label) => Math.round(label.label.x * 100) / 100)).toEqual([
+      8, 191, 374, 11.66, 81.2
+    ]);
+    // The two at the left that overlap are kept apart; the others stay at their lines.
+    expect(labels.map((label) => label.labelY)).toEqual([50, 52, 54, 72, 58]);
+  });
+
+  it('are placed along the plot from where their left is, kept inside it', () => {
+    // 400 wide, 18 wide labels, 8 from the edges: 366 of room.
+    expect(labelPositionAt(8, 18, 400)).toBe(0);
+    expect(labelPositionAt(191, 18, 400)).toBe(0.5);
+    expect(labelPositionAt(-50, 18, 400)).toBe(0);
+    expect(labelPositionAt(900, 18, 400)).toBe(1);
+    expect(labelPositionAt(100, 500, 400)).toBe(1);
   });
 });
 

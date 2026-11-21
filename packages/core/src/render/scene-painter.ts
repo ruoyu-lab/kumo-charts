@@ -410,16 +410,19 @@ function paintPriceAxes(
   ctx.fillStyle = theme.textMuted;
   ctx.textBaseline = 'middle';
   const half = options.font.size / 2;
-  // The labels of the latest values and of the crosshair cover the ticks they would overlap,
-  // which are left out.
-  const latest = placeAxisLabels(frame, options, (frame.latest?.countdown ?? null) !== null);
-  const covers = [
-    ...latest.map((label) => {
-      const top = label.y - (options.font.size + 8) / 2;
-      return { axis: label.axis, top, bottom: top + labelHeight(options, label.lines) };
-    }),
-    ...crosshair.price
-  ];
+  // With `hideCoveredTicks`, the ticks the labels of the latest values and of the crosshair would
+  // cover are left out; otherwise the labels lie over them.
+  const covers = options.priceScale.hideCoveredTicks
+    ? [
+        ...placeAxisLabels(frame, options, (frame.latest?.countdown ?? null) !== null).map(
+          (label) => {
+            const top = label.y - (options.font.size + 8) / 2;
+            return { axis: label.axis, top, bottom: top + labelHeight(options, label.lines) };
+          }
+        ),
+        ...crosshair.price
+      ]
+    : [];
   const labels = (axis: Rect, ticks: readonly PriceLabel[], x: number) => {
     for (const tick of ticks) {
       const inside = tick.y >= half && tick.y <= axis.height - half;

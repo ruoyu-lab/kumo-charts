@@ -27,11 +27,12 @@ import {
 import {
   draggedValue,
   hitPriceLines,
-  LABEL_ALIGNS,
+  isPinned,
+  labelPositionAt,
   layoutPriceLines,
   paintPriceLines,
   validateButtons,
-  type LabelAlign,
+  type LabelDragEvent,
   type PriceLineButton,
   type PriceLineHost,
   type PriceLineLayout,
@@ -60,8 +61,14 @@ export interface OrderInput {
   color?: string;
   lineStyle?: LineStyle;
   buttons?: PriceLineButton[];
-  /** Where along the line its label is: `left`, `center` or `right` of the plot. Default `right`. */
-  labelAlign?: LabelAlign;
+  /** Where along the line its label is, from 0 at the left of the plot to 1 at its right. Default `1`. */
+  labelPosition?: number;
+  /**
+   * Lets the user drag its label along the line, to the left or the right; `orderLabelDrag` tells
+   * where it is. Where the order is `draggable` too, a drag of the label that starts across the plot
+   * moves the label, one that starts up or down moves the line. Default `false`.
+   */
+  labelDraggable?: boolean;
   /** Its price on the price axis. Off where the label says it. Default `true`. */
   axisLabel?: boolean;
   /**
@@ -83,7 +90,8 @@ export interface Order {
   readonly color: string | null;
   readonly lineStyle: LineStyle;
   readonly buttons: readonly PriceLineButton[];
-  readonly labelAlign: LabelAlign;
+  readonly labelPosition: number;
+  readonly labelDraggable: boolean;
   readonly axisLabel: boolean;
   readonly tooltip: string | null;
 }
@@ -100,7 +108,8 @@ const ORDER_FIELDS = fieldsOf<OrderInput>({
   color: true,
   lineStyle: true,
   buttons: true,
-  labelAlign: true,
+  labelPosition: true,
+  labelDraggable: true,
   axisLabel: true,
   tooltip: true
 });
@@ -138,10 +147,14 @@ function parseOrder(input: OrderInput, label = 'order'): OrderSettings {
         ? 'dashed'
         : checkOneOf(`${label}.lineStyle`, input.lineStyle, LINE_STYLES),
     buttons: validateButtons(input.buttons, `${label}.buttons`),
-    labelAlign:
-      input.labelAlign === undefined
-        ? 'right'
-        : checkOneOf(`${label}.labelAlign`, input.labelAlign, LABEL_ALIGNS),
+    labelPosition:
+      input.labelPosition === undefined
+        ? 1
+        : checkNumber(`${label}.labelPosition`, input.labelPosition, { min: 0, max: 1 }),
+    labelDraggable:
+      input.labelDraggable === undefined
+        ? false
+        : checkBoolean(`${label}.labelDraggable`, input.labelDraggable),
     axisLabel:
       input.axisLabel === undefined ? true : checkBoolean(`${label}.axisLabel`, input.axisLabel),
     tooltip: input.tooltip === undefined || input.tooltip === '' ? null : input.tooltip
@@ -157,7 +170,8 @@ function orderInput(order: Order): OrderInput {
     visible: order.visible,
     lineStyle: order.lineStyle,
     buttons: order.buttons.map((button) => ({ ...button })),
-    labelAlign: order.labelAlign,
+    labelPosition: order.labelPosition,
+    labelDraggable: order.labelDraggable,
     axisLabel: order.axisLabel,
     ...(order.label !== null ? { label: order.label } : {}),
     ...(order.quantity !== null ? { quantity: order.quantity } : {}),
@@ -166,6 +180,14 @@ function orderInput(order: Order): OrderInput {
   };
 }
 
+/** How orders are drawn and dragged, and where the user drags their labels to is told. */
+export interface OrdersHost extends PriceLineHost {
+  labelDragged(event: LabelDragEvent): void;
+}
+
+/** Whether a part of an order's line is its label, at its line or kept at an edge. */
+const isLabel = (part: string) => part === 'label' || isPinned(part);
+
 /** Orders drawn as draggable price lines on the main pane. */
 export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order> {
   readonly kind = 'order';
@@ -173,7 +195,7 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
   private readonly ids = new IdSequence((id) => this.orders.has(id));
   private readonly icons = new IconCache();
 
-  constructor(private readonly host: PriceLineHost) {}
+  constructor(private readonly host: OrdersHost) {}
 
   has(id: string): boolean {
     return this.orders.has(id);
@@ -239,7 +261,7 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
         buttons: order.buttons,
         lineStyle: order.lineStyle,
         emphasized,
-        align: order.labelAlign
+        position: order.labelPosition
       });
     }
 
@@ -273,15 +295,27 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
 
     const button = hit.part.startsWith('button:');
     // A label kept at an edge drags its line as the line itself does; a click on it brings the line into view.
-    const draggable = order.draggable && !button;
+    const movesLine = order.draggable && !button;
+    const movesLabel = order.labelDraggable && isLabel(hit.part);
+    // The line says it moves; its label, which is clicked as much as it is dragged, that it can be taken, or which
+    // ways it moves where it moves along the line.
+    const cursor =
+      hit.part === 'line'
+        ? movesLine
+          ? 'ns-resize'
+          : 'pointer'
+        : movesLabel
+          ? movesLine
+            ? 'move'
+            : 'ew-resize'
+          : 'pointer';
     return {
       target: {
         kind: 'order',
         id: order.id,
         part: hit.part,
-        // The line says it moves; its label, which is clicked as much as it is dragged, that it can be taken.
-        cursor: draggable && hit.part === 'line' ? 'ns-resize' : 'pointer',
-        draggable,
+        cursor,
+        draggable: movesLine || movesLabel,
         ...(order.tooltip === null || button ? {} : { tooltip: order.tooltip })
       },
       priority: hit.priority,
@@ -294,52 +328,145 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
     return order ? { pane: MAIN_PANE_ID, scale: RIGHT_SCALE, value: order.price } : null;
   }
 
-  beginDrag(context: ObjectContext, target: HitTarget): DragSession | null {
+  beginDrag(context: ObjectContext, target: HitTarget, point: Point): DragSession | null {
     const order = this.orders.get(target.id);
     const pane = paneOf(context.frame, MAIN_PANE_ID);
+    const movesLine = order?.draggable === true && !target.part.startsWith('button:');
+    const movesLabel = order?.labelDraggable === true && isLabel(target.part);
 
-    if (!order?.draggable || !pane) {
+    if (!order || !pane || (!movesLine && !movesLabel)) {
       return null;
     }
 
-    const initialPrice = order.price;
-    let price = initialPrice;
-    this.host.dragged({ id: order.id, phase: 'start', price, initialPrice });
-
-    // An order pulled from stays: only the events tell where the pointer is.
-    const setPrice = (next: number) => {
-      const current = this.orders.get(order.id);
-
-      if (current && !current.pull) {
-        this.orders.set(order.id, { ...current, price: next });
-        this.host.repaint();
-      }
-    };
+    const line = movesLine ? this.lineDrag(order) : null;
+    const label = movesLabel ? this.labelDrag(context, pane, order, point) : null;
+    // Where both can move, the way the pointer first goes says which: across the plot the label, up or down the line.
+    let session: DragSession | null = line && label ? null : ((label ?? line)?.() ?? null);
 
     return {
-      move: (point) => {
-        const currentPane = paneOf(this.host.context().frame, MAIN_PANE_ID);
-
-        if (!currentPane || !this.orders.has(order.id)) {
-          return;
+      move: (next, modifiers) => {
+        if (!session && line && label) {
+          session = Math.abs(next.x - point.x) > Math.abs(next.y - point.y) ? label() : line();
         }
 
-        const y = point.y - currentPane.plot.y;
-        const next = draggedValue(currentPane.scale, currentPane.format, y);
-
-        if (Number.isFinite(next) && next !== price) {
-          price = next;
-          setPrice(price);
-          this.host.dragged({ id: order.id, phase: 'move', price, initialPrice });
-        }
+        session?.move(next, modifiers);
       },
       end: () => {
-        this.host.dragged({ id: order.id, phase: 'end', price, initialPrice });
+        session?.end();
       },
       cancel: () => {
-        setPrice(initialPrice);
-        this.host.dragged({ id: order.id, phase: 'cancel', price: initialPrice, initialPrice });
+        session?.cancel();
       }
+    };
+  }
+
+  /** A drag of an order's line to another price, started as it is called. */
+  private lineDrag(order: Order): () => DragSession {
+    return () => {
+      const initialPrice = order.price;
+      let price = initialPrice;
+      this.host.dragged({ id: order.id, phase: 'start', price, initialPrice });
+
+      // An order pulled from stays: only the events tell where the pointer is.
+      const setPrice = (next: number) => {
+        const current = this.orders.get(order.id);
+
+        if (current && !current.pull) {
+          this.orders.set(order.id, { ...current, price: next });
+          this.host.repaint();
+        }
+      };
+
+      return {
+        move: (point) => {
+          const currentPane = paneOf(this.host.context().frame, MAIN_PANE_ID);
+
+          if (!currentPane || !this.orders.has(order.id)) {
+            return;
+          }
+
+          const y = point.y - currentPane.plot.y;
+          const next = draggedValue(currentPane.scale, currentPane.format, y);
+
+          if (Number.isFinite(next) && next !== price) {
+            price = next;
+            setPrice(price);
+            this.host.dragged({ id: order.id, phase: 'move', price, initialPrice });
+          }
+        },
+        end: () => {
+          this.host.dragged({ id: order.id, phase: 'end', price, initialPrice });
+        },
+        cancel: () => {
+          setPrice(initialPrice);
+          this.host.dragged({ id: order.id, phase: 'cancel', price: initialPrice, initialPrice });
+        }
+      };
+    };
+  }
+
+  /**
+   * A drag of an order's label along its line, held where it was grabbed at `point`, started as it
+   * is called.
+   */
+  private labelDrag(
+    context: ObjectContext,
+    pane: PaneFrame,
+    order: Order,
+    point: Point
+  ): (() => DragSession) | null {
+    const layout = this.layouts(context, pane).find((each) => each.view.id === order.id);
+
+    if (!layout) {
+      return null;
+    }
+
+    const { width } = layout.label;
+    const grab = point.x - layout.label.x;
+
+    return () => {
+      const initialPosition = order.labelPosition;
+      let position = initialPosition;
+      this.host.labelDragged({ id: order.id, phase: 'start', position, initialPosition });
+
+      const setPosition = (next: number) => {
+        const current = this.orders.get(order.id);
+
+        if (current) {
+          this.orders.set(order.id, { ...current, labelPosition: next });
+          this.host.repaint();
+        }
+      };
+
+      return {
+        move: (next) => {
+          const currentPane = paneOf(this.host.context().frame, MAIN_PANE_ID);
+
+          if (!currentPane || !this.orders.has(order.id)) {
+            return;
+          }
+
+          const at = labelPositionAt(next.x - grab, width, currentPane.plot.width);
+
+          if (at !== position) {
+            position = at;
+            setPosition(position);
+            this.host.labelDragged({ id: order.id, phase: 'move', position, initialPosition });
+          }
+        },
+        end: () => {
+          this.host.labelDragged({ id: order.id, phase: 'end', position, initialPosition });
+        },
+        cancel: () => {
+          setPosition(initialPosition);
+          this.host.labelDragged({
+            id: order.id,
+            phase: 'cancel',
+            position: initialPosition,
+            initialPosition
+          });
+        }
+      };
     };
   }
 

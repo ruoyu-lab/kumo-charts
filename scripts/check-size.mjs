@@ -38,7 +38,7 @@ const BUDGETS = [
   // labels of 1.0.0-beta.7 (pinned at the edges, centered, the crosshair's lines and room for the
   // latest values, those of indicators), the tooltips of orders and drawings taken by their lines
   // only took it to 126.0 kB on CI.
-  { file: 'packages/core/dist/kumo-charts.iife.js', gzip: 127 },
+  { file: 'packages/core/dist/kumo-charts.iife.js', gzip: 127.7 },
   { file: 'packages/core/dist/kumo-charts-indicator-texts.iife.js', gzip: 9.8 },
   { file: 'packages/vue/dist/index.js', gzip: 3 },
   { file: 'packages/react/dist/index.js', gzip: 3 }
@@ -124,7 +124,7 @@ const APPS = [
     // A price pulled out of an order line, markers linked and outlined took it to 52.0 kB on CI.
     name: 'the core with orders and markers',
     code: `export { createChart } from 'core'; export { orders, markers } from 'core/trading';`,
-    gzip: 54.2
+    gzip: 54.7
   },
   {
     name: 'the core with replay',
@@ -154,7 +154,7 @@ const APPS = [
     // 123.1 kB.
     name: 'everything',
     code: `export { createChart } from 'core'; export { allModules } from 'core/all';`,
-    gzip: 126.3
+    gzip: 127
   },
   {
     // MACD picks EMAs or SMAs, which brings the averages to pick from: 8.5 kB; the checks of a

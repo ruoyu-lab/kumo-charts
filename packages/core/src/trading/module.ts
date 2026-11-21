@@ -1,7 +1,7 @@
 import { collectionApi, type CollectionApi } from '../chart/api/collection';
 import { defineModule, type ChartModule } from '../chart/modules';
 import { priceLineHost } from '../chart/price-lines';
-import type { PriceDragEvent } from '../objects/price-line';
+import type { LabelDragEvent, PriceDragEvent } from '../objects/price-line';
 import { MarkersDomain, type Marker, type MarkerInput } from './markers';
 import { OrdersDomain, type Order, type OrderInput } from './orders';
 
@@ -14,6 +14,11 @@ export type MarkersApi = CollectionApi<MarkerInput, Marker>;
 export interface OrdersEventMap {
   /** The user drags an order line; the order follows immediately and keeps the final price. */
   orderDrag: PriceDragEvent;
+  /**
+   * The user drags the label of an order with `labelDraggable` along its line; the label follows
+   * immediately and stays where it is let go.
+   */
+  orderLabelDrag: LabelDragEvent;
 }
 
 export type OrdersModule = ChartModule<{
@@ -31,11 +36,14 @@ export function orders(): OrdersModule {
     name: 'orders',
     install: (core) => {
       const events = core.events<OrdersEventMap>();
-      const domain = new OrdersDomain(
-        priceLineHost(core, (event) => {
+      const domain = new OrdersDomain({
+        ...priceLineHost(core, (event) => {
           events.emit('orderDrag', event);
-        })
-      );
+        }),
+        labelDragged: (event) => {
+          events.emit('orderLabelDrag', event);
+        }
+      });
       core.objects.add(domain, 40);
       return { orders: collectionApi(core, domain) };
     }

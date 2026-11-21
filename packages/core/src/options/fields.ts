@@ -54,6 +54,7 @@ const SECTION_FIELDS: {
     formatter: true,
     minWidth: true,
     pinLabels: true,
+    hideCoveredTicks: true,
     labelAnchor: true
   }),
   latestPrice: fieldsOf<LatestPriceOptions>({

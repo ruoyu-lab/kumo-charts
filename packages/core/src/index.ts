@@ -55,7 +55,12 @@ export type {
 } from './chart/events';
 export type { ChartCommand, ObjectKind, Point } from './interaction/types';
 export type { Selection } from './objects/types';
-export type { DragPhase, LabelAlign, PriceDragEvent, PriceLineButton } from './objects/price-line';
+export type {
+  DragPhase,
+  LabelDragEvent,
+  PriceDragEvent,
+  PriceLineButton
+} from './objects/price-line';
 export type { MarkerShape } from './canvas/shapes';
 
 export { parseBar } from './data/bar-store';

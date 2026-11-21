@@ -53,7 +53,7 @@ function paint(chart: Chart, name: 'scene' | 'objects' | 'cursor'): string[] {
 }
 
 describe('rendering', () => {
-  it('leaves out the price ticks under the label of the latest price', () => {
+  it('writes every price tick, the label of the latest price over them, or leaves out those under it where asked', () => {
     const chart = createTestChart();
     chart.data.set(
       Array.from({ length: 50 }, (_, index) => ({
@@ -75,14 +75,19 @@ describe('rendering', () => {
     chart.applyOptions({ latestPrice: { label: false } });
     const all = ticks();
     chart.applyOptions({ latestPrice: { label: true } });
+    const over = ticks();
+    expect(all.filter((text) => !over.includes(text))).toEqual([]);
+    chart.applyOptions({ priceScale: { hideCoveredTicks: true } });
     const shown = ticks();
-    const covered = all.filter((text) => !shown.includes(text));
 
-    expect(covered).toEqual(['100.00']);
+    expect(all.filter((text) => !shown.includes(text))).toEqual(['100.00']);
   });
 
-  it('leaves out the ticks under the labels of the crosshair while it is there', async () => {
-    const chart = createTestChart({ latestPrice: { label: false } });
+  it('leaves out the time ticks under the label of the crosshair while it is there, the price ticks where asked', async () => {
+    const chart = createTestChart({
+      latestPrice: { label: false },
+      priceScale: { hideCoveredTicks: true }
+    });
     chart.data.set(createBars(50));
     chart.priceScale().setRange({ min: 100, max: 160 });
     const scene = canvasCalls(layer(chart, 'scene'));
@@ -117,13 +122,24 @@ describe('rendering', () => {
     const left = texts().map((each) => each.text);
     expect(left).toContain('130.00');
     expect(left).toContain(timeTick?.text);
+
+    // By default the price ticks stay under it.
+    chart.applyOptions({ priceScale: { hideCoveredTicks: false } });
+    chart.screenshot();
+    texts();
+    pointer(chart, 'pointermove', x, y, { buttons: 0 });
+    await nextFrame();
+    chart.screenshot();
+    const kept = texts().map((each) => each.text);
+    expect(kept).toContain('130.00');
+    expect(kept).not.toContain(timeTick?.text);
   });
 
   it('writes the lines the crosshair is given under its price, and leaves out the ticks under them too', async () => {
     const asked: [number, string][] = [];
     const chart = createTestChart({
       latestPrice: { label: false },
-      priceScale: { labelAnchor: 'firstLine' },
+      priceScale: { labelAnchor: 'firstLine', hideCoveredTicks: true },
       crosshair: {
         priceLines: (price, paneId) => {
           asked.push([price, paneId]);

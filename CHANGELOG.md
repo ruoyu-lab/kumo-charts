@@ -2,6 +2,18 @@
 
 The packages of KumoChart share one version. Each release lists what changed for those who use them.
 
+## Unreleased
+
+**Breaking**
+
+- `labelAlign` of an order is gone: `labelPosition` says where along its line its label is, from 0 at the left of the plot to 1 at its right (the default). `'left'`, `'center'` and `'right'` are `0`, `0.5` and `1`. Labels are moved apart only from those they would overlap, wherever along the plot they are.
+- The ticks of the price axis under the labels of the latest price and values and of the crosshair are written, the labels over them. `priceScale.hideCoveredTicks: true` leaves them out, as before.
+
+**Added**
+
+- `labelDraggable` of an order, in `orders.set()`, `add()` and `update()`: the user drags its label along its line, which stays where it is let go, and `orderLabelDrag` tells each phase with its `position` and `initialPosition`; Escape puts it back. Where the order is `draggable` too, a drag from its label that starts across the plot moves the label, one that starts up or down moves the line, and the cursor over the label is a move cursor. Off by default.
+- `priceScale.hideCoveredTicks`, off by default: leaves out the price ticks the labels of the latest price and values and of the crosshair would cover.
+
 ## 1.0.0-beta.7
 
 **Breaking**

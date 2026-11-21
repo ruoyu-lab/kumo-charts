@@ -21,6 +21,15 @@ export interface PriceDragEvent {
   readonly initialPrice: number;
 }
 
+export interface LabelDragEvent {
+  readonly id: string;
+  readonly phase: DragPhase;
+  /** Where along its line the label is at this phase, from 0 at the left of the plot to 1 at its right (where it was for `cancel`). */
+  readonly position: number;
+  /** Where it was before the drag started. */
+  readonly initialPosition: number;
+}
+
 export interface PriceLineHost {
   context(): ObjectContext;
   repaint(): void;
@@ -134,14 +143,9 @@ export interface PriceLineView {
   readonly buttons: readonly PriceLineButton[];
   readonly lineStyle: LineStyle;
   readonly emphasized: boolean;
-  /** Where along the line its label is. Default `right`. */
-  readonly align?: LabelAlign;
+  /** Where along the line its label is, from 0 at the left of the plot to 1 at its right. Default 1. */
+  readonly position?: number;
 }
-
-/** Where along a price line its label is: at the left of the plot, its middle or its right. */
-export type LabelAlign = 'left' | 'center' | 'right';
-
-export const LABEL_ALIGNS: readonly LabelAlign[] = ['left', 'center', 'right'];
 
 export interface PriceLineLayout {
   readonly view: PriceLineView;
@@ -201,9 +205,52 @@ function labelCenters(
   return labels.map((label) => label.center);
 }
 
+/** Where a label `width` wide lies along a plot `plotWidth` wide at `position`: the x of its left. */
+function labelLeft(position: number, width: number, plotWidth: number): number {
+  return LABEL_MARGIN + position * (plotWidth - LABEL_MARGIN * 2 - width);
+}
+
+/**
+ * The position along a plot `plotWidth` wide of a label `width` wide whose left is at `left`, kept
+ * within the plot: from 0 at its left to 1 at its right.
+ */
+export function labelPositionAt(left: number, width: number, plotWidth: number): number {
+  const room = plotWidth - LABEL_MARGIN * 2 - width;
+  return room <= 0 ? 1 : Math.min(1, Math.max(0, (left - LABEL_MARGIN) / room));
+}
+
+/**
+ * The groups of labels that share room across the plot, by index: those whose spans across it
+ * meet, directly or through others.
+ */
+function sharingRoom(
+  spans: readonly { readonly left: number; readonly right: number }[]
+): number[][] {
+  const order = spans
+    .map((_, index) => index)
+    .sort((a, b) => (spans[a]?.left ?? 0) - (spans[b]?.left ?? 0));
+  const groups: number[][] = [];
+  let right = Number.NEGATIVE_INFINITY;
+
+  for (const index of order) {
+    const span = spans[index] as (typeof spans)[number];
+    const last = groups.at(-1);
+
+    if (last && span.left <= right) {
+      last.push(index);
+      right = Math.max(right, span.right);
+    } else {
+      groups.push([index]);
+      right = span.right;
+    }
+  }
+
+  return groups;
+}
+
 /**
  * Lays out the labels of price lines at the right of the plot, or where each says, keeping those
- * at the same place along the lines from overlapping.
+ * that share room across the plot from overlapping.
  * With `pin`, the label of a line above or below the plot stays at the top or bottom edge, those
  * of several lines stacked there in the order of their lines, and no label leaves the plot.
  */
@@ -229,16 +276,35 @@ export function layoutPriceLines(
             : null;
       // A pinned label is placed at the edge, one at the top of the plot by its first edge.
       const y = pinned === 'top' ? half : pinned === 'bottom' ? plotHeight - half : view.y;
-      return { view, pinned, at: pin && !pinned ? Math.max(view.y, half) : y };
+      const arrow = pinned ? ARROW_WIDTH : 0;
+      const text = view.text ? measure(view.text, fontSize) + LABEL_PADDING * 2 : 0;
+      const textWidth = text + arrow;
+      const buttonWidths = view.buttons.map(
+        (button) =>
+          button.width ??
+          (button.icon ? height : measure(button.text ?? '', fontSize) + LABEL_PADDING * 2)
+      );
+      const width = textWidth + buttonWidths.reduce((sum, value) => sum + value, 0);
+      const left = labelLeft(view.position ?? 1, width, plotWidth);
+      return {
+        view,
+        pinned,
+        arrow,
+        textWidth,
+        buttonWidths,
+        width,
+        left,
+        at: pin && !pinned ? Math.max(view.y, half) : y
+      };
     })
     .sort((left, right) => left.at - right.at || left.view.y - right.view.y);
-  // Labels at one place along the lines are kept apart from each other, not from those elsewhere.
+  // Labels that share room across the plot are kept apart from each other, not from those elsewhere.
   const centers: number[] = [];
 
-  for (const align of LABEL_ALIGNS) {
-    const indexes = placed.flatMap(({ view }, index) =>
-      (view.align ?? 'right') === align ? [index] : []
-    );
+  for (const indexes of sharingRoom(
+    placed.map(({ left, width }) => ({ left, right: left + width }))
+  )) {
+    indexes.sort((a, b) => a - b);
     const column = labelCenters(
       indexes.map((index) => {
         const { view, at } = placed[index] as (typeof placed)[number];
@@ -252,24 +318,8 @@ export function layoutPriceLines(
     });
   }
 
-  return placed.map(({ view, pinned }, index) => {
-    const arrow = pinned ? ARROW_WIDTH : 0;
-    const text = view.text ? measure(view.text, fontSize) + LABEL_PADDING * 2 : 0;
-    const textWidth = text + arrow;
-    const buttonWidths = view.buttons.map(
-      (button) =>
-        button.width ??
-        (button.icon ? height : measure(button.text ?? '', fontSize) + LABEL_PADDING * 2)
-    );
-    const width = textWidth + buttonWidths.reduce((sum, value) => sum + value, 0);
+  return placed.map(({ view, pinned, arrow, textWidth, buttonWidths, width, left }, index) => {
     const labelY = centers[index] ?? view.y;
-    const align = view.align ?? 'right';
-    const left =
-      align === 'left'
-        ? LABEL_MARGIN
-        : align === 'center'
-          ? (plotWidth - width) / 2
-          : plotWidth - LABEL_MARGIN - width;
     const top = labelY - height / 2;
     let x = left + textWidth;
     const buttons = view.buttons.map((button, index) => {

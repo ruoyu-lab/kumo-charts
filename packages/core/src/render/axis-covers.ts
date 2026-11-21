@@ -231,8 +231,9 @@ export function timeTickCovered(covers: CrosshairCovers, tick: TimeLabel): boole
 export function coveredTicks(frame: Frame, options: ChartOptions, covers: CrosshairCovers): string {
   const half = options.font.size / 2;
   const hidden: string[] = [];
+  const panes = options.priceScale.hideCoveredTicks ? frame.panes : [];
 
-  frame.panes.forEach((pane, index) => {
+  panes.forEach((pane, index) => {
     pane.ticks.forEach((tick, position) => {
       if (priceTickCovered(covers.price, pane.axis, tick.y, half)) {
         hidden.push(`${index}:${position}`);
