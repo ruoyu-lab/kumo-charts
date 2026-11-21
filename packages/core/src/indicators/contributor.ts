@@ -511,7 +511,7 @@ class IndicatorContributor implements Contributor {
         jobs.push({
           kind: 'series',
           definition: seriesTypes.require('columns'),
-          style: { upColor, downColor, base: 0, widthRatio: 0.6 },
+          style: { upColor, downColor, base: 0, widthRatio: 0.6, gap: null },
           points,
           valueToY: (value) => scale.valueToY(value),
           bars: null,

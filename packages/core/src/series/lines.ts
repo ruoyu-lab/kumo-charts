@@ -1,5 +1,6 @@
 import { applyStroke } from '../canvas/canvas';
 import { withAlpha } from '../canvas/color';
+import { barWidth } from './bar-width';
 import type {
   AreaStyle,
   BaselineStyle,
@@ -358,17 +359,15 @@ export const columnsSeries: SeriesTypeDefinition<ColumnsStyle> = {
     upColor: theme.volumeUp,
     downColor: theme.volumeDown,
     base: 0,
-    widthRatio: 0.72
+    widthRatio: 0.72,
+    gap: null
   }),
   extraExtents: (style) => (style.base === null ? [] : [style.base]),
   paint: ({ ctx, points, style, pixelRatio, barSpacing, height, valueToY }) => {
     // A base the scale cannot place, as zero on a logarithmic one, is the bottom of the pane.
     const placed = style.base === null ? Number.NaN : valueToY(style.base);
     const baseY = Number.isFinite(placed) ? placed : height;
-    const width = Math.max(
-      1 / pixelRatio,
-      Math.round(barSpacing * style.widthRatio * pixelRatio) / pixelRatio
-    );
+    const width = barWidth(barSpacing, style.widthRatio, style.gap, pixelRatio);
 
     // One fillRect per column: rasterizing a single path of thousands of rectangles is far slower.
     for (const up of [true, false]) {

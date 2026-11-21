@@ -19,6 +19,11 @@ export interface CandleStyle {
   hollowUp: boolean;
   /** Candles that close below their open are drawn hollow, outlined in `downBorderColor`. Default `false`. */
   hollowDown: boolean;
+  /**
+   * Pixels left between bars, whatever the zoom: a bar is the bar spacing less them wide, in place of
+   * its ratio. `null` (default) leaves the width to the ratio.
+   */
+  gap: number | null;
 }
 
 export interface OhlcStyle {
@@ -27,6 +32,11 @@ export interface OhlcStyle {
   lineWidth: number;
   /** Draws the open (left) and close (right) ticks. */
   ticks: boolean;
+  /**
+   * Pixels left between bars, whatever the zoom: the open and close ticks reach that near the next
+   * bars. `null` (default) keeps them to their own length, at most 8 pixels.
+   */
+  gap: number | null;
 }
 
 export interface HighLowStyle {
@@ -83,6 +93,11 @@ export interface ColumnsStyle {
   base: number | null;
   /** Column width as a fraction of the bar spacing. */
   widthRatio: number;
+  /**
+   * Pixels left between bars, whatever the zoom: a bar is the bar spacing less them wide, in place of
+   * its ratio. `null` (default) leaves the width to the ratio.
+   */
+  gap: number | null;
 }
 
 /** Kagi lines: yang (thick) from where a line passes the last shoulder, yin (thin) under the last waist. */
