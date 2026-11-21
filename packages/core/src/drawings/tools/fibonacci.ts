@@ -11,13 +11,11 @@ import type {
   DrawingPoint,
   DrawingStyle,
   DrawingTypeDefinition,
-  LevelRange,
-  TextAlign
+  LevelRange
 } from '../types';
 import { sideLevel } from './lines';
 import {
   LABEL_GAP,
-  type LevelStroke,
   levelText,
   measured,
   ratioText,
@@ -79,7 +77,6 @@ interface FibLevel {
   readonly price: number;
   readonly y: number;
   readonly color: string;
-  readonly stroke: LevelStroke;
 }
 
 interface Ladder {
@@ -126,9 +123,9 @@ function ladderOf<A extends readonly DrawingPoint[]>(
   const { points, anchors, style } = geometry;
   const xs = points.map((point) => point.x);
   const levels = shownLevels(style.levels, style, geometry.theme.palette, style.levelRange).map(
-    ({ value, color, stroke }): FibLevel => {
+    ({ value, color }): FibLevel => {
       const price = kind.price(anchors, measured(value, style.levelRange));
-      return { level: value, price, y: geometry.valueToY(price), color, stroke };
+      return { level: value, price, y: geometry.valueToY(price), color };
     }
   );
   const left = Math.min(...xs);
@@ -142,67 +139,6 @@ function ladderOf<A extends readonly DrawingPoint[]>(
   };
 }
 
-/** Where the labels of a ladder are written along its levels, as the style aligns its text. */
-function labelPlace(geometry: DrawingGeometry, ladder: Ladder): { x: number; align: TextAlign } {
-  const { textAlign } = geometry.style;
-
-  if (textAlign === 'center') {
-    return { x: (ladder.left + ladder.right) / 2, align: 'center' };
-  }
-
-  return textAlign === 'right'
-    ? { x: ladder.right - LABEL_GAP, align: 'right' }
-    : { x: ladder.labels + LABEL_GAP, align: 'left' };
-}
-
-/** The left of a text of `width` written at `x` as aligned. */
-function textLeft(x: number, width: number, align: TextAlign): number {
-  return align === 'left' ? x : align === 'right' ? x - width : x - width / 2;
-}
-
-/**
- * The difference in price between the highest and the lowest level, where the style writes it:
- * centered above the highest, a line higher where that level's label is above it too.
- */
-function differenceOf(
-  geometry: DrawingGeometry,
-  ladder: Ladder
-): { text: string; x: number; y: number; color: string } | null {
-  const { levels } = ladder;
-
-  if (!geometry.style.levelDifference || levels.length < 2) {
-    return null;
-  }
-
-  const byY = [...levels].sort((a, b) => a.y - b.y);
-  const top = byY[0] as FibLevel;
-  const bottom = byY[byY.length - 1] as FibLevel;
-  const labelled = levelLabel(geometry, top.level, top.price) !== '';
-  return {
-    text: geometry.formatValue(Math.abs(top.price - bottom.price)),
-    x: (ladder.left + ladder.right) / 2,
-    y: top.y - 3 - (labelled ? geometry.style.fontSize + 2 : 0),
-    color: top.color
-  };
-}
-
-/**
- * The color a band from a level to the next is tinted with: that of the level it starts from, or
- * with a symmetric fill that of the one farther from the middle of the levels.
- */
-function bandColor(style: DrawingStyle, levels: readonly FibLevel[], index: number): string {
-  const from = levels[index] as FibLevel;
-  const to = levels[index + 1] ?? from;
-
-  if (!style.symmetricFill) {
-    return from.color;
-  }
-
-  const values = levels.map((level) => level.level);
-  const middle = (Math.min(...values) + Math.max(...values)) / 2;
-  return Math.abs(to.level - middle) > Math.abs(from.level - middle) ? to.color : from.color;
-}
-
 /** A level's label as the style writes it: its level and its price, e.g. `0.618  98,250`. */
 function levelLabel(geometry: DrawingGeometry, level: number, price: number): string {
   const { levelLabel: label } = geometry.style;
@@ -214,36 +150,13 @@ function levelLabel(geometry: DrawingGeometry, level: number, price: number): st
 /** The levels, the guide between the anchors and the labels over the levels. */
 function ladderBounds(geometry: DrawingGeometry, ladder: Ladder) {
   const top = geometry.style.fontSize + LABEL_GAP;
-  const { x, align } = labelPlace(geometry, ladder);
-  const difference = differenceOf(geometry, ladder);
-  const texts = [
-    ...ladder.levels.map(({ level, price, y }) => ({
-      width: geometry.measureText(levelLabel(geometry, level, price)),
-      x,
-      y,
-      align
-    })),
-    ...(difference
-      ? [
-          {
-            width: geometry.measureText(difference.text),
-            x: difference.x,
-            y: difference.y + 3,
-            align: 'center' as const
-          }
-        ]
-      : [])
-  ];
   return boundsOf([
-    ...(geometry.style.guide ? ladder.guide : []),
+    ...ladder.guide,
     ...levelLines(ladder).flat(),
-    ...texts.flatMap((text) => {
-      const left = textLeft(text.x, text.width, text.align);
-      return [
-        { x: left, y: text.y - top },
-        { x: left + text.width, y: text.y - top }
-      ];
-    })
+    ...ladder.levels.map(({ level, price, y }) => ({
+      x: ladder.labels + LABEL_GAP + geometry.measureText(levelLabel(geometry, level, price)),
+      y: y - top
+    }))
   ]);
 }
 
@@ -281,58 +194,43 @@ function fibType<A extends readonly DrawingPoint[]>(
       const ladder = ladderOf(geometry, kind);
       const { left, right, levels } = ladder;
 
-      // Each band between two levels is tinted with the color of the level it starts from, or
-      // alike either side of the middle.
+      // Each band between two levels is tinted with the color of the level it starts from.
       if (geometry.style.fill) {
-        levels.forEach(({ y }, index) => {
+        levels.forEach(({ y, color }, index) => {
           const next = levels[index + 1];
 
           if (next) {
-            ctx.fillStyle = withAlpha(
-              bandColor(geometry.style, levels, index),
-              geometry.style.bandOpacity
-            );
+            ctx.fillStyle = withAlpha(color, 0.1);
             ctx.fillRect(left, y, right - left, next.y - y);
           }
         });
       }
 
-      levels.forEach(({ y, stroke }) => {
+      levels.forEach(({ y, color }) => {
         strokeDrawing(
           context,
           (path) => {
             path.moveTo(left, y);
             path.lineTo(right, y);
           },
-          stroke
+          { color }
         );
       });
-      if (geometry.style.guide) {
-        strokeDrawing(
-          context,
-          (path) => {
-            tracePath(path, ladder.guide, false);
-          },
-          { lineStyle: 'dashed' }
-        );
-      }
+      strokeDrawing(
+        context,
+        (path) => {
+          tracePath(path, ladder.guide, false);
+        },
+        { lineStyle: 'dashed' }
+      );
 
       ctx.font = font(geometry.style.fontSize - 1, geometry.fontFamily);
-      const { x, align } = labelPlace(geometry, ladder);
-      ctx.textAlign = align;
+      ctx.textAlign = 'left';
       ctx.textBaseline = 'bottom';
       levels.forEach(({ level, price, y, color }) => {
         ctx.fillStyle = color;
-        ctx.fillText(levelLabel(geometry, level, price), x, y - 3);
+        ctx.fillText(levelLabel(geometry, level, price), ladder.labels + LABEL_GAP, y - 3);
       });
-
-      const difference = differenceOf(geometry, ladder);
-
-      if (difference) {
-        ctx.textAlign = 'center';
-        ctx.fillStyle = difference.color;
-        ctx.fillText(difference.text, difference.x, difference.y);
-      }
     },
     // The levels, and the bands between them where they are filled.
     hitTest: (geometry, point, tolerance) => {
@@ -369,7 +267,6 @@ export const fibExtension = /* @__PURE__ */ fibType<Anchors<3>>('fib-extension',
 interface ChannelLevel {
   readonly level: number;
   readonly color: string;
-  readonly stroke: LevelStroke;
   /** The line as far as the style extends it. */
   readonly line: Segment;
 }
@@ -387,10 +284,9 @@ function channelLevels(geometry: DrawingGeometry<Anchors<3>>): ChannelLevel[] {
     y: point.y + (third.y - first.y) * along
   });
   return shownLevels(style.levels, style, geometry.theme.palette, style.levelRange)
-    .map(({ value, color, stroke }): ChannelLevel => ({
+    .map(({ value, color }): ChannelLevel => ({
       level: value,
       color,
-      stroke,
       line: extendSides(
         shift(first, measured(value, style.levelRange)),
         shift(second, measured(value, style.levelRange)),
@@ -436,19 +332,19 @@ export const fibChannel: DrawingTypeDefinition<Anchors<3>> = {
         if (next) {
           ctx.beginPath();
           tracePath(ctx, [line[0], line[1], next.line[1], next.line[0]], true);
-          ctx.fillStyle = withAlpha(color, geometry.style.bandOpacity);
+          ctx.fillStyle = withAlpha(color, 0.1);
           ctx.fill();
         }
       });
     }
 
-    for (const { line, stroke } of levels) {
+    for (const { line, color } of levels) {
       strokeDrawing(
         context,
         (path) => {
           tracePath(path, line, false);
         },
-        stroke
+        { color }
       );
     }
 
@@ -506,7 +402,6 @@ interface Zone {
   readonly count: number;
   readonly x: number;
   readonly color: string;
-  readonly stroke: LevelStroke;
 }
 
 /**
@@ -517,11 +412,10 @@ function zonesOf(geometry: DrawingGeometry<Anchors<2>>): Zone[] {
   const [first, second] = geometry.points;
   const { style } = geometry;
   return shownLevels(style.levels, style)
-    .map(({ value, color, stroke }) => ({
+    .map(({ value, color }) => ({
       count: value,
       x: first.x + (second.x - first.x) * measured(value, style.levelRange),
-      color,
-      stroke
+      color
     }))
     .sort((a, b) => a.x - b.x);
 }
@@ -547,20 +441,20 @@ export const fibTimeZone: DrawingTypeDefinition<Anchors<2>> = {
         const next = zones[index + 1];
 
         if (next) {
-          ctx.fillStyle = withAlpha(color, geometry.style.bandOpacity);
+          ctx.fillStyle = withAlpha(color, 0.1);
           ctx.fillRect(x, 0, next.x - x, height);
         }
       });
     }
 
-    for (const { x, stroke } of zones) {
+    for (const { x, color } of zones) {
       strokeDrawing(
         context,
         (path) => {
           path.moveTo(x, 0);
           path.lineTo(x, height);
         },
-        stroke
+        { color }
       );
     }
 

@@ -118,7 +118,6 @@ function geometryOf(
       lineWidth: 1,
       lineStyle: 'solid',
       fill: true,
-      bandOpacity: 0.1,
       fillColor: darkTheme.grid,
       textColor: darkTheme.text,
       fontSize: 12,
@@ -130,9 +129,6 @@ function geometryOf(
       extendRight: false,
       startArrow: false,
       endArrow: false,
-      guide: true,
-      symmetricFill: false,
-      levelDifference: false,
       levels: [],
       timeLevels: [],
       levelRange: { start: 0, end: 1 },
@@ -527,79 +523,6 @@ describe('fib-retracement', () => {
     expect(lines[0]?.state.strokeStyle).toBe(darkTheme.accent);
     expect(lines[1]?.state.strokeStyle).toBe(darkTheme.accent);
     expect(lines[2]?.state.strokeStyle).not.toBe(darkTheme.accent);
-  });
-
-  it("strokes each level with its own width and style, the drawing's where it has none", () => {
-    const own = geometryOf(
-      'fib-retracement',
-      [
-        [10, 100],
-        [90, 200]
-      ],
-      '',
-      {
-        lineWidth: 2,
-        levels: [
-          { value: 0, lineWidth: 3, lineStyle: 'dotted' },
-          { value: 0.5, lineStyle: 'dashed' },
-          { value: 1 }
-        ]
-      }
-    );
-    const strokes = pathsOf(paint('fib-retracement', own), 'stroke');
-    const levels = strokes.filter(({ segments: [line] }) => line?.[0].y === line?.[1].y);
-
-    expect(levels.map((line) => line.state.lineWidth)).toEqual([3, 2, 2]);
-    expect(levels.map(isDashed)).toEqual([true, true, false]);
-    expect(levels[0]?.state.lineDash).not.toEqual(levels[1]?.state.lineDash);
-  });
-
-  it('leaves out its guide, fills alike either side of the middle, aligns its labels and writes its range, as its style says', () => {
-    const half = (style: Partial<DrawingStyle>) =>
-      paint(
-        'fib-retracement',
-        geometryOf(
-          'fib-retracement',
-          [
-            [10, 100],
-            [90, 200]
-          ],
-          '',
-          {
-            levels: [{ value: 0 }, { value: 0.5, color: '#ff0000' }, { value: 1 }],
-            ...style
-          }
-        )
-      );
-
-    // By default: the guide, each band in the color of the level it starts from, labels at the left.
-    const plain = half({});
-    expect(pathsOf(plain, 'stroke').filter(isDashed)).toHaveLength(1);
-    const bands = (calls: Call[]) =>
-      calls.filter(({ method }) => method === 'fillRect').map(({ state }) => state.fillStyle);
-    expect(bands(plain)).toEqual([withAlpha(darkTheme.accent, 0.1), withAlpha('#ff0000', 0.1)]);
-    expect(textsOf(plain)).toEqual(['0  200.00', '0.5  150.00', '1  100.00']);
-
-    const shaped = half({
-      guide: false,
-      symmetricFill: true,
-      bandOpacity: 0.3,
-      levelDifference: true,
-      textAlign: 'right'
-    });
-    expect(pathsOf(shaped, 'stroke').filter(isDashed)).toHaveLength(0);
-    // Both halves in the color of their outer level, the drawing's, as opaque as the style says.
-    expect(bands(shaped)).toEqual([
-      withAlpha(darkTheme.accent, 0.3),
-      withAlpha(darkTheme.accent, 0.3)
-    ]);
-    const texts = shaped.filter(({ method }) => method === 'fillText');
-    // The labels at the right end of the levels; the range centered above the highest, over its label.
-    expect(
-      texts.slice(0, 3).every(({ args, state }) => args[1] === 86 && state.textAlign === 'right')
-    ).toBe(true);
-    expect(texts[3]?.args).toEqual(['100.00', 50, 100 - 3 - 14]);
-    expect(texts[3]?.state.textAlign).toBe('center');
   });
 
   it('writes its levels as percents, or its prices alone, as its style says', () => {

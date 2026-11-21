@@ -187,7 +187,7 @@ export const regressionTrend: DrawingTypeDefinition<Anchors<2>> = {
           fillArea(
             ctx,
             [line[0], line[1], below.line[1], below.line[0]],
-            withAlpha(level.color, geometry.style.bandOpacity)
+            withAlpha(level.color, 0.1)
           );
         }
       });
@@ -199,7 +199,7 @@ export const regressionTrend: DrawingTypeDefinition<Anchors<2>> = {
         (path) => {
           tracePath(path, line, false);
         },
-        level.value === 0 ? { lineStyle: 'dashed' as const, ...level.stroke } : level.stroke
+        { color: level.color, ...(level.value === 0 ? { lineStyle: 'dashed' as const } : {}) }
       );
     }
 

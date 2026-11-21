@@ -148,21 +148,10 @@ describe('styles of tools', () => {
 
     expect(() => {
       chart.drawings.setToolStyle('trend-line', { lineWidth: 0 });
-    }).toThrow(/style.lineWidth must be at least 0.4/);
+    }).toThrow(/style.lineWidth must be at least 0.5/);
     expect(() => {
       chart.drawings.setToolStyle('fib-retracement', { levels: [{ value: Number.NaN }] });
     }).toThrow(/style.levels\[0\].value must be a finite number/);
-    expect(() => {
-      chart.drawings.setToolStyle('fib-retracement', { levels: [{ value: 0, lineWidth: 0 }] });
-    }).toThrow(/style.levels\[0\].lineWidth must be at least 0.4/);
-    expect(() => {
-      chart.drawings.setToolStyle('fib-retracement', { bandOpacity: 2 });
-    }).toThrow(/style.bandOpacity must be at most 1/);
-    expect(() => {
-      chart.drawings.setToolStyle('fib-retracement', {
-        levels: [{ value: 0, lineStyle: 'wavy' as 'solid' }]
-      });
-    }).toThrow(/style.levels\[0\].lineStyle/);
     expect(() => {
       chart.drawings.setToolStyle('fib-retracement', { levelRange: { start: 1, end: 1 } });
     }).toThrow(/style.levelRange needs two different levels at its ends/);

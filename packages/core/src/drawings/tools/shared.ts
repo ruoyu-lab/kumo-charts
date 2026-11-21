@@ -103,24 +103,17 @@ export function segmentsHit(
   return distance <= tolerance ? { part: 'line', distance } : null;
 }
 
-/** How a level's line is stroked: in its color, and its own width and style where it has them. */
-export type LevelStroke = Readonly<
-  Pick<DrawingStyle, 'color'> & Partial<Pick<DrawingStyle, 'lineWidth' | 'lineStyle'>>
->;
-
-/** A level that shows, the color it is drawn in and how its line is. */
+/** A level that shows, and the color it is drawn in. */
 export interface ShownLevel {
   readonly value: number;
   readonly color: string;
-  readonly stroke: LevelStroke;
 }
 
 /** Ratios from 0 at the start to 1 at the end, as tools that do not measure have them. */
 const UNIT: LevelRange = { start: 0, end: 1 };
 
 /**
- * The levels that show, in their order, each in its own color, else the drawing's, and its own
- * width and style of line, else the drawing's; with a
+ * The levels that show, in their order, each in its own color, else the drawing's; with a
  * `palette`, as Fibonacci ratios and Gann boxes color them: the drawing's color for the levels at
  * the ends of the `range` and the palette's in turn for the others, hidden ones counted.
  */
@@ -131,17 +124,11 @@ export function shownLevels(
   range: LevelRange = UNIT
 ): ShownLevel[] {
   let inner = 0;
-  return levels.flatMap(({ value, color, visible, lineWidth, lineStyle }) => {
+  return levels.flatMap(({ value, color, visible }) => {
     const outer = value === range.start || value === range.end;
     const auto = outer || !palette ? style.color : paletteColor(palette, inner);
     inner += outer ? 0 : 1;
-    const shown = color ?? auto;
-    const stroke: LevelStroke = {
-      color: shown,
-      ...(lineWidth === undefined ? {} : { lineWidth }),
-      ...(lineStyle === undefined ? {} : { lineStyle })
-    };
-    return visible === false ? [] : [{ value, color: shown, stroke }];
+    return visible === false ? [] : [{ value, color: color ?? auto }];
   });
 }
 

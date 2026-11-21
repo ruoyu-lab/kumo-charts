@@ -49,10 +49,7 @@ const FLAGS = [
   'extendLeft',
   'extendRight',
   'startArrow',
-  'endArrow',
-  'guide',
-  'symmetricFill',
-  'levelDifference'
+  'endArrow'
 ] as const;
 const MAX_LEVELS = 32;
 const LEVEL_FORMATS = ['ratio', 'percent'] as const;
@@ -65,15 +62,7 @@ export const DEFAULT_FIELDS: readonly DrawingField[] = ['color', 'lineWidth', 'l
 /** Text weight of a bold style. */
 const BOLD = 600;
 
-const LEVEL_FIELDS = fieldsOf<DrawingLevelStyle>({
-  value: true,
-  color: true,
-  visible: true,
-  lineWidth: true,
-  lineStyle: true
-});
-/** The widths a line of a drawing takes. */
-const LINE_WIDTHS = { min: 0.4, max: 20 } as const;
+const LEVEL_FIELDS = fieldsOf<DrawingLevelStyle>({ value: true, color: true, visible: true });
 
 function checkLevel(path: string, level: DrawingLevelStyle): DrawingLevelStyle {
   checkFields(path, level, LEVEL_FIELDS);
@@ -82,12 +71,6 @@ function checkLevel(path: string, level: DrawingLevelStyle): DrawingLevelStyle {
     ...(level.color !== undefined ? { color: checkColor(`${path}.color`, level.color) } : {}),
     ...(level.visible !== undefined
       ? { visible: checkBoolean(`${path}.visible`, level.visible) }
-      : {}),
-    ...(level.lineWidth !== undefined
-      ? { lineWidth: checkNumber(`${path}.lineWidth`, level.lineWidth, LINE_WIDTHS) }
-      : {}),
-    ...(level.lineStyle !== undefined
-      ? { lineStyle: checkOneOf(`${path}.lineStyle`, level.lineStyle, LINE_STYLES) }
       : {})
   };
 }
@@ -156,7 +139,6 @@ const STYLE_FIELDS = fieldsOf<DrawingStyle>({
   lineWidth: true,
   lineStyle: true,
   fill: true,
-  bandOpacity: true,
   fillColor: true,
   textColor: true,
   fontSize: true,
@@ -168,9 +150,6 @@ const STYLE_FIELDS = fieldsOf<DrawingStyle>({
   extendRight: true,
   startArrow: true,
   endArrow: true,
-  guide: true,
-  symmetricFill: true,
-  levelDifference: true,
   levels: true,
   timeLevels: true,
   levelRange: true,
@@ -201,11 +180,7 @@ export function checkStyle(style: Partial<DrawingStyle>): Partial<DrawingStyle> 
   }
 
   if (style.lineWidth !== undefined) {
-    result.lineWidth = checkNumber('style.lineWidth', style.lineWidth, LINE_WIDTHS);
-  }
-
-  if (style.bandOpacity !== undefined) {
-    result.bandOpacity = checkNumber('style.bandOpacity', style.bandOpacity, { min: 0, max: 1 });
+    result.lineWidth = checkNumber('style.lineWidth', style.lineWidth, { min: 0.5, max: 20 });
   }
 
   if (style.fontSize !== undefined) {
@@ -259,7 +234,6 @@ function chartStyle(options: ChartOptions): DrawingStyle {
     lineWidth: 1.5,
     lineStyle: 'solid',
     fill: true,
-    bandOpacity: 0.1,
     fillColor: theme.grid,
     textColor: theme.text,
     fontSize: options.font.size + 1,
@@ -271,9 +245,6 @@ function chartStyle(options: ChartOptions): DrawingStyle {
     extendRight: false,
     startArrow: false,
     endArrow: false,
-    guide: true,
-    symmetricFill: false,
-    levelDifference: false,
     levels: [],
     timeLevels: [],
     levelRange: { start: 0, end: 1 },

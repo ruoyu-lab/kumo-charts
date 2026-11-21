@@ -15,7 +15,6 @@ import {
   fillArea,
   ratioText,
   segmentsHit,
-  type LevelStroke,
   type ShownLevel,
   shownLevels,
   strokeDrawing,
@@ -79,7 +78,6 @@ interface Lines {
   readonly vwap: Curve;
   readonly bands: ReadonlyArray<{
     readonly color: string;
-    readonly stroke: LevelStroke;
     readonly upper: Curve;
     readonly lower: Curve;
   }>;
@@ -120,7 +118,6 @@ function linesOf(geometry: DrawingGeometry<Anchors<1>>): Lines | null {
     vwap: curve(vwapAt),
     bands: shownBands(style).map((level) => ({
       color: level.color,
-      stroke: level.stroke,
       upper: curve((offset) => vwapAt(offset) + level.value * deviationAt(offset)),
       lower: curve((offset) => vwapAt(offset) - level.value * deviationAt(offset))
     }))
@@ -145,7 +142,6 @@ export const anchoredVwap: DrawingTypeDefinition<Anchors<1>> = {
   fields: ['color', 'lineWidth', 'lineStyle', 'levels', 'fill', 'source'],
   // The bands in the up color, apart from the VWAP.
   defaultStyle: (theme) => ({
-    bandOpacity: 0.06,
     source: 'hlc3',
     levels: [
       { value: 1, color: theme.up },
@@ -163,7 +159,7 @@ export const anchoredVwap: DrawingTypeDefinition<Anchors<1>> = {
 
     if (geometry.style.fill) {
       for (const band of lines.bands) {
-        fillArea(ctx, bandArea(band), withAlpha(band.color, geometry.style.bandOpacity));
+        fillArea(ctx, bandArea(band), withAlpha(band.color, 0.06));
       }
     }
 
@@ -174,7 +170,7 @@ export const anchoredVwap: DrawingTypeDefinition<Anchors<1>> = {
           tracePath(path, band.upper, false);
           tracePath(path, band.lower, false);
         },
-        band.stroke
+        { color: band.color }
       );
     }
 

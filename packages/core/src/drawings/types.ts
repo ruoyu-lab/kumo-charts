@@ -28,9 +28,6 @@ export interface DrawingLevelStyle {
   readonly color?: string;
   /** Default `true`. */
   readonly visible?: boolean;
-  /** The width and style of its line. Default: the drawing's. */
-  readonly lineWidth?: number;
-  readonly lineStyle?: LineStyle;
 }
 
 /**
@@ -84,11 +81,6 @@ export interface DrawingStyle {
   lineStyle: LineStyle;
   /** Whether closed shapes, channels and the bands between levels are filled. */
   fill: boolean;
-  /**
-   * How opaque the bands between levels are filled, from 0 to 1: of the Fibonacci and Gann tools,
-   * the regression channel and the anchored VWAP, in the colors of their levels.
-   */
-  bandOpacity: number;
   /** Fill of closed shapes such as rectangles and channels, with its opacity. */
   fillColor: string;
   textColor: string;
@@ -105,19 +97,6 @@ export interface DrawingStyle {
   /** Arrowheads at the first and at the last anchor. */
   startArrow: boolean;
   endArrow: boolean;
-  /** The dashed line from anchor to anchor of a Fibonacci retracement or extension. */
-  guide: boolean;
-  /**
-   * Bands between the levels of a Fibonacci retracement or extension filled alike either side of
-   * the middle of its levels: each in the color of its level farther from the middle, rather than
-   * of the level it starts from.
-   */
-  symmetricFill: boolean;
-  /**
-   * A Fibonacci retracement or extension writes above its highest level the difference in price
-   * between its highest and its lowest level.
-   */
-  levelDifference: boolean;
   /**
    * The levels of Fibonacci and Gann tools, the price levels of those with time levels too, the
    * deviations of a regression channel and the bands of an anchored VWAP; arrays replace the
