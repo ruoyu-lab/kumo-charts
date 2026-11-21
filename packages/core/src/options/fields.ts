@@ -29,7 +29,8 @@ const SECTION_FIELDS: {
     style: true,
     snapToBars: true,
     priceLines: true,
-    avoidLabels: true
+    avoidLabels: true,
+    mirrorOpacity: true
   }),
   mainSeries: fieldsOf<MainSeriesOptions>({
     type: true,

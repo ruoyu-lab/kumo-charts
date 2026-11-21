@@ -90,6 +90,11 @@ export class CrosshairTracker {
     return this.current;
   }
 
+  /** Whether the crosshair is where the code set it, not at the pointer. */
+  get mirrored(): boolean {
+    return this.pointer === null && this.external !== null;
+  }
+
   /** Moves the crosshair to a pointer position, or hides it with `null`. */
   setPointer(point: Point | null): void {
     if (this.moving) {

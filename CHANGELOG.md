@@ -12,6 +12,7 @@ The packages of KumoChart share one version. Each release lists what changed for
 **Added**
 
 - `labelDraggable` of an order, in `orders.set()`, `add()` and `update()`: the user drags its label along its line, which stays where it is let go, and `orderLabelDrag` tells each phase with its `position` and `initialPosition`; Escape puts it back. Where the order is `draggable` too, a drag from its label that starts across the plot moves the label, one that starts up or down moves the line, and the cursor over the label is a move cursor. Off by default.
+- `crosshair.mirrorOpacity`, 0.45 by default: the crosshair the code sets with `crosshair.set()`, such as the one another linked chart's pointer shows, is drawn this opaque, its lines and labels, lighter than the pointer's own. `1` draws it as before.
 - `priceScale.hideCoveredTicks`, off by default: leaves out the price ticks the labels of the latest price and values and of the crosshair would cover.
 
 ## 1.0.0-beta.7

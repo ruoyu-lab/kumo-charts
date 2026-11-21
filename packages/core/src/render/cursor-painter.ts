@@ -24,6 +24,8 @@ export interface CrosshairView {
   readonly priceLines: readonly string[];
   /** The value on the left axis of the pane, when it has one. */
   readonly leftPriceText: string | null;
+  /** Set by the code rather than at the pointer, as another chart's: drawn at `crosshair.mirrorOpacity`. */
+  readonly mirrored: boolean;
 }
 
 export interface LegendSegment {
@@ -376,7 +378,10 @@ export function paintCursor(
   paintLatestLabels(ctx, frame, options, view.countdown);
 
   if (view.crosshair) {
+    ctx.save();
+    ctx.globalAlpha = view.crosshair.mirrored ? options.crosshair.mirrorOpacity : 1;
     paintCrosshair(ctx, frame, options, pixelRatio, view.crosshair);
+    ctx.restore();
   }
 
   return legends;

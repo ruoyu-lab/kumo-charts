@@ -679,7 +679,7 @@ export class ChartCore {
         crosshair =
           this.objects.hovered?.kind === 'order'
             ? null
-            : crosshairView(this, frame, this.tracker.value);
+            : crosshairView(this, frame, this.tracker.value, this.tracker.mirrored);
       });
       const labelFont = font(options.font.size, options.font.family);
       const covers = crosshairCovers(frame, options, crosshair, (text) =>

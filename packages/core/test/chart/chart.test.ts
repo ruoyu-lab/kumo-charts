@@ -400,6 +400,35 @@ describe('events', () => {
     expect(moves.mock.calls[0]?.[0]).toMatchObject({ visible: true, paneId: 'main' });
   });
 
+  it('draws the crosshair the code sets lighter than the one at the pointer, as light as mirrorOpacity says', async () => {
+    const chart = chartWithBars(200);
+    const canvas = chart.element.querySelector<HTMLCanvasElement>('canvas[data-layer="cursor"]');
+    const ctx = canvas?.getContext('2d') ?? expect.unreachable('No cursor layer.');
+    const alphas: number[] = [];
+    ctx.stroke = () => {
+      alphas.push(ctx.globalAlpha);
+    };
+    const drawn = () => {
+      alphas.length = 0;
+      chart.screenshot();
+      return alphas.at(-1);
+    };
+
+    chart.crosshair.set({ time: T0 + 180 * MINUTE });
+    expect(drawn()).toBe(0.45);
+    chart.applyOptions({ crosshair: { mirrorOpacity: 1 } });
+    expect(drawn()).toBe(1);
+    chart.applyOptions({ crosshair: { mirrorOpacity: 0.2 } });
+    alphas.length = 0;
+    pointer(chart, 'pointermove', 200, 100, { buttons: 0 });
+    await nextFrame();
+    chart.screenshot();
+    expect(alphas.at(-1)).toBe(1);
+    expect(() => {
+      chart.applyOptions({ crosshair: { mirrorOpacity: 2 } });
+    }).toThrow('options.crosshair.mirrorOpacity must be at most 1');
+  });
+
   it('steps the vertical line from bar to bar, or follows the pointer smoothly without snapToBars', () => {
     const at = (chart: ReturnType<typeof chartWithBars>, x: number) => {
       pointer(chart, 'pointermove', x, 100, { buttons: 0 });

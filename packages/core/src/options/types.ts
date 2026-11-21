@@ -70,6 +70,12 @@ export interface CrosshairOptions {
    * there as the pointer moves over them. Otherwise it is at the pointer, over them.
    */
   avoidLabels: boolean;
+  /**
+   * How opaque the crosshair is where the code sets it (`crosshair.set()`), such as the one another chart's pointer
+   * shows on a chart linked to it: its lines and its labels, from 0 to 1. Lighter than the pointer's own, it does not
+   * draw the eye from the chart the user is on.
+   */
+  mirrorOpacity: number;
 }
 
 /** The lines under the crosshair's price label (`crosshair.priceLines`), of the price at the pointer in a pane. */

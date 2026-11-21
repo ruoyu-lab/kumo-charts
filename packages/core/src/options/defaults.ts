@@ -30,7 +30,8 @@ export function createDefaultOptions(sections: readonly OptionsSection[] = []): 
       style: 'dashed',
       snapToBars: true,
       priceLines: null,
-      avoidLabels: false
+      avoidLabels: false,
+      mirrorOpacity: 0.45
     },
     mainSeries: {
       type: 'candles',

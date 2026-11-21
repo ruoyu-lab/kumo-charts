@@ -99,6 +99,10 @@ function validateOptions(options: ChartOptions): void {
   checkBoolean('options.crosshair.snapToBars', options.crosshair.snapToBars);
   checkFunctionOrNull('options.crosshair.priceLines', options.crosshair.priceLines);
   checkBoolean('options.crosshair.avoidLabels', options.crosshair.avoidLabels);
+  checkNumber('options.crosshair.mirrorOpacity', options.crosshair.mirrorOpacity, {
+    min: 0,
+    max: 1
+  });
 
   checkString('options.mainSeries.type', options.mainSeries.type);
   checkOneOf('options.mainSeries.source', options.mainSeries.source, PRICE_SOURCES);

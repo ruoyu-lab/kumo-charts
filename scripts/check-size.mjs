@@ -38,7 +38,7 @@ const BUDGETS = [
   // labels of 1.0.0-beta.7 (pinned at the edges, centered, the crosshair's lines and room for the
   // latest values, those of indicators), the tooltips of orders and drawings taken by their lines
   // only took it to 126.0 kB on CI.
-  { file: 'packages/core/dist/kumo-charts.iife.js', gzip: 127.7 },
+  { file: 'packages/core/dist/kumo-charts.iife.js', gzip: 127.9 },
   { file: 'packages/core/dist/kumo-charts-indicator-texts.iife.js', gzip: 9.8 },
   { file: 'packages/vue/dist/index.js', gzip: 3 },
   { file: 'packages/react/dist/index.js', gzip: 3 }
@@ -75,7 +75,7 @@ for (const budget of BUDGETS) {
  * 49.0 kB on CI, and each application 0.6 to 1.7 kB with it.
  */
 const APPS = [
-  { name: 'the core', code: `export { createChart } from 'core';`, gzip: 49.5 },
+  { name: 'the core', code: `export { createChart } from 'core';`, gzip: 49.7 },
   {
     name: 'the core with every indicator',
     code: `export { createChart } from 'core'; export { indicators, allIndicators } from 'core/indicators';`,
@@ -100,7 +100,7 @@ const APPS = [
     // the thirteen drawing types after the review 1.5 kB.
     name: 'the core with every drawing type',
     code: `export { createChart } from 'core'; export { drawings, allDrawings } from 'core/drawings';`,
-    gzip: 78.8
+    gzip: 79
   },
   {
     // The price ticks the axis labels cover, and the transform kept in saved states, add 0.1 kB;
@@ -118,7 +118,7 @@ const APPS = [
   {
     name: 'the core with alerts',
     code: `export { createChart } from 'core'; export { alerts } from 'core/alerts';`,
-    gzip: 54.9
+    gzip: 55.1
   },
   {
     // A price pulled out of an order line, markers linked and outlined took it to 52.0 kB on CI.

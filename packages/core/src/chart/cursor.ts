@@ -264,7 +264,8 @@ export function buildCursorView(
 export function crosshairView(
   sources: CursorSources,
   frame: Frame,
-  crosshair: CrosshairState | null
+  crosshair: CrosshairState | null,
+  mirrored = false
 ): CrosshairView | null {
   if (!crosshair) {
     return null;
@@ -288,6 +289,7 @@ export function crosshairView(
         : formatter.timeCrosshair(crosshair.time, interval);
 
   return {
+    mirrored,
     x: crosshair.x,
     y: pane ? crosshair.y : null,
     timeText,
