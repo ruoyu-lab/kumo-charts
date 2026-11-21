@@ -6,7 +6,8 @@
     "packages/core",
     "packages/vue",
     "packages/react",
-    "examples"
+    "examples",
+    "docs"
   ],
   "engines": {
     "node": ">=20.19.0"
@@ -15,7 +16,11 @@
     "dev": "npm run dev -w examples",
     "build": "npm run build -w @kumo-charts/core && npm run build -w @kumo-charts/vue && npm run build -w @kumo-charts/react",
     "build:examples": "npm run build -w examples",
-    "typecheck": "tsc -p packages/core && tsc -p packages/vue && tsc -p packages/react && vue-tsc -p examples && tsc -p .",
+    "dev:docs": "npm run dev -w docs",
+    "build:docs": "npm run build -w docs",
+    "check:docs": "npm run check -w docs",
+    "test:e2e:docs": "npm run test:e2e -w docs",
+    "typecheck": "tsc -p packages/core && tsc -p packages/vue && tsc -p packages/react && vue-tsc -p examples && tsc -p docs && tsc -p .",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
@@ -27,7 +32,7 @@
     "check:architecture": "node scripts/check-architecture.mjs",
     "check:size": "node scripts/check-size.mjs",
     "release:version": "node scripts/release.mjs version",
-    "verify": "npm run check:architecture && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run check:size"
+    "verify": "npm run check:architecture && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run check:size && npm run check:docs && npm run build:docs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

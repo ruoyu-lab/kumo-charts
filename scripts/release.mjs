@@ -49,8 +49,8 @@ async function setVersion(version) {
     await writeJson(path, manifest);
   }
 
-  // The examples build on the packages of the workspace.
-  for (const path of ['examples/package.json']) {
+  // The examples and the documentation's site build on the packages of the workspace.
+  for (const path of ['examples/package.json', 'docs/package.json']) {
     const manifest = await readJson(path);
     pinWorkspace(manifest.dependencies, version);
     await writeJson(path, manifest);

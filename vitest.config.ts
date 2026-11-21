@@ -6,6 +6,7 @@ const sourceConditions = ['@kumo-charts/source'];
 export default defineConfig({
   test: {
     projects: [
+      'docs/vitest.config.ts',
       {
         resolve: { conditions: sourceConditions },
         test: {

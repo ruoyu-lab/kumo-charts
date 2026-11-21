@@ -12,7 +12,8 @@ export default typescriptEslint.config(
       '**/coverage/**',
       'playwright-report/**',
       'test-results/**',
-      '.worktrees/**'
+      '.worktrees/**',
+      'docs/.cache/**'
     ]
   },
   eslint.configs.recommended,
@@ -83,7 +84,7 @@ export default typescriptEslint.config(
     }
   },
   {
-    files: ['**/*.mjs', 'scripts/**'],
+    files: ['**/*.mjs', 'scripts/**', 'docs/scripts/**', 'docs/data/generate.ts'],
     languageOptions: {
       globals: globals.node
     },

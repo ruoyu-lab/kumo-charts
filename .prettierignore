@@ -6,3 +6,6 @@ node_modules
 package-lock.json
 *.tgz
 .worktrees
+# The site's build cache, and the market data its examples read, as generated.
+docs/.cache
+docs/data/*.json
