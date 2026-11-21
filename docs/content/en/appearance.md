@@ -150,9 +150,7 @@ chart.applyOptions({
     margins: { top: 0.1, bottom: 0.08 }, // space above and below auto-scaled data, as fractions of the pane
     precision: 2, // decimals of prices; 'auto' (default) infers them from the data
     minWidth: 48, // the narrowest the axis gets; it grows to fit its labels
-    pinLabels: true, // labels of orders and alerts whose lines are out of view stay at the top or bottom edge
-    hideCoveredTicks: false, // true leaves out the price ticks under the labels of the latest price and the crosshair; by default every tick is written and the labels lie over them
-    labelAnchor: 'middle' // a label of several lines (the latest price with the countdown, the crosshair's with lines) is centered on its line; 'firstLine' puts its first line on it
+    pinLabels: true // labels of orders and alerts whose lines are out of view stay at the top or bottom edge
   },
   timeScale: {
     barSpacing: 8, // the width of a bar to start with

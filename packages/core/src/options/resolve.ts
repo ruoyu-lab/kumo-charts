@@ -16,7 +16,7 @@ import { parseCalendar } from './calendar';
 import { checkMargins } from './margins';
 import { checkSectionFields } from './fields';
 import { CHART_TEXTS, checkTexts } from './texts';
-import { LABEL_ANCHORS, LINE_STYLES, type ChartOptions, type Theme } from './types';
+import { LINE_STYLES, type ChartOptions, type Theme } from './types';
 
 export type ChartOptionsInput = DeepPartial<ChartOptions>;
 
@@ -147,8 +147,6 @@ function validateOptions(options: ChartOptions): void {
   checkFunctionOrNull('options.priceScale.formatter', price.formatter);
   checkNumber('options.priceScale.minWidth', price.minWidth, { min: 0 });
   checkBoolean('options.priceScale.pinLabels', price.pinLabels);
-  checkBoolean('options.priceScale.hideCoveredTicks', price.hideCoveredTicks);
-  checkOneOf('options.priceScale.labelAnchor', price.labelAnchor, LABEL_ANCHORS);
 
   checkBoolean('options.latestPrice.line', options.latestPrice.line);
   checkBoolean('options.latestPrice.label', options.latestPrice.label);

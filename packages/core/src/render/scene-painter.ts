@@ -1,8 +1,7 @@
 import type { ChartOptions } from '../options/types';
 import { applyStroke, font, isolated, snap } from '../canvas/canvas';
 import type { Rect } from '../layout/layout';
-import { priceTickCovered, timeTickCovered, type CrosshairCovers } from './axis-covers';
-import { labelHeight, placeAxisLabels } from './axis-labels';
+import { timeTickCovered, type CrosshairCovers } from './axis-covers';
 import type { Frame, PaneFrame, PlotJob, PriceLabel } from './frame';
 import type { SeriesPoints } from '../series/types';
 import { shapeDirection, traceShape } from '../canvas/shapes';
@@ -398,8 +397,7 @@ function paintPriceAxes(
   ctx: CanvasRenderingContext2D,
   frame: Frame,
   options: ChartOptions,
-  pixelRatio: number,
-  crosshair: CrosshairCovers
+  pixelRatio: number
 ): void {
   if (!options.priceScale.visible) {
     return;
@@ -410,24 +408,11 @@ function paintPriceAxes(
   ctx.fillStyle = theme.textMuted;
   ctx.textBaseline = 'middle';
   const half = options.font.size / 2;
-  // With `hideCoveredTicks`, the ticks the labels of the latest values and of the crosshair would
-  // cover are left out; otherwise the labels lie over them.
-  const covers = options.priceScale.hideCoveredTicks
-    ? [
-        ...placeAxisLabels(frame, options, (frame.latest?.countdown ?? null) !== null).map(
-          (label) => {
-            const top = label.y - (options.font.size + 8) / 2;
-            return { axis: label.axis, top, bottom: top + labelHeight(options, label.lines) };
-          }
-        ),
-        ...crosshair.price
-      ]
-    : [];
   const labels = (axis: Rect, ticks: readonly PriceLabel[], x: number) => {
     for (const tick of ticks) {
       const inside = tick.y >= half && tick.y <= axis.height - half;
 
-      if (inside && !priceTickCovered(covers, axis, tick.y, half)) {
+      if (inside) {
         ctx.fillText(tick.text, x, axis.y + tick.y);
       }
     }
@@ -600,7 +585,7 @@ export function paintScene(
 
   paintLatestPriceLine(ctx, frame, options, pixelRatio);
   paintSeparators(ctx, frame, options, pixelRatio, hoveredSeparator);
-  paintPriceAxes(ctx, frame, options, pixelRatio, crosshair);
+  paintPriceAxes(ctx, frame, options, pixelRatio);
   paintTimeAxis(ctx, frame, options, pixelRatio, crosshair);
 }
 
@@ -632,7 +617,7 @@ export function repaintAxes(
     ctx.fillRect(-frame.layout.leftAxisWidth, 0, frame.layout.width, frame.layout.height);
     // The separators cross the price axes.
     paintSeparators(ctx, frame, options, pixelRatio, hoveredSeparator);
-    paintPriceAxes(ctx, frame, options, pixelRatio, crosshair);
+    paintPriceAxes(ctx, frame, options, pixelRatio);
     paintTimeAxis(ctx, frame, options, pixelRatio, crosshair);
   });
 }

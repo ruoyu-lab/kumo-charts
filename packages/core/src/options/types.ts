@@ -133,22 +133,7 @@ export interface PriceScaleOptions {
    * sight with its line.
    */
   pinLabels: boolean;
-  /**
-   * Leaves out the ticks of the price axis that the labels there would cover, those of the latest price and values and
-   * the crosshair's. Off, every tick is written, and a label lies over those it meets.
-   */
-  hideCoveredTicks: boolean;
-  /**
-   * Where a label of several lines on the price axis lies on its line, such as the latest price's with the countdown
-   * under it or the crosshair's with `crosshair.priceLines`: `middle`, the whole label centered on it; `firstLine`, its
-   * first line on it and the others under it.
-   */
-  labelAnchor: LabelAnchor;
 }
-
-/** Where a label of several lines on the price axis lies on its line (`priceScale.labelAnchor`). */
-export const LABEL_ANCHORS = ['middle', 'firstLine'] as const;
-export type LabelAnchor = (typeof LABEL_ANCHORS)[number];
 
 export interface TimeScaleOptions {
   visible: boolean;

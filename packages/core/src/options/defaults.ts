@@ -55,9 +55,7 @@ export function createDefaultOptions(sections: readonly OptionsSection[] = []): 
       precision: 'auto',
       formatter: null,
       minWidth: 48,
-      pinLabels: true,
-      hideCoveredTicks: false,
-      labelAnchor: 'middle'
+      pinLabels: true
     },
     latestPrice: {
       line: true,

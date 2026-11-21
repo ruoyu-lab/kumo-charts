@@ -8,14 +8,9 @@ export function labelHeight(options: ChartOptions, lines: number): number {
   return (height - 6) * lines + 6;
 }
 
-/**
- * The middle of the first line of a label of `lines` lines whose line is at `y`: there, or above it as much as centers
- * the whole label on it (`priceScale.labelAnchor`).
- */
+/** The middle of the first line of a label of `lines` lines centered on its line at `y`. */
 export function firstLineY(options: ChartOptions, y: number, lines: number): number {
-  return options.priceScale.labelAnchor === 'middle'
-    ? y - (labelHeight(options, lines) - labelHeight(options, 1)) / 2
-    : y;
+  return y - (labelHeight(options, lines) - labelHeight(options, 1)) / 2;
 }
 
 /**
@@ -75,7 +70,7 @@ export function placeAxisLabels(
   const lines = countdown ? 2 : 1;
   const height = labelHeight(options, 1);
   const live = latest?.live ?? null;
-  // The countdown under the price, the label as `priceScale.labelAnchor` puts it on the line.
+  // The countdown under the price, the label centered on the line.
   const latestY = latest ? firstLineY(options, latest.y, lines) : 0;
   const placed: PlacedLabel[] = [];
 

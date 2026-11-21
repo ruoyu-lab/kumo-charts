@@ -150,9 +150,7 @@ chart.applyOptions({
     margins: { top: 0.1, bottom: 0.08 }, // 自動スケール時に上下に空ける余白。ペインの高さに対する比率
     precision: 2, // 価格の小数点以下の桁数。デフォルトの 'auto' はデータから推定
     minWidth: 48, // 軸の最小幅。ラベルが長くなると自動で広がる
-    pinLabels: true, // ラインが表示範囲外の注文・アラートのラベルを上端または下端に固定
-    hideCoveredTicks: false, // true で最新価格・十字線のラベルに隠れる価格目盛りを省く。既定ではすべて表示し、ラベルを上に重ねる
-    labelAnchor: 'middle' // 複数行のラベル（カウントダウン付きの最新価格、行を足した十字線）をラインの中央に置く。'firstLine' は1行目をラインに合わせる
+    pinLabels: true // ラインが表示範囲外の注文・アラートのラベルを上端または下端に固定
   },
   timeScale: {
     barSpacing: 8, // 最初の状態での足 1 本あたりの幅

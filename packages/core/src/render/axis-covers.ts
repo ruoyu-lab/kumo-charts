@@ -1,24 +1,10 @@
-import type { Rect } from '../layout/layout';
 import type { ChartOptions } from '../options/types';
 import type { CrosshairView } from './cursor-painter';
 import { labelHeight as axisLabelHeight, placeAxisLabels } from './axis-labels';
 import type { Frame, TimeLabel } from './frame';
 
-/** The room a label takes on a price axis, from the top of the axis. */
-export interface AxisCover {
-  readonly axis: Rect;
-  readonly top: number;
-  readonly bottom: number;
-}
-
-/** Where the crosshair's labels lie on the axes; the ticks there are left out. */
-export interface CrosshairCovers {
-  readonly price: readonly AxisCover[];
-  /** The span of its time label, or `null` without one. */
-  readonly time: { readonly left: number; readonly right: number } | null;
-}
-
-export const NO_COVERS: CrosshairCovers = { price: [], time: null };
+/** Where the crosshair's label lies on the time axis, whose ticks there are left out; `null` without one. */
+export type CrosshairCovers = { readonly left: number; readonly right: number } | null;
 
 /** Room on either side of the text of the crosshair's labels. */
 export const LABEL_PADDING_X = 6;
@@ -40,10 +26,9 @@ export interface PriceLabelSpan {
 }
 
 /**
- * Where the crosshair's price label at `y` lies with `lines` lines of text (`crosshair.priceLines`). As
- * `priceScale.labelAnchor` says, the whole label is centered on `y`, within the plot, or the price stays at `y` and the
- * lines are evenly under it, or over it where the plot has no room under it. Without lines, the label is as the time
- * label is. With `crosshair.avoidLabels`, it is moved clear of the labels of the latest price and values.
+ * Where the crosshair's price label at `y` lies with `lines` lines of text (`crosshair.priceLines`): the whole label
+ * centered on `y`, within the plot, the price on top and the lines evenly under it. Without lines, the label is as the
+ * time label is. With `crosshair.avoidLabels`, it is moved clear of the labels of the latest price and values.
  */
 export function priceLabelSpan(
   frame: Frame,
@@ -66,30 +51,12 @@ function labelAt(frame: Frame, options: ChartOptions, y: number, lines: number):
   const half = line / 2 + BLOCK_PADDING;
   const plotBottom = frame.layout.timeAxis?.y ?? frame.layout.height;
 
-  if (options.priceScale.labelAnchor === 'middle') {
-    const height = 2 * half + lines * line;
-    const top = Math.max(0, Math.min(y - height / 2, plotBottom - height));
-    return moved(
-      { top: 0, bottom: height, priceY: half, lineY: (index) => half + line * (index + 1) },
-      top
-    );
-  }
-
-  if (y + half + lines * line <= plotBottom) {
-    return {
-      top: y - half,
-      bottom: y + half + lines * line,
-      priceY: y,
-      lineY: (index) => y + line * (index + 1)
-    };
-  }
-
-  return {
-    top: y - half - lines * line,
-    bottom: y + half,
-    priceY: y,
-    lineY: (index) => y - line * (lines - index)
-  };
+  const height = 2 * half + lines * line;
+  const top = Math.max(0, Math.min(y - height / 2, plotBottom - height));
+  return moved(
+    { top: 0, bottom: height, priceY: half, lineY: (index) => half + line * (index + 1) },
+    top
+  );
 }
 
 /** The label `by` lower. */
@@ -155,101 +122,38 @@ export function timeLabelCenter(frame: Frame, x: number, width: number): number 
   return Math.min(Math.max(x, width / 2), Math.max(width / 2, frame.layout.plotWidth - width / 2));
 }
 
-/** Where the labels of `crosshair` lie on the axes; `measure` gives the width of a text. */
+/** Where the time label of `crosshair` lies on the time axis; `measure` gives the width of a text. */
 export function crosshairCovers(
   frame: Frame,
   options: ChartOptions,
   crosshair: CrosshairView | null,
   measure: (text: string) => number
 ): CrosshairCovers {
-  if (!crosshair || !options.crosshair.labels) {
-    return NO_COVERS;
+  if (
+    !crosshair ||
+    !options.crosshair.labels ||
+    crosshair.timeText === null ||
+    !frame.layout.timeAxis
+  ) {
+    return null;
   }
 
-  const price: AxisCover[] = [];
-  const { y } = crosshair;
-
-  if (y !== null && options.priceScale.visible) {
-    const half = labelHeight(options) / 2;
-    // The right label is as tall as its lines make it.
-    const right = priceLabelSpan(frame, options, y, crosshair.priceLines.length);
-
-    // A label at the edge of a pane covers the axis of the next one too.
-    for (const pane of frame.panes) {
-      const top = right.top - pane.axis.y;
-      const bottom = right.bottom - pane.axis.y;
-
-      if (crosshair.priceText !== null && bottom > 0 && top < pane.axis.height) {
-        price.push({ axis: pane.axis, top, bottom });
-      }
-
-      const leftTop = y - half - pane.axis.y;
-      const leftBottom = y + half - pane.axis.y;
-
-      if (
-        crosshair.leftPriceText !== null &&
-        pane.left &&
-        leftBottom > 0 &&
-        leftTop < pane.axis.height
-      ) {
-        price.push({ axis: pane.left.axis, top: leftTop, bottom: leftBottom });
-      }
-    }
-  }
-
-  let time: CrosshairCovers['time'] = null;
-
-  if (crosshair.timeText !== null && frame.layout.timeAxis) {
-    const width = measure(crosshair.timeText) + LABEL_PADDING_X * 2;
-    const center = timeLabelCenter(frame, crosshair.x, width);
-    time = { left: center - width / 2, right: center + width / 2 };
-  }
-
-  return { price, time };
-}
-
-/** Whether the text of a price tick at `y` on `axis`, `half` as tall as it is, meets a cover. */
-export function priceTickCovered(
-  covers: readonly AxisCover[],
-  axis: Rect,
-  y: number,
-  half: number
-): boolean {
-  return covers.some(
-    (cover) => cover.axis === axis && y + half > cover.top && y - half < cover.bottom
-  );
+  const width = measure(crosshair.timeText) + LABEL_PADDING_X * 2;
+  const center = timeLabelCenter(frame, crosshair.x, width);
+  return { left: center - width / 2, right: center + width / 2 };
 }
 
 export function timeTickCovered(covers: CrosshairCovers, tick: TimeLabel): boolean {
-  const span = covers.time;
   return (
-    span !== null && tick.x + tick.width / 2 > span.left && tick.x - tick.width / 2 < span.right
+    covers !== null &&
+    tick.x + tick.width / 2 > covers.left &&
+    tick.x - tick.width / 2 < covers.right
   );
 }
 
-/** The ticks the covers leave out, as a key that changes when they do. */
-export function coveredTicks(frame: Frame, options: ChartOptions, covers: CrosshairCovers): string {
-  const half = options.font.size / 2;
-  const hidden: string[] = [];
-  const panes = options.priceScale.hideCoveredTicks ? frame.panes : [];
-
-  panes.forEach((pane, index) => {
-    pane.ticks.forEach((tick, position) => {
-      if (priceTickCovered(covers.price, pane.axis, tick.y, half)) {
-        hidden.push(`${index}:${position}`);
-      }
-    });
-    pane.left?.ticks.forEach((tick, position) => {
-      if (priceTickCovered(covers.price, pane.left?.axis ?? pane.axis, tick.y, half)) {
-        hidden.push(`${index}<${position}`);
-      }
-    });
-  });
-  frame.timeTicks.forEach((tick, position) => {
-    if (timeTickCovered(covers, tick)) {
-      hidden.push(`t${position}`);
-    }
-  });
-
-  return hidden.join(',');
+/** The time ticks the crosshair's label leaves out, as a key that changes when they do. */
+export function coveredTicks(frame: Frame, covers: CrosshairCovers): string {
+  return frame.timeTicks
+    .flatMap((tick, position) => (timeTickCovered(covers, tick) ? [`t${String(position)}`] : []))
+    .join(',');
 }

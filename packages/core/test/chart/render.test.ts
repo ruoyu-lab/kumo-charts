@@ -53,7 +53,7 @@ function paint(chart: Chart, name: 'scene' | 'objects' | 'cursor'): string[] {
 }
 
 describe('rendering', () => {
-  it('writes every price tick, the label of the latest price over them, or leaves out those under it where asked', () => {
+  it('writes every price tick, the label of the latest price over them', () => {
     const chart = createTestChart();
     chart.data.set(
       Array.from({ length: 50 }, (_, index) => ({
@@ -77,17 +77,10 @@ describe('rendering', () => {
     chart.applyOptions({ latestPrice: { label: true } });
     const over = ticks();
     expect(all.filter((text) => !over.includes(text))).toEqual([]);
-    chart.applyOptions({ priceScale: { hideCoveredTicks: true } });
-    const shown = ticks();
-
-    expect(all.filter((text) => !shown.includes(text))).toEqual(['100.00']);
   });
 
-  it('leaves out the time ticks under the label of the crosshair while it is there, the price ticks where asked', async () => {
-    const chart = createTestChart({
-      latestPrice: { label: false },
-      priceScale: { hideCoveredTicks: true }
-    });
+  it('leaves out the time ticks under the label of the crosshair while it is there, the price ticks staying', async () => {
+    const chart = createTestChart({ latestPrice: { label: false } });
     chart.data.set(createBars(50));
     chart.priceScale().setRange({ min: 100, max: 160 });
     const scene = canvasCalls(layer(chart, 'scene'));
@@ -110,9 +103,9 @@ describe('rendering', () => {
     const hovered = texts().map((each) => each.text);
 
     expect(tick).toBeDefined();
-    expect(hovered).not.toContain('130.00');
+    // The price label lies over the tick at its price, which is written under it.
+    expect(hovered).toContain('130.00');
     expect(hovered).not.toContain(timeTick?.text);
-    expect(hovered).toContain('140.00');
     // The axes alone paint again, over the series.
     expect(cleared).toBe(false);
 
@@ -120,26 +113,13 @@ describe('rendering', () => {
     await nextFrame();
     chart.screenshot();
     const left = texts().map((each) => each.text);
-    expect(left).toContain('130.00');
     expect(left).toContain(timeTick?.text);
-
-    // By default the price ticks stay under it.
-    chart.applyOptions({ priceScale: { hideCoveredTicks: false } });
-    chart.screenshot();
-    texts();
-    pointer(chart, 'pointermove', x, y, { buttons: 0 });
-    await nextFrame();
-    chart.screenshot();
-    const kept = texts().map((each) => each.text);
-    expect(kept).toContain('130.00');
-    expect(kept).not.toContain(timeTick?.text);
   });
 
-  it('writes the lines the crosshair is given under its price, and leaves out the ticks under them too', async () => {
+  it('writes the lines the crosshair is given under its price, evenly apart', async () => {
     const asked: [number, string][] = [];
     const chart = createTestChart({
       latestPrice: { label: false },
-      priceScale: { labelAnchor: 'firstLine', hideCoveredTicks: true },
       crosshair: {
         priceLines: (price, paneId) => {
           asked.push([price, paneId]);
@@ -149,13 +129,9 @@ describe('rendering', () => {
     });
     chart.data.set(createBars(50));
     chart.priceScale().setRange({ min: 100, max: 160 });
-    const scene = canvasCalls(layer(chart, 'scene'));
     const cursor = canvasCalls(layer(chart, 'cursor'));
     const y = chart.priceScale().priceToY(130) ?? 0;
-    const below = chart.priceScale().priceToY(127.5) ?? 0;
     chart.screenshot();
-    expect(scene.some((call) => call.name === 'fillText' && call.args[0] === '125.00')).toBe(true);
-    scene.length = 0;
     cursor.length = 0;
     pointer(chart, 'pointermove', 200, y, { buttons: 0 });
     await nextFrame();
@@ -163,9 +139,6 @@ describe('rendering', () => {
     const written = cursor
       .filter((call) => call.name === 'fillText')
       .map((call) => ({ text: String(call.args[0]), y: Number(call.args[2]) }));
-    const hidden = scene
-      .filter((call) => call.name === 'fillText')
-      .map((call) => String(call.args[0]));
 
     expect(asked.at(-1)?.[1]).toBe('main');
     expect(asked.at(-1)?.[0]).toBeCloseTo(130, 0);
@@ -180,16 +153,11 @@ describe('rendering', () => {
     expect(lots?.y ?? 0).toBeGreaterThan(delta?.y ?? 0);
     // Evenly apart.
     expect((lots?.y ?? 0) - (delta?.y ?? 0)).toBeCloseTo((delta?.y ?? 0) - (price?.y ?? 0), 5);
-    expect(lots?.y ?? 0).toBeGreaterThan(below - 30);
-    // The tick under the lines is left out with the one under the price.
-    expect(hidden).not.toContain('130.00');
-    expect(hidden).not.toContain('125.00');
   });
 
-  it('writes the lines over the price at the bottom of the plot, where there is no room under it', async () => {
+  it('keeps the label with its lines within the plot at its bottom', async () => {
     const chart = createTestChart({
       latestPrice: { label: false },
-      priceScale: { labelAnchor: 'firstLine' },
       crosshair: { priceLines: () => ['+1.00', '0.05'] }
     });
     chart.data.set(createBars(50));
@@ -204,8 +172,9 @@ describe('rendering', () => {
       .filter((call) => call.name === 'fillText')
       .map((call) => ({ text: String(call.args[0]), y: Number(call.args[2]) }));
     const lots = written.find((each) => each.text === '0.05');
+    const plot = chart.layout().panes[0]?.plot;
 
-    expect(lots?.y ?? Infinity).toBeLessThan(y);
+    expect(lots?.y ?? Infinity).toBeLessThan((plot?.y ?? 0) + (plot?.height ?? 0));
   });
 
   it('centers the crosshair’s label with its lines on the pointer by default', async () => {
@@ -236,7 +205,7 @@ describe('rendering', () => {
     expect(lots?.y ?? 0).toBeGreaterThan(delta?.y ?? 0);
   });
 
-  it('centers the latest price’s label with the countdown on its line, or puts the price on it as asked', () => {
+  it('centers the latest price’s label with the countdown on its line', () => {
     vi.spyOn(Date, 'now').mockReturnValue(T0 + 119.5 * MINUTE);
     const chart = chartWithBars(120, { latestPrice: { countdown: true } });
     chart.data.set(createBars(120), { interval: '1m' });
@@ -255,9 +224,6 @@ describe('rendering', () => {
     };
 
     expect(middleOf()).toBeCloseTo(y, 5);
-
-    chart.applyOptions({ priceScale: { labelAnchor: 'firstLine' } });
-    expect(middleOf()).toBeCloseTo(y - one / 2 + two / 2, 5);
     vi.restoreAllMocks();
   });
 
@@ -286,12 +252,6 @@ describe('rendering', () => {
 
     chart.applyOptions({ crosshair: { avoidLabels: false } });
     expect(await crosshairAt(y - 2)).toBeCloseTo(y - 2 + 0.5, 0);
-  });
-
-  it('refuses a label anchor it does not know', () => {
-    expect(() => createTestChart({ priceScale: { labelAnchor: 'top' as never } })).toThrow(
-      'options.priceScale.labelAnchor'
-    );
   });
 
   it('refuses lines of the crosshair that are not a function', () => {

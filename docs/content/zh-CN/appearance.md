@@ -150,9 +150,7 @@ chart.applyOptions({
     margins: { top: 0.1, bottom: 0.08 }, // 自动缩放时上下留的空，按窗格高度的比例
     precision: 2, // 价格的小数位，默认 'auto' 从数据推断
     minWidth: 48, // 坐标轴最小宽度，标签长了会自己变宽
-    pinLabels: true, // 线超出上下显示范围的委托单、提醒的标签固定在上边或下边
-    hideCoveredTicks: false, // true 时隐藏被最新价、十字线标签盖住的价格刻度；默认刻度都写，标签压在上面
-    labelAnchor: 'middle' // 多行标签（带倒计时的最新价、带附加行的十字线）整块居中在线上；'firstLine' 第一行压线
+    pinLabels: true // 线超出上下显示范围的委托单、提醒的标签固定在上边或下边
   },
   timeScale: {
     barSpacing: 8, // 开始时每根 K 线占多宽

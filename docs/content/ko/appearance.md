@@ -150,9 +150,7 @@ chart.applyOptions({
     margins: { top: 0.1, bottom: 0.08 }, // 자동 스케일 때 위아래에 남기는 여백. 창 높이에 대한 비율
     precision: 2, // 가격의 소수 자릿수. 기본값 'auto'는 데이터에서 추론
     minWidth: 48, // 축의 최소 너비. 라벨이 길면 알아서 넓어집니다
-    pinLabels: true, // 선이 보이는 범위 밖인 주문·알림의 라벨을 위쪽 또는 아래쪽 가장자리에 고정
-    hideCoveredTicks: false, // true면 최신 가격·십자선 라벨에 가려지는 가격 눈금을 뺌. 기본은 눈금을 모두 쓰고 라벨을 위에 겹침
-    labelAnchor: 'middle' // 여러 줄 라벨(카운트다운이 있는 최신 가격, 줄을 덧붙인 십자선)을 선 가운데에 둠. 'firstLine'은 첫 줄을 선에 맞춤
+    pinLabels: true // 선이 보이는 범위 밖인 주문·알림의 라벨을 위쪽 또는 아래쪽 가장자리에 고정
   },
   timeScale: {
     barSpacing: 8, // 처음에 봉 하나가 차지하는 너비

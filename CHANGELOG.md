@@ -7,7 +7,10 @@ The packages of KumoChart share one version. Each release lists what changed for
 **Breaking**
 
 - `labelAlign` of an order is gone: `labelPosition` says where along its line its label is, from 0 at the left of the plot to 1 at its right (the default). `'left'`, `'center'` and `'right'` are `0`, `0.5` and `1`. Labels are moved apart only from those they would overlap, wherever along the plot they are.
-- The ticks of the price axis under the labels of the latest price and values and of the crosshair are written, the labels over them. `priceScale.hideCoveredTicks: true` leaves them out, as before.
+- `priceScale.labelAnchor` is gone: a label of several lines on the price axis, the latest price's with the countdown or the crosshair's with `crosshair.priceLines`, is centered on its line, as `'middle'` drew it.
+- The ticks of the price axis under the labels of the latest price and values and of the crosshair are written, the labels over them; they were left out.
+- Hollow candles take their color from where they closed against the close before (up at or above it, down below), the first bar against its own open, and are hollow where they closed above their open, filled otherwise: a candle can rise within its bar and still be down from the bar before, hollow in the down color.
+- The wick of a candle runs up to its body and on from it, not through it: a hollow or see-through body has no line inside.
 
 **Added**
 
@@ -15,7 +18,14 @@ The packages of KumoChart share one version. Each release lists what changed for
 - `crosshair.mirrorOpacity`, 0.45 by default: the crosshair the code sets with `crosshair.set()`, such as the one another linked chart's pointer shows, is drawn this opaque, its lines and labels, lighter than the pointer's own. `1` draws it as before.
 - `hollowUp` and `hollowDown` of the style of candles and volume candles, off by default: those that close above their open, or below it, are drawn hollow, outlined in their border's color, `border` on or not. The bodies of hollow candles are outlined in the border's color too.
 - `legend.extraRows`: rows of the application's own in the legend, each an item and its title, listed after the indicators of its pane as `rows` and `buttons` have them, such as of what it draws over the bars apart from the indicators, to set or remove it from its buttons.
-- `priceScale.hideCoveredTicks`, off by default: leaves out the price ticks the labels of the latest price and values and of the crosshair would cover.
+- `legend.rows` is asked about the row of the main series too, with its open, high, low, close and volume: `false` leaves it out, such as for a legend folded away.
+- `legendBounds(paneId?)`: where the legend of a pane, the main one by default, was last painted, in CSS pixels as `layout()` gives them, such as for a button under it; `null` while it shows no row.
+- `levelRange` and `timeLevelRange` of a drawing's style: what the levels of the tools that measure count from, the level at each end. A retracement measures from its first anchor to its second, `{ start: 1, end: 0 }` by default; `{ start: 0, end: -1 }` counts multiples of the move from the first anchor, as risk multiples from an entry to a stop.
+- `levelLabel` of a drawing's style: how the tools that measure write their levels, the level as a ratio or a percent, with a prefix and a suffix (such as `R` in `2R`), and the price beside it.
+- `drawings.setToolStyle(type, style)` and `toolStyle(type)`: the style the tool of a type gives the drawings the user places from now on, such as the one they last chose; `null` forgets it.
+- `drawings.replace(definition)`: a drawing type defined anew, such as a newer version of one a page brings; its drawings stay and paint as it now defines them, those the undo history brings back too.
+- `drawings.refresh()`: paints the drawings again, for a type whose definition paints what it reads besides the drawing, such as values a page computes for it.
+- `checkDrawingStyle()` from `@kumo-charts/core/drawings` checks a drawing's style as the chart does, and `dashPattern()` gives the dashes of a line style at a width, for drawing types that paint as the chart's do.
 
 ## 1.0.0-beta.7
 

@@ -686,7 +686,7 @@ export class ChartCore {
         this.measureText(text, labelFont)
       );
       // The ticks under the crosshair's labels are left out: the axes paint again as they change.
-      const covered = coveredTicks(frame, options, covers);
+      const covered = coveredTicks(frame, covers);
 
       if (layers.has('scene')) {
         attempt(() => {
