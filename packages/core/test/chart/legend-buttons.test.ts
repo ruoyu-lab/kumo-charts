@@ -33,18 +33,30 @@ describe('legend rows', () => {
 
 describe('rows of the application’s own', () => {
   it('list after the indicators, as `rows` has them', () => {
-    const extra = {
-      item: { kind: 'indicator', id: 'vp', type: 'VP', paneId: 'main', visible: true },
-      title: 'VP 24'
-    } as const;
+    const extra = { id: 'vp', type: 'VP', paneId: 'main', visible: true, title: 'VP 24' };
     const chart = chartWithBars(120, { legend: { extraRows: () => [extra] } });
     chart.indicators.add({ id: 'ma', type: 'MA' });
     const texts = legendTexts(chart);
     const at = (start: string) => texts.findIndex((text) => text.startsWith(start));
 
     expect(at('VP 24')).toBeGreaterThan(at('MA'));
-    chart.applyOptions({ legend: { rows: (item) => item.id !== 'vp' } });
+    const asked: LegendItem[] = [];
+    chart.applyOptions({
+      legend: {
+        rows: (item) => {
+          asked.push(item);
+          return item.id !== 'vp';
+        }
+      }
+    });
     expect(legendTexts(chart)).not.toContain('VP 24');
+    expect(asked).toContainEqual({
+      kind: 'extra',
+      id: 'vp',
+      type: 'VP',
+      paneId: 'main',
+      visible: true
+    });
     expect(() => {
       chart.applyOptions({ legend: { extraRows: [] as never } });
     }).toThrow('options.legend.extraRows must be a function');

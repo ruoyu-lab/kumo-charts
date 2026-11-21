@@ -81,7 +81,7 @@ chart.drawings.startTool('price-zone'); // チャートを 2 回クリックし�
 
 `DrawingTypeDefinition<Anchors<2>>` のようにアンカーの数で型を書くと、`points` と `anchors` はちょうど 2 つの組になり、あるかどうかを確かめずに取り出せます。チャートは `points` と同じ数のアンカーを渡します。
 
-`paint` の `ctx` はすでにプロット領域にクリップされ、座標も平行移動済みなので、そのまま CSS ピクセルで描けば大丈夫です。高解像度ディスプレイのスケーリングはチャートが処理します。`hovered` と `selected` は、ポインターがその上にあるか、選択されているかを表すので、目立つように描き分けるのに使えます。 破線は描画の線種どおりに描きます。`dashPattern(style.lineStyle, style.lineWidth)`（`@kumo-charts/core` から読み込み）で、組み込みの描画と同じ破線になります。
+`paint` の `ctx` はすでにプロット領域にクリップされ、座標も平行移動済みなので、そのまま CSS ピクセルで描けば大丈夫です。高解像度ディスプレイのスケーリングはチャートが処理します。`hovered` と `selected` は、ポインターがその上にあるか、選択されているかを表すので、目立つように描き分けるのに使えます。 破線は描画の線種どおりに描きます。`dashPattern(style.lineStyle, style.lineWidth)`（`@kumo-charts/core/drawings` から読み込み）で、組み込みの描画と同じ破線になります。
 
 ## 当たり判定
 

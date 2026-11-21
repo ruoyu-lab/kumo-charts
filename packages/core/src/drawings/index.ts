@@ -41,6 +41,8 @@ export { regressionTrend } from './tools/regression';
 export { anchoredVwap } from './tools/vwap';
 export { computeDrawingLevels, drawingLevels, drawingLevelValue } from './headless';
 export { checkStyle as checkDrawingStyle } from './style';
+/** The dashes the chart's drawings stroke a line style with at a width, for drawing types of a page's own. */
+export { dashPattern } from '../canvas/canvas';
 export type { DrawingLevelsInput, DrawingLevelsOptions } from './headless';
 export type {
   Anchors,

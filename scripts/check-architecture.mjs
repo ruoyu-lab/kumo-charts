@@ -8,7 +8,7 @@
 // - no oversized files, leftover markers or version-suffixed names.
 import { existsSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
-import { dirname, join, relative, resolve } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const coreSource = join(root, 'packages/core/src');
@@ -85,7 +85,7 @@ async function sourceFiles(directory) {
 }
 
 function moduleOf(file) {
-  return relative(coreSource, file).split('/')[0];
+  return relative(coreSource, file).split(sep)[0];
 }
 
 const errors = [];

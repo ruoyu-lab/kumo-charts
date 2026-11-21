@@ -130,12 +130,14 @@ chart.applyOptions({
   grid: { vertical: false, horizontal: true, style: 'dashed' },
   crosshair: {
     mode: 'magnet', // 가로선이 종가에 붙습니다. 'free'는 마우스를 따라갑니다
-    labels: true, // 축에 시간과 가격을 표시
     style: 'dashed',
     snapToBars: true, // 세로선이 봉 가운데로 한 칸씩 이동합니다. false는 마우스를 부드럽게 따라갑니다
-    priceLines: (price, paneId) => [], // 축의 가격 라벨 아래에 덧붙이는 줄. 최신 가격과의 차이 등
-    avoidLabels: false, // 십자선 가격 라벨을 최신 가격 등의 라벨 위에 겹치지 않고 위나 아래에 붙여 둠
-    mirrorOpacity: 0.45 // 코드로 설정한 십자선(연동된 다른 차트의 것 등)의 불투명도. 선과 라벨이 함께 옅어짐. 1이면 포인터의 것과 같음
+    labels: {
+      visible: true, // 축에 시간과 가격을 표시
+      priceLines: (price, paneId) => [], // 축의 가격 라벨 아래에 덧붙이는 줄. 최신 가격과의 차이 등
+      avoidLatest: false // 십자선 가격 라벨을 최신 가격 등의 라벨 위에 겹치지 않고 위나 아래에 붙여 둠
+    },
+    syncedOpacity: 0.45 // 코드로 설정한 십자선(연동된 다른 차트의 것 등)의 불투명도. 선과 라벨이 함께 옅어짐. 1이면 포인터의 것과 같음
   }
 });
 ```
@@ -246,6 +248,16 @@ chart.applyOptions({ legend: { rows: (item) => item.paneId !== 'main' } });
 ```
 
 범례를 그린 곳: `chart.legendBounds()`는 메인 창 범례를 마지막으로 그린 위치(`chart.layout()`과 같은 픽셀, 창 ID를 넘기면 다른 창)를 주고, 한 줄도 그리지 않았으면 `null`입니다. 접기 버튼을 범례 아래에 둘 때 등에 씁니다.
+
+지표는 아니지만 차트에 그리는 것(거래량 프로파일 등)의 줄도 범례에 넣을 수 있습니다. `extraRows`가 돌려주는 줄은 그 페인의 지표 뒤에 놓이고, `rows`와 `buttons`도 그대로 적용됩니다. `kind`는 `'extra'`입니다:
+
+```ts
+chart.applyOptions({
+  legend: {
+    extraRows: () => [{ id: 'vp', type: 'VPVR', paneId: 'main', visible: true, title: 'VPVR 24' }]
+  }
+});
+```
 
 메인 패널 범례 위에, 차트 위에 겹쳐 보여 줄 것(거래 버튼 등)을 위한 여백을 둘 수 있습니다. `legend.top`이 그 여백(CSS 픽셀, 기본값 `0`)이며 다른 패널의 범례는 그대로입니다.
 

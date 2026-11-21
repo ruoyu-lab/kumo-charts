@@ -259,7 +259,7 @@ describe('selection', () => {
 describe('orders', () => {
   it('drags an order to a new price, reporting each phase', () => {
     const chart = chartWithBars(200, { priceScale: { precision: 2 } });
-    chart.orders.set([{ id: 'o1', side: 'buy', price: 180, quantity: 1 }]);
+    chart.orders.set([{ id: 'o1', side: 'buy', price: 180, label: { quantity: 1 } }]);
     const drags = vi.fn();
     chart.on('orderDrag', drags);
     const [x, y] = at(chart, 120, 180);
@@ -305,21 +305,21 @@ describe('orders', () => {
     const chart = chartWithBars(200);
     chart.orders.set([
       { id: 'o1', side: 'buy', price: 180 },
-      { id: 'o2', side: 'sell', price: 190, labelPosition: 0.25 }
+      { id: 'o2', side: 'sell', price: 190, label: { position: 0.25 } }
     ]);
 
-    expect(chart.orders.get('o1')).toMatchObject({ labelPosition: 1, labelDraggable: false });
-    expect(chart.orders.get('o2')?.labelPosition).toBe(0.25);
+    expect(chart.orders.get('o1')).toMatchObject({ label: { position: 1, draggable: false } });
+    expect(chart.orders.get('o2')?.label.position).toBe(0.25);
     chart.orders.update('o2', { price: 191 });
-    expect(chart.orders.get('o2')?.labelPosition).toBe(0.25);
+    expect(chart.orders.get('o2')?.label.position).toBe(0.25);
     expect(() => {
-      chart.orders.set([{ id: 'o3', side: 'buy', price: 180, labelPosition: 1.5 }]);
-    }).toThrow('orders[0].labelPosition must be at most 1');
+      chart.orders.set([{ id: 'o3', side: 'buy', price: 180, label: { position: 1.5 } }]);
+    }).toThrow('orders[0].label.position must be at most 1');
   });
 
   it('moves a label let be dragged along its line where the drag starts across the plot, its line where it starts up or down', () => {
     const chart = chartWithBars(200, { priceScale: { precision: 2 } });
-    chart.orders.set([{ id: 'o1', side: 'buy', price: 180, labelDraggable: true }]);
+    chart.orders.set([{ id: 'o1', side: 'buy', price: 180, label: { draggable: true } }]);
     const labels = vi.fn();
     const prices = vi.fn();
     chart.on('orderLabelDrag', labels);
@@ -328,7 +328,7 @@ describe('orders', () => {
     const x = chart.layout().plotWidth - 8 - 2;
 
     drag(chart, [x, y], [x - 200, y + 3]);
-    const position = chart.orders.get('o1')?.labelPosition ?? 1;
+    const position = chart.orders.get('o1')?.label.position ?? 1;
 
     expect(position).toBeLessThan(1);
     expect(position).toBeGreaterThan(0);
@@ -346,14 +346,14 @@ describe('orders', () => {
     const left = x - 200;
     drag(chart, [left, y], [left + 2, y - 30]);
     expect(chart.orders.get('o1')?.price).toBeGreaterThan(180);
-    expect(chart.orders.get('o1')?.labelPosition).toBe(position);
+    expect(chart.orders.get('o1')?.label.position).toBe(position);
     expect(labels).not.toHaveBeenCalled();
   });
 
   it('keeps a label in the plot however far it is dragged, and puts it back where it was on Escape', async () => {
     const chart = chartWithBars(200);
     chart.orders.set([
-      { id: 'o1', side: 'buy', price: 180, draggable: false, labelDraggable: true }
+      { id: 'o1', side: 'buy', price: 180, draggable: false, label: { draggable: true } }
     ]);
     const [, y] = at(chart, 120, 180);
     const x = chart.layout().plotWidth - 8 - 2;
@@ -362,17 +362,17 @@ describe('orders', () => {
     expect(chart.element.style.cursor).toBe('ew-resize');
 
     drag(chart, [x, y], [-500, y + 40]);
-    expect(chart.orders.get('o1')).toMatchObject({ labelPosition: 0, price: 180 });
+    expect(chart.orders.get('o1')).toMatchObject({ label: { position: 0 }, price: 180 });
 
     const labels = vi.fn();
     chart.on('orderLabelDrag', labels);
     pointer(chart, 'pointerdown', 20, y);
     pointer(chart, 'pointermove', 120, y);
     pointer(chart, 'pointermove', 220, y);
-    expect(chart.orders.get('o1')?.labelPosition).toBeGreaterThan(0);
+    expect(chart.orders.get('o1')?.label.position).toBeGreaterThan(0);
     key(chart, 'Escape');
     pointer(chart, 'pointerup', 220, y);
-    expect(chart.orders.get('o1')?.labelPosition).toBe(0);
+    expect(chart.orders.get('o1')?.label.position).toBe(0);
     expect(labels.mock.calls.at(-1)?.[0]).toMatchObject({ phase: 'cancel', position: 0 });
   });
 
@@ -393,7 +393,7 @@ describe('orders', () => {
     const width = () => {
       widths.length = 0;
       label += 1;
-      chart.orders.update('o1', { label: `L${String(label)}` });
+      chart.orders.update('o1', { label: { text: `L${String(label)}` } });
       chart.screenshot();
       return widths.at(-1);
     };
@@ -409,11 +409,11 @@ describe('orders', () => {
     pointer(chart, 'pointermove', chart.layout().plotWidth - 8 - 2, y, { buttons: 0 });
     await nextFrame();
     expect(chart.element.style.cursor).toBe('pointer');
-    chart.orders.update('o1', { labelDraggable: true });
+    chart.orders.update('o1', { label: { draggable: true } });
     pointer(chart, 'pointermove', chart.layout().plotWidth - 8 - 3, y, { buttons: 0 });
     await nextFrame();
     expect(chart.element.style.cursor).toBe('move');
-    chart.orders.update('o1', { labelDraggable: false });
+    chart.orders.update('o1', { label: { draggable: false } });
     chart.select({ kind: 'order', id: 'o1' });
     expect(width()).toBe(2);
   });
@@ -426,7 +426,7 @@ describe('orders', () => {
         id: 'o1',
         side: 'sell',
         price: 180,
-        label: 'SL 0.002',
+        label: { text: 'SL 0.002' },
         tooltip: 'Closes at 180.00',
         buttons: [{ id: 'close', text: 'X' }]
       },
@@ -467,20 +467,20 @@ describe('orders', () => {
       return calls.filter((call) => call.name === 'fillText').map((call) => String(call.args[0]));
     };
     chart.orders.set([
-      { id: 'o1', side: 'buy', price: 180.5, label: 'SL 180.50' },
-      { id: 'o2', side: 'sell', price: 190.5, label: 'TP 190.50', axisLabel: false }
+      { id: 'o1', side: 'buy', price: 180.5, label: { text: 'SL 180.50' } },
+      { id: 'o2', side: 'sell', price: 190.5, label: { text: 'TP 190.50' }, showOnAxis: false }
     ]);
     const texts = written();
 
     expect(texts).toContain('180.50');
     expect(texts).not.toContain('190.50');
     expect(texts).toContain('TP 190.50');
-    expect(chart.orders.get('o2')?.axisLabel).toBe(false);
+    expect(chart.orders.get('o2')?.showOnAxis).toBe(false);
     chart.orders.update('o2', { price: 191 });
-    expect(chart.orders.get('o2')?.axisLabel).toBe(false);
+    expect(chart.orders.get('o2')?.showOnAxis).toBe(false);
     expect(() => {
-      chart.orders.set([{ id: 'o3', side: 'buy', price: 180, axisLabel: 'no' as never }]);
-    }).toThrow('orders[0].axisLabel');
+      chart.orders.set([{ id: 'o3', side: 'buy', price: 180, showOnAxis: 'no' as never }]);
+    }).toThrow('orders[0].showOnAxis');
   });
 
   it('restores the price when the drag is cancelled with Escape', () => {
@@ -515,7 +515,13 @@ describe('orders', () => {
   it('emits buttonClick for label buttons without selecting the order', () => {
     const chart = chartWithBars(200);
     chart.orders.set([
-      { id: 'o1', side: 'buy', price: 180, label: 'LIMIT', buttons: [{ id: 'close', text: 'X' }] }
+      {
+        id: 'o1',
+        side: 'buy',
+        price: 180,
+        label: { text: 'LIMIT' },
+        buttons: [{ id: 'close', text: 'X' }]
+      }
     ]);
     const buttons = vi.fn();
     chart.on('buttonClick', buttons);

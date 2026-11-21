@@ -13,7 +13,12 @@ const bars = shallowRef<BarInput[]>(sampleBars(3000));
 const timeframe = ref<string>('15m');
 const lastClose = bars.value[bars.value.length - 1]?.close ?? 0;
 const orders = ref<OrderInput[]>([
-  { id: 'buy', side: 'buy', price: Math.round(lastClose * 0.995), label: 'LIMIT', quantity: 1 }
+  {
+    id: 'buy',
+    side: 'buy',
+    price: Math.round(lastClose * 0.995),
+    label: { text: 'LIMIT', quantity: 1 }
+  }
 ]);
 let stop: (() => void) | null = null;
 

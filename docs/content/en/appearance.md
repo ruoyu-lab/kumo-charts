@@ -130,12 +130,14 @@ chart.applyOptions({
   grid: { vertical: false, horizontal: true, style: 'dashed' },
   crosshair: {
     mode: 'magnet', // the horizontal line snaps to the close; 'free' follows the pointer
-    labels: true, // time and price labels on the axes
     style: 'dashed',
     snapToBars: true, // the vertical line steps from bar to bar; false follows the pointer smoothly
-    priceLines: (price, paneId) => [], // lines under the price label on the axis, such as the distance from the last price
-    avoidLabels: false, // the crosshair's price label sits against the latest price's and other labels, above or below, instead of over them
-    mirrorOpacity: 0.45 // how opaque a crosshair set by the code is (such as another linked chart's), its lines and labels; 1 as the pointer's own
+    labels: {
+      visible: true, // time and price labels on the axes
+      priceLines: (price, paneId) => [], // lines under the price label on the axis, such as the distance from the last price
+      avoidLatest: false // the crosshair's price label sits against the latest price's and other labels, above or below, instead of over them
+    },
+    syncedOpacity: 0.45 // how opaque a crosshair set by the code is (such as another linked chart's), its lines and labels; 1 as the pointer's own
   }
 });
 ```
@@ -246,6 +248,16 @@ chart.applyOptions({ legend: { rows: (item) => item.paneId !== 'main' } });
 ```
 
 Where the legend was painted: `chart.legendBounds()` gives the last place of the main pane's legend (in the pixels of `chart.layout()`; give a pane's id for another pane), `null` while it shows no row, such as for a fold button under it.
+
+Rows of your own go in the legend too, such as for something you draw over the bars that is not an indicator (a volume profile, say): `extraRows` returns them, listed after the indicators of their pane, as `rows` and `buttons` have them, with `kind: 'extra'`:
+
+```ts
+chart.applyOptions({
+  legend: {
+    extraRows: () => [{ id: 'vp', type: 'VPVR', paneId: 'main', visible: true, title: 'VPVR 24' }]
+  }
+});
+```
 
 The main pane's legend can leave room above it for what you show over the chart there, such as buttons to trade: `legend.top` is that room in CSS pixels, `0` by default; the other panes' legends stay where they are.
 

@@ -1,11 +1,11 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { extractApi } from '../build/api/extract';
 import type { ApiModel } from '../build/api/model';
 import { siteConfig } from '../build/config';
-import { formatProblem } from '../build/problems';
+import { displayPath, formatProblem } from '../build/problems';
 import { buildSite, NOT_FOUND_URL, type Site } from '../build/site';
 import type { SearchIndex } from '../src/shared/search';
 
@@ -179,7 +179,7 @@ describe('a site with mistakes', () => {
     write('zh-CN/code.md', '# Code\n');
     write('en/extra.md', '# Extra\n');
 
-    const at = (path: string) => relative(config.siteDir, join(root, path));
+    const at = (path: string) => displayPath(config.siteDir, join(root, path));
     await expect(buildSite(siteConfig(root), api)).rejects.toThrow(
       [
         'The documentation has 6 errors:',

@@ -121,9 +121,11 @@ describe('rendering', () => {
     const chart = createTestChart({
       latestPrice: { label: false },
       crosshair: {
-        priceLines: (price, paneId) => {
-          asked.push([price, paneId]);
-          return [`+${(price - 100).toFixed(2)}`, '0.05'];
+        labels: {
+          priceLines: (price, paneId) => {
+            asked.push([price, paneId]);
+            return [`+${(price - 100).toFixed(2)}`, '0.05'];
+          }
         }
       }
     });
@@ -158,7 +160,7 @@ describe('rendering', () => {
   it('keeps the label with its lines within the plot at its bottom', async () => {
     const chart = createTestChart({
       latestPrice: { label: false },
-      crosshair: { priceLines: () => ['+1.00', '0.05'] }
+      crosshair: { labels: { priceLines: () => ['+1.00', '0.05'] } }
     });
     chart.data.set(createBars(50));
     chart.priceScale().setRange({ min: 100, max: 160 });
@@ -180,7 +182,7 @@ describe('rendering', () => {
   it('centers the crosshair’s label with its lines on the pointer by default', async () => {
     const chart = createTestChart({
       latestPrice: { label: false },
-      crosshair: { priceLines: () => ['+1.00', '0.05'] }
+      crosshair: { labels: { priceLines: () => ['+1.00', '0.05'] } }
     });
     chart.data.set(createBars(50));
     chart.priceScale().setRange({ min: 100, max: 160 });
@@ -228,7 +230,7 @@ describe('rendering', () => {
   });
 
   it('keeps the crosshair’s label clear of the latest price’s, against it on the side of the pointer', async () => {
-    const chart = chartWithBars(120, { crosshair: { avoidLabels: true } });
+    const chart = chartWithBars(120, { crosshair: { labels: { avoidLatest: true } } });
     const close = chart.data.toArray().at(-1)?.close ?? 0;
     const y = chart.priceScale().priceToY(close) ?? 0;
     const one = chart.options().font.size + 8;
@@ -250,13 +252,38 @@ describe('rendering', () => {
     // Away from it, at the pointer.
     expect(await crosshairAt(y + 100)).toBeCloseTo(y + 100 + 0.5, 0);
 
-    chart.applyOptions({ crosshair: { avoidLabels: false } });
+    chart.applyOptions({ crosshair: { labels: { avoidLatest: false } } });
     expect(await crosshairAt(y - 2)).toBeCloseTo(y - 2 + 0.5, 0);
   });
 
+  it('writes no labels of the crosshair on the axes while they are turned off', async () => {
+    const chart = createTestChart({ latestPrice: { label: false } });
+    chart.data.set(createBars(50));
+    chart.priceScale().setRange({ min: 100, max: 160 });
+    const cursor = canvasCalls(layer(chart, 'cursor'));
+    /** The crosshair's labels, its price about 130 and its time; the legend writes on the same layer. */
+    const labels = async () => {
+      cursor.length = 0;
+      pointer(chart, 'pointermove', 200, chart.priceScale().priceToY(130) ?? 0, { buttons: 0 });
+      await nextFrame();
+      chart.screenshot();
+      return cursor
+        .filter((call) => call.name === 'fillText')
+        .map((call) => String(call.args[0]))
+        .filter((text) => /^1(29|30)\.|^\d\d:\d\d$/.test(text));
+    };
+
+    expect(await labels()).toContain('130.00');
+    chart.applyOptions({ crosshair: { labels: { visible: false } } });
+    expect(await labels()).toEqual([]);
+  });
+
   it('refuses lines of the crosshair that are not a function', () => {
-    expect(() => createTestChart({ crosshair: { priceLines: 'lines' as never } })).toThrow(
-      'options.crosshair.priceLines'
+    expect(() =>
+      createTestChart({ crosshair: { labels: { priceLines: 'lines' as never } } })
+    ).toThrow('options.crosshair.labels.priceLines');
+    expect(() => createTestChart({ crosshair: { labels: { avoid: true } as never } })).toThrow(
+      'options.crosshair.labels'
     );
   });
 

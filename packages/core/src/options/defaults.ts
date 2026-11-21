@@ -26,12 +26,10 @@ export function createDefaultOptions(sections: readonly OptionsSection[] = []): 
       mode: 'free',
       vertical: true,
       horizontal: true,
-      labels: true,
       style: 'dashed',
       snapToBars: true,
-      priceLines: null,
-      avoidLabels: false,
-      mirrorOpacity: 0.45
+      labels: { visible: true, priceLines: null, avoidLatest: false },
+      syncedOpacity: 0.45
     },
     mainSeries: {
       type: 'candles',

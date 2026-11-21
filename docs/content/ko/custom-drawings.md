@@ -81,7 +81,7 @@ chart.drawings.startTool('price-zone'); // 차트를 두 번 클릭해 보세요
 
 `DrawingTypeDefinition<Anchors<2>>`처럼 앵커 수로 타입을 쓰면 `points`와 `anchors`는 정확히 두 개짜리가 되어, 있는지 확인하지 않고 꺼내 쓸 수 있습니다. 차트는 `points`와 같은 수의 앵커를 넘겨 줍니다.
 
-`paint`의 `ctx`는 이미 플롯 영역으로 잘려 있고 좌표도 옮겨져 있으므로 CSS 픽셀 단위로 바로 그리면 됩니다. 고해상도 화면의 배율은 차트가 처리합니다. `hovered`, `selected`는 마우스가 그 위에 있는지, 선택되었는지를 알려 주므로 이때 더 눈에 띄게 그릴 수 있습니다. 점선은 드로잉의 선 스타일대로 그립니다. `dashPattern(style.lineStyle, style.lineWidth)`(`@kumo-charts/core`에서 가져옴)를 쓰면 기본 드로잉과 같은 점선이 됩니다.
+`paint`의 `ctx`는 이미 플롯 영역으로 잘려 있고 좌표도 옮겨져 있으므로 CSS 픽셀 단위로 바로 그리면 됩니다. 고해상도 화면의 배율은 차트가 처리합니다. `hovered`, `selected`는 마우스가 그 위에 있는지, 선택되었는지를 알려 주므로 이때 더 눈에 띄게 그릴 수 있습니다. 점선은 드로잉의 선 스타일대로 그립니다. `dashPattern(style.lineStyle, style.lineWidth)`(`@kumo-charts/core/drawings`에서 가져옴)를 쓰면 기본 드로잉과 같은 점선이 됩니다.
 
 ## 클릭 판정
 

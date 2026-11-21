@@ -7,7 +7,7 @@ import { extractApi } from './api/extract';
 import type { ApiModel } from './api/model';
 import { siteConfig, type SiteConfig } from './config';
 import { escapeHtml } from './html';
-import { formatProblem } from './problems';
+import { displayPath, formatProblem } from './problems';
 import { buildSite, NOT_FOUND_URL, type Site } from './site';
 
 export interface DocsPluginOptions {
@@ -206,10 +206,7 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
       }
 
       const built = site;
-      const url = `/${relative(config.siteDir, file).split('\\').join('/')}`.replace(
-        /(^|\/)index\.html$/,
-        '$1'
-      );
+      const url = `/${displayPath(config.siteDir, file)}`.replace(/(^|\/)index\.html$/, '$1');
       return built && (built.pages.has(url) || built.examplePages.has(url)) && id.endsWith('.html')
         ? file
         : null;
@@ -228,10 +225,7 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
         return null;
       }
 
-      const url = `/${relative(config.siteDir, id).split('\\').join('/')}`.replace(
-        /(^|\/)index\.html$/,
-        '$1'
-      );
+      const url = `/${displayPath(config.siteDir, id)}`.replace(/(^|\/)index\.html$/, '$1');
       return built.pages.get(url) ?? built.examplePages.get(url) ?? null;
     },
 

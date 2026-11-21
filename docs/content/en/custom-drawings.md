@@ -81,7 +81,7 @@ The `geometry` that `paint` and `hitTest` receive holds:
 
 Typed by its anchors, as `DrawingTypeDefinition<Anchors<2>>`, a type gets `points` and `anchors` as pairs, none of them to check for: the chart gives it as many anchors as its `points` says.
 
-`paint` gets a `ctx` already clipped to the plot and moved to its corner: paint in CSS pixels, and the chart takes care of dense screens. `hovered` and `selected` say whether the pointer is over it and whether it is selected, to draw it more prominently. Dashes follow the drawing's line style: `dashPattern(style.lineStyle, style.lineWidth)` (from `@kumo-charts/core`) gives the dashes the built-in drawings use.
+`paint` gets a `ctx` already clipped to the plot and moved to its corner: paint in CSS pixels, and the chart takes care of dense screens. `hovered` and `selected` say whether the pointer is over it and whether it is selected, to draw it more prominently. Dashes follow the drawing's line style: `dashPattern(style.lineStyle, style.lineWidth)` (from `@kumo-charts/core/drawings`) gives the dashes the built-in drawings use.
 
 ## Hits
 

@@ -2,6 +2,7 @@ import { checkFields, fieldsOf } from '../utils/validate';
 import type {
   CalendarOptions,
   ChartOptions,
+  CrosshairLabelOptions,
   CrosshairOptions,
   FontOptions,
   GridOptions,
@@ -25,12 +26,10 @@ const SECTION_FIELDS: {
     mode: true,
     vertical: true,
     horizontal: true,
-    labels: true,
     style: true,
     snapToBars: true,
-    priceLines: true,
-    avoidLabels: true,
-    mirrorOpacity: true
+    labels: true,
+    syncedOpacity: true
   }),
   mainSeries: fieldsOf<MainSeriesOptions>({
     type: true,
@@ -102,6 +101,13 @@ const SECTION_FIELDS: {
 };
 
 /** Throws for a field no section of the chart's options has, such as `crosshair.mdoe`. */
+/** The fields of the crosshair's labels, checked apart as a group of their own. */
+export const CROSSHAIR_LABEL_FIELDS = fieldsOf<CrosshairLabelOptions>({
+  visible: true,
+  priceLines: true,
+  avoidLatest: true
+});
+
 export function checkSectionFields(options: ChartOptions): void {
   for (const [key, fields] of Object.entries(SECTION_FIELDS)) {
     checkFields(`options.${key}`, options[key as keyof ChartOptions], fields);

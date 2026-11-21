@@ -33,10 +33,14 @@ chart.orders.add({
   id: 'o1',
   side: 'buy',
   price: last.close * 0.99,
-  label: 'LIMIT',
-  quantity: 0.5
+  label: { text: 'LIMIT', quantity: 0.5 }
 });
-chart.orders.add({ id: 'o2', side: 'sell', price: last.close * 1.015, label: 'TP', quantity: 0.5 });
+chart.orders.add({
+  id: 'o2',
+  side: 'sell',
+  price: last.close * 1.015,
+  label: { text: 'TP', quantity: 0.5 }
+});
 
 const entry = bars.at(-40)!;
 chart.markers.add({ id: 'f1', time: entry.time, position: 'below', shape: 'arrow-up', text: '買' });
@@ -53,8 +57,10 @@ chart.orders.add({
   id: order.id, // ふつうは取引所や証券会社の注文番号
   side: 'buy', // 'buy' または 'sell'。デフォルトの色が決まる
   price: 95000,
-  label: 'LIMIT', // ラベルの文字。デフォルトは BUY / SELL
-  quantity: 0.25 // ラベルの後ろに表示
+  label: {
+    text: 'LIMIT', // ラベルの文字。デフォルトは BUY / SELL
+    quantity: 0.25 // ラベルの後ろに表示
+  }
 });
 
 chart.orders.update(order.id, { price: 94800 });
@@ -66,7 +72,7 @@ chart.orders.set(openOrders); // 最新の未約定注文でまとめて置き�
 
 ラインがプロットの上または下にあるとき、ラベルは矢印付きで上端または下端に固定され、複数のラインのラベルはラインの順に積まれます。クリックするとそのラインが表示範囲に入ります。ドラッグできるラインなら、ラベルをドラッグするとライン自体と同じように動きます。アラートのラインも同じです。`priceScale.pinLabels: false` にすると、ラベルはラインと一緒に画面外になります。
 
-ラベルは既定でプロットの右側にあります。`labelPosition` はライン上のラベルの位置で、0（左端）から 1（右端、既定）まで指定でき、たとえば `0.5` は中央です。上下にずらすのは、左右の位置が重なるラベル同士だけです。`labelDraggable: true` にすると、ユーザーはラベルをラインに沿って左右にドラッグできます。ラベルはポインターに追従して離した位置にとどまり、段階ごとに `orderLabelDrag`（`{ id, phase, position, initialPosition }`）が発行されます。`position` を保存して、次の `orders.set()` で渡してください。ライン自体もドラッグできる場合、ラベルから横にドラッグするとラベルが、縦にドラッグするとラインが動きます。`axisLabel: false` にすると、価格軸にそのラインの価格を表示しません。ラベルに価格を書いているときに使います。`tooltip` は、ポインターをラインやラベルにしばらく置いたときに出るヒントです。ラベルに書いていない決済価格などに使います。
+ラベルは既定でプロットの右側にあります。`label.position` はライン上のラベルの位置で、0（左端）から 1（右端、既定）まで指定でき、たとえば `0.5` は中央です。上下にずらすのは、左右の位置が重なるラベル同士だけです。`label.draggable: true` にすると、ユーザーはラベルをラインに沿って左右にドラッグできます。ラベルはポインターに追従して離した位置にとどまり、段階ごとに `orderLabelDrag`（`{ id, phase, position, initialPosition }`）が発行されます。`position` を保存して、次の `orders.set()` で渡してください。ライン自体もドラッグできる場合、ラベルから横にドラッグするとラベルが、縦にドラッグするとラインが動きます。`showOnAxis: false` にすると、価格軸にそのラインの価格を表示しません。ラベルに価格を書いているときに使います。`tooltip` は、ポインターをラインやラベルにしばらく置いたときに出るヒントです。ラベルに書いていない決済価格などに使います。
 
 注文の状態は取引所の情報を正とします。いちばん簡単なのは、未約定注文に変化があるたびに `set()` ですべての注文を設定し直す方法です。
 
@@ -93,14 +99,20 @@ chart.on('orderDrag', async ({ id, phase, price, initialPrice }) => {
 `pull: true` のラインはドラッグしても動きません。ポジションのラインから損切りを引き出すような操作です。`orderDrag` は各段階でポインターの位置の価格を通知するので、引き出したラインはアプリ側で描き（イベントに合わせて注文ラインを置くなど）、離したとき（`phase: 'end'`）の価格で発注や変更をします。
 
 ```ts
-chart.orders.add({ id: 'position', side: 'buy', price: 95000, label: 'LONG', pull: true });
+chart.orders.add({
+  id: 'position',
+  side: 'buy',
+  price: 95000,
+  label: { text: 'LONG' },
+  pull: true
+});
 
 chart.on('orderDrag', ({ id, phase, price }) => {
   if (id !== 'position') return;
 
   if (phase === 'move') {
     if (chart.orders.get('pulled')) chart.orders.update('pulled', { price });
-    else chart.orders.add({ id: 'pulled', side: 'sell', price, label: 'SL' });
+    else chart.orders.add({ id: 'pulled', side: 'sell', price, label: { text: 'SL' } });
   } else if (chart.orders.get('pulled')) {
     chart.orders.remove('pulled');
     if (phase === 'end') exchange.setStopLoss(price);

@@ -81,7 +81,7 @@ chart.drawings.startTool('price-zone'); // 在图上点两下试试
 
 按锚点数写上类型，比如 `DrawingTypeDefinition<Anchors<2>>`，`points` 和 `anchors` 就正好是两个，取出来不用判断有没有：图表保证给的锚点数和 `points` 一致。
 
-`paint` 的 `ctx` 已经裁剪到绘图区、坐标已经平移好，直接按 CSS 像素画就行，高分屏的缩放图表已经处理了。`hovered`、`selected` 告诉你鼠标是否在它上面、是否选中，可以画得醒目一点。 虚线按这条画线的线型画，用 `dashPattern(style.lineStyle, style.lineWidth)`（从 `@kumo-charts/core` 引入），和自带画线的虚线一样。
+`paint` 的 `ctx` 已经裁剪到绘图区、坐标已经平移好，直接按 CSS 像素画就行，高分屏的缩放图表已经处理了。`hovered`、`selected` 告诉你鼠标是否在它上面、是否选中，可以画得醒目一点。 虚线按这条画线的线型画，用 `dashPattern(style.lineStyle, style.lineWidth)`（从 `@kumo-charts/core/drawings` 引入），和自带画线的虚线一样。
 
 ## 点中
 

@@ -185,9 +185,17 @@ function buildLegends(
     }
   }
 
-  for (const { item, title } of options.legend.extraRows?.() ?? []) {
+  for (const row of options.legend.extraRows?.() ?? []) {
+    const item: LegendItem = {
+      kind: 'extra',
+      id: row.id,
+      type: row.type ?? null,
+      paneId: row.paneId,
+      visible: row.visible
+    };
+
     if (listed(item)) {
-      add(item, [{ text: title, color: theme.textMuted }]);
+      add(item, [{ text: row.title, color: theme.textMuted }]);
     }
   }
 
@@ -302,8 +310,8 @@ export function crosshairView(
     priceText:
       pane && crosshair.price !== null ? formatPaneValue(sources, pane, crosshair.price) : null,
     priceLines:
-      pane && crosshair.price !== null && options.crosshair.priceLines
-        ? options.crosshair
+      pane && crosshair.price !== null && options.crosshair.labels.priceLines
+        ? options.crosshair.labels
             .priceLines(crosshair.price, pane.id)
             .filter((line) => typeof line === 'string' && line !== '')
         : [],

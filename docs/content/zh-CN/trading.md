@@ -33,10 +33,14 @@ chart.orders.add({
   id: 'o1',
   side: 'buy',
   price: last.close * 0.99,
-  label: 'LIMIT',
-  quantity: 0.5
+  label: { text: 'LIMIT', quantity: 0.5 }
 });
-chart.orders.add({ id: 'o2', side: 'sell', price: last.close * 1.015, label: 'TP', quantity: 0.5 });
+chart.orders.add({
+  id: 'o2',
+  side: 'sell',
+  price: last.close * 1.015,
+  label: { text: 'TP', quantity: 0.5 }
+});
 
 const entry = bars.at(-40)!;
 chart.markers.add({ id: 'f1', time: entry.time, position: 'below', shape: 'arrow-up', text: '买' });
@@ -53,8 +57,10 @@ chart.orders.add({
   id: order.id, // 通常就是交易所或券商的委托单号
   side: 'buy', // 'buy' 或 'sell'，决定默认颜色
   price: 95000,
-  label: 'LIMIT', // 标签文字，默认 BUY / SELL
-  quantity: 0.25 // 显示在标签后面
+  label: {
+    text: 'LIMIT', // 标签文字，默认 BUY / SELL
+    quantity: 0.25 // 显示在标签后面
+  }
 });
 
 chart.orders.update(order.id, { price: 94800 });
@@ -66,7 +72,7 @@ chart.orders.set(openOrders); // 用最新的挂单整批替换
 
 线在绘图区上方或下方时，标签带箭头固定在上边或下边，几条线的标签按线的顺序叠在一起；点一下标签，画面回到那条线；能拖的线，拖它的标签和拖线本身一样。提醒的线同样处理。`priceScale.pinLabels: false` 关掉后，标签和线一起在画面外。
 
-标签默认在绘图区右侧。`labelPosition` 是标签沿线的位置，从 0（最左）到 1（最右，默认），比如 `0.5` 在中间。只有左右位置重叠的标签才会上下错开。设了 `labelDraggable: true`，用户可以把标签沿线左右拖动：图表让标签跟着走、留在松手的地方，并按阶段发出 `orderLabelDrag`（`{ id, phase, position, initialPosition }`），你把 `position` 存下来，下次 `orders.set()` 时带上。线本身也能拖时，从标签开始横着拖移动标签，竖着拖移动线。`axisLabel: false` 不在价格轴上标这条线的价格，适合标签里已经写了价格的时候。`tooltip` 是鼠标在线或标签上停一会儿时显示的提示文字，比如标签里没写的平仓价。
+标签默认在绘图区右侧。`label.position` 是标签沿线的位置，从 0（最左）到 1（最右，默认），比如 `0.5` 在中间。只有左右位置重叠的标签才会上下错开。设了 `label.draggable: true`，用户可以把标签沿线左右拖动：图表让标签跟着走、留在松手的地方，并按阶段发出 `orderLabelDrag`（`{ id, phase, position, initialPosition }`），你把 `position` 存下来，下次 `orders.set()` 时带上。线本身也能拖时，从标签开始横着拖移动标签，竖着拖移动线。`showOnAxis: false` 不在价格轴上标这条线的价格，适合标签里已经写了价格的时候。`tooltip` 是鼠标在线或标签上停一会儿时显示的提示文字，比如标签里没写的平仓价。
 
 委托单的状态以交易所为准：最简单的做法是每次收到挂单变化，都用 `set()` 把全部挂单设一遍。
 
@@ -93,14 +99,20 @@ chart.on('orderDrag', async ({ id, phase, price, initialPrice }) => {
 设了 `pull: true` 的线，拖的时候它自己不动，像从持仓线上拉出止损：`orderDrag` 照样按阶段发出指针所在的价格，拉出来的那条由你来画（比如跟着事件放一条委托单线），松手（`phase: 'end'`）时按那个价格下单或改单。
 
 ```ts
-chart.orders.add({ id: 'position', side: 'buy', price: 95000, label: 'LONG', pull: true });
+chart.orders.add({
+  id: 'position',
+  side: 'buy',
+  price: 95000,
+  label: { text: 'LONG' },
+  pull: true
+});
 
 chart.on('orderDrag', ({ id, phase, price }) => {
   if (id !== 'position') return;
 
   if (phase === 'move') {
     if (chart.orders.get('pulled')) chart.orders.update('pulled', { price });
-    else chart.orders.add({ id: 'pulled', side: 'sell', price, label: 'SL' });
+    else chart.orders.add({ id: 'pulled', side: 'sell', price, label: { text: 'SL' } });
   } else if (chart.orders.get('pulled')) {
     chart.orders.remove('pulled');
     if (phase === 'end') exchange.setStopLoss(price);

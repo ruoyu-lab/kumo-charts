@@ -15,7 +15,7 @@ export interface OrdersEventMap {
   /** The user drags an order line; the order follows immediately and keeps the final price. */
   orderDrag: PriceDragEvent;
   /**
-   * The user drags the label of an order with `labelDraggable` along its line; the label follows
+   * The user drags the label of an order with `label.draggable` along its line; the label follows
    * immediately and stays where it is let go.
    */
   orderLabelDrag: LabelDragEvent;

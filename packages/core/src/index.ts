@@ -98,7 +98,6 @@ export type { Unsubscribe } from './events/event-bus';
 
 export { darkTheme, lightTheme } from './options/themes';
 export { checkColor, withAlpha } from './canvas/color';
-export { dashPattern } from './canvas/canvas';
 export type { ChartOptionsInput } from './options/resolve';
 export type {
   BarColorContext,

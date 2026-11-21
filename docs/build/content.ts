@@ -1,9 +1,9 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join } from 'node:path';
 import { LANGUAGES, SOURCE_LANGUAGE, type Language } from '../src/shared/ui-text';
 import type { SiteConfig } from './config';
 import { navPages, parseNav, type Nav } from './nav';
-import type { Problems } from './problems';
+import { displayPath, type Problems } from './problems';
 
 /** The home page of each language, outside the navigation. */
 export const HOME_FILE = 'index.md';
@@ -90,7 +90,7 @@ export function loadContent(config: SiteConfig, problems: Problems): Content {
       problems.error(
         join(config.docsDir, SOURCE_LANGUAGE, file),
         undefined,
-        `the page is not in ${relative(config.siteDir, navPath)}; add it to a group`
+        `the page is not in ${displayPath(config.siteDir, navPath)}; add it to a group`
       );
     }
   }

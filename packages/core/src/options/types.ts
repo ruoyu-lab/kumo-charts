@@ -44,13 +44,28 @@ export interface GridOptions {
   style: LineStyle;
 }
 
+/** The crosshair's labels on the axes, of the time and the price at it. */
+export interface CrosshairLabelOptions {
+  visible: boolean;
+  /**
+   * Lines of text under the price label on the right price axis, such as how far the price is from the latest: given
+   * the price at the pointer and the id of its pane, in the label's colors, the whole label centered on the pointer.
+   * None, or `null`, for the price alone.
+   */
+  priceLines: CrosshairPriceLines | null;
+  /**
+   * Keeps the price label on the right price axis clear of the labels there of the latest price and the latest
+   * values: where it would cover them it sits against them, above or below, on the side of the pointer, and stays
+   * there as the pointer moves over them. Otherwise it is at the pointer, over them.
+   */
+  avoidLatest: boolean;
+}
+
 export interface CrosshairOptions {
   /** `magnet` snaps the horizontal line to the close of the hovered bar. */
   mode: 'magnet' | 'free';
   vertical: boolean;
   horizontal: boolean;
-  /** Shows the time and price labels on the axes. */
-  labels: boolean;
   style: LineStyle;
   /**
    * Puts the vertical line on the middle of the bar under the pointer, so that it steps from bar to
@@ -58,27 +73,16 @@ export interface CrosshairOptions {
    * it all the same.
    */
   snapToBars: boolean;
-  /**
-   * Lines of text under the crosshair's label on the right price axis, such as how far the price is from the latest:
-   * given the price at the pointer and the id of its pane, in the label's colors. None, or `null`, for the price alone.
-   * They go over the price where there is no room under it.
-   */
-  priceLines: CrosshairPriceLines | null;
-  /**
-   * Keeps the crosshair's label on the right price axis clear of the labels there of the latest price and the latest
-   * values: where it would cover them it sits against them, above or below, on the side of the pointer, and stays
-   * there as the pointer moves over them. Otherwise it is at the pointer, over them.
-   */
-  avoidLabels: boolean;
+  labels: CrosshairLabelOptions;
   /**
    * How opaque the crosshair is where the code sets it (`crosshair.set()`), such as the one another chart's pointer
-   * shows on a chart linked to it: its lines and its labels, from 0 to 1. Lighter than the pointer's own, it does not
+   * shows on a chart synced to it: its lines and its labels, from 0 to 1. Lighter than the pointer's own, it does not
    * draw the eye from the chart the user is on.
    */
-  mirrorOpacity: number;
+  syncedOpacity: number;
 }
 
-/** The lines under the crosshair's price label (`crosshair.priceLines`), of the price at the pointer in a pane. */
+/** The lines under the crosshair's price label (`crosshair.labels.priceLines`), of the price at the pointer in a pane. */
 export type CrosshairPriceLines = (price: number, paneId: string) => readonly string[];
 
 /** Formats a time label. `kind` tells where the label is shown. */
@@ -166,12 +170,15 @@ export interface LatestPriceOptions {
   color: string | null;
 }
 
-/** A row of the legend: the main series, an indicator, or a series added to the chart. */
+/**
+ * A row of the legend: the main series, an indicator, a series added to the chart, or a row of the application's own
+ * (`extraRows`).
+ */
 export interface LegendItem {
-  readonly kind: 'main' | 'indicator' | 'series';
-  /** The indicator's or the series' id; `main` for the main series. */
+  readonly kind: 'main' | 'indicator' | 'series' | 'extra';
+  /** The id of the indicator, the series or the application's row; `main` for the main series. */
   readonly id: string;
-  /** The indicator's type; `null` for series. */
+  /** The indicator's type, or the type the application gave its row; `null` for the others. */
   readonly type: string | null;
   readonly paneId: string;
   /** Hidden indicators and series are listed only if `rows` asks for them, dimmed. */
@@ -180,7 +187,14 @@ export interface LegendItem {
 
 /** A row of the application's own in the legend, such as of what it draws apart from the indicators. */
 export interface LegendExtraRow {
-  readonly item: LegendItem;
+  /** Names the row in `rows`, `buttons` and `legendButtonClick`, where its item is of kind `extra`. */
+  readonly id: string;
+  /** What it stands for, for `rows` and `buttons` to tell rows apart, such as `VPVR`. */
+  readonly type?: string;
+  /** The pane whose legend lists it, after its indicators. */
+  readonly paneId: string;
+  /** Hidden, it is listed only if `rows` asks for it, dimmed. */
+  readonly visible: boolean;
   /** What the row says, in the color of the titles. */
   readonly title: string;
 }

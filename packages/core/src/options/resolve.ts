@@ -14,7 +14,7 @@ import {
 import { PRICE_SOURCES } from '../data/types';
 import { parseCalendar } from './calendar';
 import { checkMargins } from './margins';
-import { checkSectionFields } from './fields';
+import { checkSectionFields, CROSSHAIR_LABEL_FIELDS } from './fields';
 import { CHART_TEXTS, checkTexts } from './texts';
 import { LINE_STYLES, type ChartOptions, type Theme } from './types';
 
@@ -94,12 +94,14 @@ function validateOptions(options: ChartOptions): void {
   checkOneOf('options.crosshair.mode', options.crosshair.mode, ['magnet', 'free']);
   checkBoolean('options.crosshair.vertical', options.crosshair.vertical);
   checkBoolean('options.crosshair.horizontal', options.crosshair.horizontal);
-  checkBoolean('options.crosshair.labels', options.crosshair.labels);
   checkOneOf('options.crosshair.style', options.crosshair.style, LINE_STYLES);
   checkBoolean('options.crosshair.snapToBars', options.crosshair.snapToBars);
-  checkFunctionOrNull('options.crosshair.priceLines', options.crosshair.priceLines);
-  checkBoolean('options.crosshair.avoidLabels', options.crosshair.avoidLabels);
-  checkNumber('options.crosshair.mirrorOpacity', options.crosshair.mirrorOpacity, {
+  const labels = options.crosshair.labels;
+  checkFields('options.crosshair.labels', labels, CROSSHAIR_LABEL_FIELDS);
+  checkBoolean('options.crosshair.labels.visible', labels.visible);
+  checkFunctionOrNull('options.crosshair.labels.priceLines', labels.priceLines);
+  checkBoolean('options.crosshair.labels.avoidLatest', labels.avoidLatest);
+  checkNumber('options.crosshair.syncedOpacity', options.crosshair.syncedOpacity, {
     min: 0,
     max: 1
   });

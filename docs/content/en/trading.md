@@ -33,10 +33,14 @@ chart.orders.add({
   id: 'o1',
   side: 'buy',
   price: last.close * 0.99,
-  label: 'LIMIT',
-  quantity: 0.5
+  label: { text: 'LIMIT', quantity: 0.5 }
 });
-chart.orders.add({ id: 'o2', side: 'sell', price: last.close * 1.015, label: 'TP', quantity: 0.5 });
+chart.orders.add({
+  id: 'o2',
+  side: 'sell',
+  price: last.close * 1.015,
+  label: { text: 'TP', quantity: 0.5 }
+});
 
 const entry = bars.at(-40)!;
 chart.markers.add({
@@ -59,8 +63,10 @@ chart.orders.add({
   id: order.id, // usually the order id of the exchange or broker
   side: 'buy', // 'buy' or 'sell', which sets the default color
   price: 95000,
-  label: 'LIMIT', // the label's text, BUY or SELL by default
-  quantity: 0.25 // shown after the label
+  label: {
+    text: 'LIMIT', // the label's text, BUY or SELL by default
+    quantity: 0.25 // shown after the label
+  }
 });
 
 chart.orders.update(order.id, { price: 94800 });
@@ -72,7 +78,7 @@ Without an `id` the chart numbers the order, `order-1` on, and `add()` returns i
 
 A line above or below the plot has its label kept at the top or bottom edge, with an arrow, labels of several lines stacked in the order of their lines; a click on it brings the line into view, and a drag moves a draggable line as the line itself does. Alerts' lines go by the same rule. `priceScale.pinLabels: false` leaves them out of sight with their lines.
 
-A label is at the right of the plot; `labelPosition` puts it elsewhere along the line, from 0 at the left to 1 at the right (the default), such as `0.5` in the middle. Labels are moved apart only from those they would overlap. With `labelDraggable: true` users drag the label along its line: it follows and stays where it is let go, and `orderLabelDrag` reports each phase (`{ id, phase, position, initialPosition }`), for you to keep `position` and give it in the next `orders.set()`. Where the line is draggable too, a drag from the label that starts across the plot moves the label, one that starts up or down moves the line. `axisLabel: false` leaves the order's price off the price axis, as where its label says it. `tooltip` is a short text shown after a moment while the pointer rests on its line or label, such as what the label does not say.
+A label is at the right of the plot; `label.position` puts it elsewhere along the line, from 0 at the left to 1 at the right (the default), such as `0.5` in the middle. Labels are moved apart only from those they would overlap. With `label.draggable: true` users drag the label along its line: it follows and stays where it is let go, and `orderLabelDrag` reports each phase (`{ id, phase, position, initialPosition }`), for you to keep `position` and give it in the next `orders.set()`. Where the line is draggable too, a drag from the label that starts across the plot moves the label, one that starts up or down moves the line. `showOnAxis: false` leaves the order's price off the price axis, as where its label says it. `tooltip` is a short text shown after a moment while the pointer rests on its line or label, such as what the label does not say.
 
 The exchange knows the state of an order: the simplest is to `set()` every open order whenever they change.
 
@@ -99,14 +105,20 @@ Esc during a drag cancels it: the line goes back and the phase is `cancel`. For 
 A line with `pull: true` stays where it is as it is dragged, as a stop loss pulled out of a position: `orderDrag` still tells the price under the pointer at each phase, you draw what is pulled (such as an order line following the events), and act on the price where it is let go (`phase: 'end'`).
 
 ```ts
-chart.orders.add({ id: 'position', side: 'buy', price: 95000, label: 'LONG', pull: true });
+chart.orders.add({
+  id: 'position',
+  side: 'buy',
+  price: 95000,
+  label: { text: 'LONG' },
+  pull: true
+});
 
 chart.on('orderDrag', ({ id, phase, price }) => {
   if (id !== 'position') return;
 
   if (phase === 'move') {
     if (chart.orders.get('pulled')) chart.orders.update('pulled', { price });
-    else chart.orders.add({ id: 'pulled', side: 'sell', price, label: 'SL' });
+    else chart.orders.add({ id: 'pulled', side: 'sell', price, label: { text: 'SL' } });
   } else if (chart.orders.get('pulled')) {
     chart.orders.remove('pulled');
     if (phase === 'end') exchange.setStopLoss(price);

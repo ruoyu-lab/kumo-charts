@@ -116,7 +116,8 @@ function checkProject(
   const diagnostic = /^(.+?)\((\d+),(\d+)\): (error|warning) (TS\d+): (.*)$/;
   let errors = 0;
 
-  for (const line of `${result.stdout}${result.stderr}`.split('\n')) {
+  // The compiler ends its lines as the system does: `\r\n` on Windows.
+  for (const line of `${result.stdout}${result.stderr}`.split(/\r?\n/)) {
     const match = diagnostic.exec(line);
 
     if (!match) {

@@ -130,12 +130,14 @@ chart.applyOptions({
   grid: { vertical: false, horizontal: true, style: 'dashed' },
   crosshair: {
     mode: 'magnet', // 横线吸附到收盘价；'free' 跟着鼠标
-    labels: true, // 坐标轴上显示时间和价格
     style: 'dashed',
     snapToBars: true, // 竖线一根一根地跳到 K 线中间；false 平滑地跟着鼠标
-    priceLines: (price, paneId) => [], // 坐标轴上价格标签下面再加几行文字，比如与最新价的差
-    avoidLabels: false, // 十字线的价格标签碰到最新价等标签时贴着它们放在上方或下方，不盖住
-    mirrorOpacity: 0.45 // 用代码设的十字线（比如多图联动时别的图带过来的）的不透明度，线和标签一起变淡；1 和鼠标下的一样
+    labels: {
+      visible: true, // 坐标轴上显示时间和价格
+      priceLines: (price, paneId) => [], // 坐标轴上价格标签下面再加几行文字，比如与最新价的差
+      avoidLatest: false // 十字线的价格标签碰到最新价等标签时贴着它们放在上方或下方，不盖住
+    },
+    syncedOpacity: 0.45 // 用代码设的十字线（比如多图联动时别的图带过来的）的不透明度，线和标签一起变淡；1 和鼠标下的一样
   }
 });
 ```
@@ -246,6 +248,16 @@ chart.applyOptions({ legend: { rows: (item) => item.paneId !== 'main' } });
 ```
 
 图例画在哪：`chart.legendBounds()` 给出主图图例上次画的位置（和 `chart.layout()` 一样的像素，传窗格 id 看别的窗格），一行都没画时是 `null`。比如把收起按钮放在图例下面。
+
+图例里也可以加你自己的行，比如画在图上、但不是指标的东西（成交量分布这类）：`extraRows` 返回这些行，排在所在窗格的指标后面，`rows` 和 `buttons` 照样管，它们的 `kind` 是 `'extra'`：
+
+```ts
+chart.applyOptions({
+  legend: {
+    extraRows: () => [{ id: 'vp', type: 'VPVR', paneId: 'main', visible: true, title: 'VPVR 24' }]
+  }
+});
+```
 
 主图的图例上面可以留出一块地方，放你自己盖在图上的东西（比如交易按钮）：`legend.top` 是留出的像素，默认 `0`；别的窗格的图例不动。
 

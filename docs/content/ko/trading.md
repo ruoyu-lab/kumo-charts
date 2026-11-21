@@ -33,10 +33,14 @@ chart.orders.add({
   id: 'o1',
   side: 'buy',
   price: last.close * 0.99,
-  label: 'LIMIT',
-  quantity: 0.5
+  label: { text: 'LIMIT', quantity: 0.5 }
 });
-chart.orders.add({ id: 'o2', side: 'sell', price: last.close * 1.015, label: 'TP', quantity: 0.5 });
+chart.orders.add({
+  id: 'o2',
+  side: 'sell',
+  price: last.close * 1.015,
+  label: { text: 'TP', quantity: 0.5 }
+});
 
 const entry = bars.at(-40)!;
 chart.markers.add({
@@ -59,8 +63,10 @@ chart.orders.add({
   id: order.id, // 보통 거래소나 증권사의 주문 번호
   side: 'buy', // 'buy' 또는 'sell'. 기본 색을 결정합니다
   price: 95000,
-  label: 'LIMIT', // 라벨 글자. 기본값은 BUY / SELL
-  quantity: 0.25 // 라벨 뒤에 표시
+  label: {
+    text: 'LIMIT', // 라벨 글자. 기본값은 BUY / SELL
+    quantity: 0.25 // 라벨 뒤에 표시
+  }
 });
 
 chart.orders.update(order.id, { price: 94800 });
@@ -72,7 +78,7 @@ chart.orders.set(openOrders); // 최신 미체결 주문으로 한꺼번에 교�
 
 선이 플롯 위나 아래에 있으면 라벨이 화살표와 함께 위쪽 또는 아래쪽 가장자리에 고정되고, 여러 선의 라벨은 선의 순서대로 쌓입니다. 라벨을 클릭하면 그 선이 보이는 범위로 옵니다. 끌 수 있는 선이면 라벨을 끄는 것이 선 자체를 끄는 것과 같습니다. 알림의 선도 같습니다. `priceScale.pinLabels: false`로 두면 라벨이 선과 함께 화면 밖에 있습니다.
 
-라벨은 기본적으로 플롯 오른쪽에 있습니다. `labelPosition`은 선 위 라벨의 위치로, 0(왼쪽 끝)부터 1(오른쪽 끝, 기본값)까지이며 `0.5`는 가운데입니다. 위아래로 비켜 두는 것은 좌우 위치가 겹치는 라벨끼리만입니다. `labelDraggable: true`로 두면 사용자가 라벨을 선을 따라 좌우로 드래그할 수 있습니다. 라벨은 포인터를 따라가고 놓은 자리에 머무르며, 단계별로 `orderLabelDrag`(`{ id, phase, position, initialPosition }`)가 발생합니다. `position`을 저장해 두었다가 다음 `orders.set()`에 넘기세요. 선 자체도 드래그할 수 있으면, 라벨에서 가로로 드래그하면 라벨이, 세로로 드래그하면 선이 움직입니다. `axisLabel: false`로 두면 가격 축에 그 선의 가격을 표시하지 않습니다. 라벨에 가격을 적어 둘 때 씁니다. `tooltip`은 선이나 라벨에 포인터를 잠시 올려 두면 나오는 안내 문구로, 라벨에 없는 청산 가격 같은 것을 보여 줍니다.
+라벨은 기본적으로 플롯 오른쪽에 있습니다. `label.position`은 선 위 라벨의 위치로, 0(왼쪽 끝)부터 1(오른쪽 끝, 기본값)까지이며 `0.5`는 가운데입니다. 위아래로 비켜 두는 것은 좌우 위치가 겹치는 라벨끼리만입니다. `label.draggable: true`로 두면 사용자가 라벨을 선을 따라 좌우로 드래그할 수 있습니다. 라벨은 포인터를 따라가고 놓은 자리에 머무르며, 단계별로 `orderLabelDrag`(`{ id, phase, position, initialPosition }`)가 발생합니다. `position`을 저장해 두었다가 다음 `orders.set()`에 넘기세요. 선 자체도 드래그할 수 있으면, 라벨에서 가로로 드래그하면 라벨이, 세로로 드래그하면 선이 움직입니다. `showOnAxis: false`로 두면 가격 축에 그 선의 가격을 표시하지 않습니다. 라벨에 가격을 적어 둘 때 씁니다. `tooltip`은 선이나 라벨에 포인터를 잠시 올려 두면 나오는 안내 문구로, 라벨에 없는 청산 가격 같은 것을 보여 줍니다.
 
 주문 상태는 거래소가 기준입니다. 가장 간단한 방법은 미체결 주문에 변화가 생길 때마다 `set()`으로 전체 미체결 주문을 다시 설정하는 것입니다.
 
@@ -99,14 +105,20 @@ chart.on('orderDrag', async ({ id, phase, price, initialPrice }) => {
 `pull: true`인 선은 드래그해도 움직이지 않습니다. 포지션 선에서 손절을 끌어내는 것과 같습니다. `orderDrag`는 단계마다 포인터 위치의 가격을 알려 주므로, 끌어낸 선은 앱이 그리고(이벤트에 맞춰 주문선을 놓는 식으로) 놓았을 때(`phase: 'end'`)의 가격으로 주문하거나 수정합니다.
 
 ```ts
-chart.orders.add({ id: 'position', side: 'buy', price: 95000, label: 'LONG', pull: true });
+chart.orders.add({
+  id: 'position',
+  side: 'buy',
+  price: 95000,
+  label: { text: 'LONG' },
+  pull: true
+});
 
 chart.on('orderDrag', ({ id, phase, price }) => {
   if (id !== 'position') return;
 
   if (phase === 'move') {
     if (chart.orders.get('pulled')) chart.orders.update('pulled', { price });
-    else chart.orders.add({ id: 'pulled', side: 'sell', price, label: 'SL' });
+    else chart.orders.add({ id: 'pulled', side: 'sell', price, label: { text: 'SL' } });
   } else if (chart.orders.get('pulled')) {
     chart.orders.remove('pulled');
     if (phase === 'end') exchange.setStopLoss(price);

@@ -39,15 +39,35 @@ import {
   type PriceLineView
 } from '../objects/price-line';
 
+/** The label of an order on its line: what it writes, and where along the line it is. */
+export interface OrderLabelInput {
+  /** Its text, such as `LIMIT` or `TP`; `BUY` or `SELL` by default. */
+  text?: string;
+  /** Written after its text. */
+  quantity?: number | string;
+  /** Where along the line it is, from 0 at the left of the plot to 1 at its right. Default `1`. */
+  position?: number;
+  /**
+   * Lets the user drag it along the line, to the left or the right; `orderLabelDrag` tells where it
+   * is. Where the order is `draggable` too, a drag of the label that starts across the plot moves
+   * the label, one that starts up or down moves the line. Default `false`.
+   */
+  draggable?: boolean;
+}
+
 export interface OrderInput {
   /** Usually the broker's order id; the chart numbers one, `order-1` on, when it is left out. */
   id?: string;
   price: number;
   side: 'buy' | 'sell';
-  /** Label text such as `LIMIT` or `TP`; defaults to `BUY`/`SELL`. */
-  label?: string;
-  /** Shown after the label. */
-  quantity?: number | string;
+  label?: OrderLabelInput;
+  /** Marks its price on the price axis. Off where its label says it. Default `true`. */
+  showOnAxis?: boolean;
+  /**
+   * A short text the browser shows after a moment while the pointer rests on its line or its label (not on its buttons),
+   * such as what it says that its label does not. None by default.
+   */
+  tooltip?: string;
   /** Lets the user drag the order to a new price. Default `true`. */
   draggable?: boolean;
   /**
@@ -61,39 +81,28 @@ export interface OrderInput {
   color?: string;
   lineStyle?: LineStyle;
   buttons?: PriceLineButton[];
-  /** Where along the line its label is, from 0 at the left of the plot to 1 at its right. Default `1`. */
-  labelPosition?: number;
-  /**
-   * Lets the user drag its label along the line, to the left or the right; `orderLabelDrag` tells
-   * where it is. Where the order is `draggable` too, a drag of the label that starts across the plot
-   * moves the label, one that starts up or down moves the line. Default `false`.
-   */
-  labelDraggable?: boolean;
-  /** Its price on the price axis. Off where the label says it. Default `true`. */
-  axisLabel?: boolean;
-  /**
-   * A short text the browser shows after a moment while the pointer rests on its line or its label (not on its buttons),
-   * such as what it says that its label does not. None by default.
-   */
-  tooltip?: string;
+}
+
+export interface OrderLabel {
+  readonly text: string | null;
+  readonly quantity: number | string | null;
+  readonly position: number;
+  readonly draggable: boolean;
 }
 
 export interface Order {
   readonly id: string;
   readonly price: number;
   readonly side: 'buy' | 'sell';
-  readonly label: string | null;
-  readonly quantity: number | string | null;
+  readonly label: OrderLabel;
+  readonly showOnAxis: boolean;
+  readonly tooltip: string | null;
   readonly draggable: boolean;
   readonly pull: boolean;
   readonly visible: boolean;
   readonly color: string | null;
   readonly lineStyle: LineStyle;
   readonly buttons: readonly PriceLineButton[];
-  readonly labelPosition: number;
-  readonly labelDraggable: boolean;
-  readonly axisLabel: boolean;
-  readonly tooltip: string | null;
 }
 
 const ORDER_FIELDS = fieldsOf<OrderInput>({
@@ -101,32 +110,51 @@ const ORDER_FIELDS = fieldsOf<OrderInput>({
   price: true,
   side: true,
   label: true,
-  quantity: true,
+  showOnAxis: true,
+  tooltip: true,
   draggable: true,
   pull: true,
   visible: true,
   color: true,
   lineStyle: true,
-  buttons: true,
-  labelPosition: true,
-  labelDraggable: true,
-  axisLabel: true,
-  tooltip: true
+  buttons: true
+});
+const LABEL_FIELDS = fieldsOf<OrderLabelInput>({
+  text: true,
+  quantity: true,
+  position: true,
+  draggable: true
 });
 
 /** An order but for its id, which the domain gives it. */
 type OrderSettings = Omit<Order, 'id'>;
 
+function parseLabel(input: OrderLabelInput | undefined, label: string): OrderLabel {
+  const given = input ?? {};
+  checkFields(label, given, LABEL_FIELDS);
+
+  if (given.text !== undefined) {
+    checkString(`${label}.text`, given.text);
+  }
+
+  if (given.quantity !== undefined && typeof given.quantity !== 'string') {
+    checkNumber(`${label}.quantity`, given.quantity);
+  }
+
+  return {
+    text: given.text ?? null,
+    quantity: given.quantity ?? null,
+    position:
+      given.position === undefined
+        ? 1
+        : checkNumber(`${label}.position`, given.position, { min: 0, max: 1 }),
+    draggable:
+      given.draggable === undefined ? false : checkBoolean(`${label}.draggable`, given.draggable)
+  };
+}
+
 function parseOrder(input: OrderInput, label = 'order'): OrderSettings {
   checkFields(label, input, ORDER_FIELDS);
-
-  if (input.label !== undefined) {
-    checkString(`${label}.label`, input.label);
-  }
-
-  if (input.quantity !== undefined && typeof input.quantity !== 'string') {
-    checkNumber(`${label}.quantity`, input.quantity);
-  }
 
   if (input.tooltip !== undefined) {
     checkString(`${label}.tooltip`, input.tooltip);
@@ -135,8 +163,10 @@ function parseOrder(input: OrderInput, label = 'order'): OrderSettings {
   return {
     price: checkNumber(`${label}.price`, input.price),
     side: checkOneOf(`${label}.side`, input.side, ['buy', 'sell']),
-    label: input.label ?? null,
-    quantity: input.quantity ?? null,
+    label: parseLabel(input.label, `${label}.label`),
+    showOnAxis:
+      input.showOnAxis === undefined ? true : checkBoolean(`${label}.showOnAxis`, input.showOnAxis),
+    tooltip: input.tooltip === undefined || input.tooltip === '' ? null : input.tooltip,
     draggable:
       input.draggable === undefined ? true : checkBoolean(`${label}.draggable`, input.draggable),
     pull: input.pull === undefined ? false : checkBoolean(`${label}.pull`, input.pull),
@@ -146,18 +176,16 @@ function parseOrder(input: OrderInput, label = 'order'): OrderSettings {
       input.lineStyle === undefined
         ? 'dashed'
         : checkOneOf(`${label}.lineStyle`, input.lineStyle, LINE_STYLES),
-    buttons: validateButtons(input.buttons, `${label}.buttons`),
-    labelPosition:
-      input.labelPosition === undefined
-        ? 1
-        : checkNumber(`${label}.labelPosition`, input.labelPosition, { min: 0, max: 1 }),
-    labelDraggable:
-      input.labelDraggable === undefined
-        ? false
-        : checkBoolean(`${label}.labelDraggable`, input.labelDraggable),
-    axisLabel:
-      input.axisLabel === undefined ? true : checkBoolean(`${label}.axisLabel`, input.axisLabel),
-    tooltip: input.tooltip === undefined || input.tooltip === '' ? null : input.tooltip
+    buttons: validateButtons(input.buttons, `${label}.buttons`)
+  };
+}
+
+function labelInput(label: OrderLabel): OrderLabelInput {
+  return {
+    position: label.position,
+    draggable: label.draggable,
+    ...(label.text !== null ? { text: label.text } : {}),
+    ...(label.quantity !== null ? { quantity: label.quantity } : {})
   };
 }
 
@@ -165,16 +193,13 @@ function orderInput(order: Order): OrderInput {
   return {
     price: order.price,
     side: order.side,
+    label: labelInput(order.label),
+    showOnAxis: order.showOnAxis,
     draggable: order.draggable,
     pull: order.pull,
     visible: order.visible,
     lineStyle: order.lineStyle,
     buttons: order.buttons.map((button) => ({ ...button })),
-    labelPosition: order.labelPosition,
-    labelDraggable: order.labelDraggable,
-    axisLabel: order.axisLabel,
-    ...(order.label !== null ? { label: order.label } : {}),
-    ...(order.quantity !== null ? { quantity: order.quantity } : {}),
     ...(order.color !== null ? { color: order.color } : {}),
     ...(order.tooltip !== null ? { tooltip: order.tooltip } : {})
   };
@@ -230,9 +255,11 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
     return id;
   }
 
+  /** Changes an order; what the patch leaves out stays, its label's fields too. */
   update(id: string, patch: Partial<Omit<OrderInput, 'id'>>): void {
-    const current = this.require(id);
-    this.orders.set(id, { id, ...parseOrder({ ...orderInput(current), ...patch }) });
+    const current = orderInput(this.require(id));
+    const label = { ...current.label, ...patch.label };
+    this.orders.set(id, { id, ...parseOrder({ ...current, ...patch, label }) });
   }
 
   remove(id: string): void {
@@ -249,19 +276,20 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
         continue;
       }
 
-      const name = order.label ?? (order.side === 'buy' ? 'BUY' : 'SELL');
+      const { label } = order;
+      const name = label.text ?? (order.side === 'buy' ? 'BUY' : 'SELL');
       // Selected, its line is drawn thicker; under the pointer only the cursor says it can be taken, as over a drawing.
       const emphasized = context.selection?.kind === 'order' && context.selection.id === order.id;
       views.push({
         id: order.id,
         y: pane.scale.valueToY(order.price),
         color: order.color ?? (order.side === 'buy' ? theme.buy : theme.sell),
-        text: order.quantity === null ? name : `${name} ${String(order.quantity)}`,
-        axisText: order.axisLabel ? this.host.formatValue(pane, order.price) : null,
+        text: label.quantity === null ? name : `${name} ${String(label.quantity)}`,
+        axisText: order.showOnAxis ? this.host.formatValue(pane, order.price) : null,
         buttons: order.buttons,
         lineStyle: order.lineStyle,
         emphasized,
-        position: order.labelPosition
+        position: label.position
       });
     }
 
@@ -296,7 +324,7 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
     const button = hit.part.startsWith('button:');
     // A label kept at an edge drags its line as the line itself does; a click on it brings the line into view.
     const movesLine = order.draggable && !button;
-    const movesLabel = order.labelDraggable && isLabel(hit.part);
+    const movesLabel = order.label.draggable && isLabel(hit.part);
     // The line says it moves; its label, which is clicked as much as it is dragged, that it can be taken, or which
     // ways it moves where it moves along the line.
     const cursor =
@@ -332,7 +360,7 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
     const order = this.orders.get(target.id);
     const pane = paneOf(context.frame, MAIN_PANE_ID);
     const movesLine = order?.draggable === true && !target.part.startsWith('button:');
-    const movesLabel = order?.labelDraggable === true && isLabel(target.part);
+    const movesLabel = order?.label.draggable === true && isLabel(target.part);
 
     if (!order || !pane || (!movesLine && !movesLabel)) {
       return null;
@@ -425,7 +453,7 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
     const grab = point.x - layout.label.x;
 
     return () => {
-      const initialPosition = order.labelPosition;
+      const initialPosition = order.label.position;
       let position = initialPosition;
       this.host.labelDragged({ id: order.id, phase: 'start', position, initialPosition });
 
@@ -433,7 +461,7 @@ export class OrdersDomain implements ObjectDomain, Collection<OrderInput, Order>
         const current = this.orders.get(order.id);
 
         if (current) {
-          this.orders.set(order.id, { ...current, labelPosition: next });
+          this.orders.set(order.id, { ...current, label: { ...current.label, position: next } });
           this.host.repaint();
         }
       };

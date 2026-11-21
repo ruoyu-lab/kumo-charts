@@ -1,4 +1,4 @@
-import { relative } from 'node:path';
+import { relative, sep } from 'node:path';
 
 /** Something wrong in the documentation, at a file and optionally a line (from 1). */
 export interface Problem {
@@ -8,8 +8,13 @@ export interface Problem {
 }
 
 /** `docs/zh-CN/data.md:12: message`, with the file relative to `root`. */
+/** A path as the site writes it, relative to `root` and with `/` on every system, as the paths of the pages are. */
+export function displayPath(root: string, path: string): string {
+  return relative(root, path).split(sep).join('/');
+}
+
 export function formatProblem(problem: Problem, root: string): string {
-  const file = relative(root, problem.file);
+  const file = displayPath(root, problem.file);
   return `${file}${problem.line === undefined ? '' : `:${problem.line}`}: ${problem.message}`;
 }
 

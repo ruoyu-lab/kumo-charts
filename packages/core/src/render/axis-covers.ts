@@ -21,14 +21,14 @@ export interface PriceLabelSpan {
   readonly bottom: number;
   /** The middle of the price. */
   readonly priceY: number;
-  /** The middle of each of the lines with it (`crosshair.priceLines`). */
+  /** The middle of each of the lines with it (`crosshair.labels.priceLines`). */
   readonly lineY: (index: number) => number;
 }
 
 /**
- * Where the crosshair's price label at `y` lies with `lines` lines of text (`crosshair.priceLines`): the whole label
+ * Where the crosshair's price label at `y` lies with `lines` lines of text (`crosshair.labels.priceLines`): the whole label
  * centered on `y`, within the plot, the price on top and the lines evenly under it. Without lines, the label is as the
- * time label is. With `crosshair.avoidLabels`, it is moved clear of the labels of the latest price and values.
+ * time label is. With `crosshair.labels.avoidLatest`, it is moved clear of the labels of the latest price and values.
  */
 export function priceLabelSpan(
   frame: Frame,
@@ -37,7 +37,9 @@ export function priceLabelSpan(
   lines: number
 ): PriceLabelSpan {
   const at = labelAt(frame, options, y, lines);
-  return options.crosshair.avoidLabels ? clearOf(frame, at, y, occupied(frame, options)) : at;
+  return options.crosshair.labels.avoidLatest
+    ? clearOf(frame, at, y, occupied(frame, options))
+    : at;
 }
 
 /** Where the label lies at the pointer. */
@@ -131,7 +133,7 @@ export function crosshairCovers(
 ): CrosshairCovers {
   if (
     !crosshair ||
-    !options.crosshair.labels ||
+    !options.crosshair.labels.visible ||
     crosshair.timeText === null ||
     !frame.layout.timeAxis
   ) {

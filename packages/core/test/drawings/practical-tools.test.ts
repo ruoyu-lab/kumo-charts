@@ -22,8 +22,9 @@ const TOOLS: Readonly<Record<string, number>> = {
   'arrow-mark-down': 1
 };
 
+/** A chart that speaks English, whatever the language of the computer the tests run on. */
 function chartWithTools(): Chart {
-  return chartWithBars(200, { timeScale: { barSpacing: 12 } });
+  return chartWithBars(200, { locale: 'en', timeScale: { barSpacing: 12 } });
 }
 
 /** Chart coordinates of bar `index` at `price`. */

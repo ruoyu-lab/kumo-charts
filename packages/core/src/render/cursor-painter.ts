@@ -20,11 +20,11 @@ export interface CrosshairView {
   readonly y: number | null;
   readonly timeText: string | null;
   readonly priceText: string | null;
-  /** The lines under the price on the right axis (`crosshair.priceLines`); none without them. */
+  /** The lines under the price on the right axis (`crosshair.labels.priceLines`); none without them. */
   readonly priceLines: readonly string[];
   /** The value on the left axis of the pane, when it has one. */
   readonly leftPriceText: string | null;
-  /** Set by the code rather than at the pointer, as another chart's: drawn at `crosshair.mirrorOpacity`. */
+  /** Set by the code rather than at the pointer, as another chart's: drawn at `crosshair.syncedOpacity`. */
   readonly mirrored: boolean;
 }
 
@@ -147,7 +147,7 @@ function paintCrosshair(
   applyStroke(ctx, theme.crosshair, 1, config.style);
   ctx.stroke();
 
-  if (!config.labels) {
+  if (!config.labels.visible) {
     return;
   }
 
@@ -190,7 +190,7 @@ function paintCrosshair(
 }
 
 /**
- * The crosshair's price label with its lines (`crosshair.priceLines`): one box, as wide as its widest text, where `span`
+ * The crosshair's price label with its lines (`crosshair.labels.priceLines`): one box, as wide as its widest text, where `span`
  * puts it and its texts.
  */
 function paintPriceBlock(
@@ -379,7 +379,7 @@ export function paintCursor(
 
   if (view.crosshair) {
     ctx.save();
-    ctx.globalAlpha = view.crosshair.mirrored ? options.crosshair.mirrorOpacity : 1;
+    ctx.globalAlpha = view.crosshair.mirrored ? options.crosshair.syncedOpacity : 1;
     paintCrosshair(ctx, frame, options, pixelRatio, view.crosshair);
     ctx.restore();
   }

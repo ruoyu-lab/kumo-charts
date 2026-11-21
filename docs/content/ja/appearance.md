@@ -130,12 +130,14 @@ chart.applyOptions({
   grid: { vertical: false, horizontal: true, style: 'dashed' },
   crosshair: {
     mode: 'magnet', // 横線を終値に吸着させる。'free' はマウスに追従
-    labels: true, // 軸に時間と価格を表示
     style: 'dashed',
     snapToBars: true, // 縦線を足の中央へ 1 本ずつ移動。false はマウスになめらかに追従
-    priceLines: (price, paneId) => [], // 軸の価格ラベルの下に足す行。最新価格との差など
-    avoidLabels: false, // 十字線の価格ラベルを最新価格などのラベルに重ねず、上か下に並べる
-    mirrorOpacity: 0.45 // コードで設定した十字線（連動する別のチャートのものなど）の不透明度。線もラベルも薄くなる。1 でポインターのものと同じ
+    labels: {
+      visible: true, // 軸に時間と価格を表示
+      priceLines: (price, paneId) => [], // 軸の価格ラベルの下に足す行。最新価格との差など
+      avoidLatest: false // 十字線の価格ラベルを最新価格などのラベルに重ねず、上か下に並べる
+    },
+    syncedOpacity: 0.45 // コードで設定した十字線（連動する別のチャートのものなど）の不透明度。線もラベルも薄くなる。1 でポインターのものと同じ
   }
 });
 ```
@@ -246,6 +248,16 @@ chart.applyOptions({ legend: { rows: (item) => item.paneId !== 'main' } });
 ```
 
 凡例を描いた場所：`chart.legendBounds()` はメインペインの凡例を最後に描いた位置（`chart.layout()` と同じピクセル。ペイン ID を渡すと別のペイン）を返し、行を描いていないときは `null` です。たたむボタンを凡例の下に置くときなどに。
+
+指標ではないけれどチャートに描いているもの（出来高プロファイルなど）の行も凡例に追加できます。`extraRows` が返す行は、そのペインの指標の後に並び、`rows` と `buttons` もそのまま効きます。`kind` は `'extra'` です：
+
+```ts
+chart.applyOptions({
+  legend: {
+    extraRows: () => [{ id: 'vp', type: 'VPVR', paneId: 'main', visible: true, title: 'VPVR 24' }]
+  }
+});
+```
 
 メインペインの凡例の上に、チャートの上に重ねて表示するもの（取引ボタンなど）のための余白を空けられます。`legend.top` がその余白（CSS ピクセル、既定は `0`）で、ほかのペインの凡例は動きません。
 

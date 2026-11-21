@@ -428,7 +428,7 @@ test('writes text in place with the text tool', async ({ page }) => {
 test('drags an order to a new price', async ({ page }) => {
   const price = await page.evaluate(() => {
     const close = window.chart?.data.last()?.close ?? 0;
-    window.chart?.orders.add({ id: 'buy', side: 'buy', price: close, label: 'LIMIT' });
+    window.chart?.orders.add({ id: 'buy', side: 'buy', price: close, label: { text: 'LIMIT' } });
     return close;
   });
   const box = await page.locator('#chart').boundingBox();
@@ -567,7 +567,8 @@ test('keeps the label of an order beyond the plot at its edge: a click brings th
   });
   const add = (id: string) =>
     page.evaluate(
-      ([order, price]) => window.chart?.orders.add({ id: order, side: 'sell', price, label: 'TP' }),
+      ([order, price]) =>
+        window.chart?.orders.add({ id: order, side: 'sell', price, label: { text: 'TP' } }),
       [id, far] as const
     );
   const lineY = (id: string) =>
