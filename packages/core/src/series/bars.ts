@@ -83,8 +83,24 @@ function paintCandles(
 
       for (const index of group.indices) {
         const x = snap(points.x(index), 1, pixelRatio);
-        ctx.moveTo(x, points.high(index));
-        ctx.lineTo(x, points.low(index));
+        const high = points.high(index);
+        const low = points.low(index);
+
+        if (thin) {
+          ctx.moveTo(x, high);
+          ctx.lineTo(x, low);
+          continue;
+        }
+
+        // Up to the body and on from it, not through it: a hollow body, or one see-through, shows nothing inside.
+        const open = points.open(index);
+        const close = points.close(index);
+        const top = alignToDevice(Math.min(open, close), pixelRatio);
+        const bottom = top + Math.max(hairline, alignToDevice(Math.abs(close - open), pixelRatio));
+        ctx.moveTo(x, Math.min(high, low));
+        ctx.lineTo(x, top);
+        ctx.moveTo(x, bottom);
+        ctx.lineTo(x, Math.max(high, low));
       }
 
       ctx.strokeStyle =

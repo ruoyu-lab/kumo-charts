@@ -223,3 +223,56 @@ describe('hollow candles', () => {
     ]);
   });
 });
+
+describe('the wicks of candles', () => {
+  it('stop at the body, so that a hollow or see-through body shows nothing inside', () => {
+    const lines: Array<[number, number]> = [];
+    let from = 0;
+    const noop = () => undefined;
+    const ctx = {
+      fillStyle: '',
+      strokeStyle: '',
+      lineWidth: 1,
+      beginPath: noop,
+      rect: noop,
+      save: noop,
+      restore: noop,
+      clip: noop,
+      fill: noop,
+      stroke: noop,
+      setLineDash: noop,
+      moveTo: (_x: number, y: number) => {
+        from = y;
+      },
+      lineTo: (_x: number, y: number) => {
+        lines.push([Math.min(from, y), Math.max(from, y)]);
+      }
+    } as unknown as CanvasRenderingContext2D;
+    // y: high 40, open 80, close 50, low 100: a rising candle, its body from 50 to 80.
+    const buffer = new PointBuffer();
+    buffer.reset(1);
+    buffer.pushOhlc(10, 80, 40, 100, 50, 100, true);
+
+    for (const series of [candlesSeries, hollowCandlesSeries]) {
+      lines.length = 0;
+      series.paint({
+        ctx,
+        pixelRatio: 1,
+        width: 400,
+        height: 300,
+        barSpacing: 10,
+        style: series.defaultStyle(lightTheme, lightTheme.accent),
+        points: buffer,
+        valueToY: (value) => value,
+        bars: barsOf([[10, 12]]),
+        first: 0,
+        transform: null
+      });
+      const wicks = lines.filter(([top, bottom]) => top === 40 || bottom === 100);
+      expect(wicks).toEqual([
+        [40, 50],
+        [80, 100]
+      ]);
+    }
+  });
+});
