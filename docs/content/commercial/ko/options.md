@@ -1,0 +1,53 @@
+# 옵션
+
+| 옵션                     | 설명                                                                                                                                                                                                                                                                                          |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `datafeed`               | 시세 데이터. 필수                                                                                                                                                                                                                                                                             |
+| `symbol`                 | 처음 열 때 표시할 종목. 필수. 그 뒤로는 사용자가 마지막으로 본 종목                                                                                                                                                                                                                           |
+| `timeframe`              | 처음 열 때의 주기. 기본값 `15m`이며, 제공하는 주기에 `15m`이 없으면 첫 번째 것                                                                                                                                                                                                                |
+| `timeframes`             | 제공하는 주기. 기본값 `1m 3m 5m 15m 30m 1h 2h 4h 6h 12h 1D 1W 1M`(`DEFAULT_TIMEFRAMES`). 처음 열면 상단 바에 `5m 30m 4h 1D`를 바로 표시하고 나머지는 주기 메뉴에 넣습니다. 데이터 피드가 합성할 수 없는 것은 자동으로 뺍니다                                                                  |
+| `indicators`             | 처음 열 때의 지표. 기본값 `MA`, `VOL`                                                                                                                                                                                                                                                         |
+| `theme`                  | `light`(기본값) 또는 `dark`. 페이지가 정합니다                                                                                                                                                                                                                                                |
+| `language`               | `zh`(기본값), `en`, `ja`, `ko` 중 하나이며 페이지가 정합니다(`LANGUAGES`는 이들과 각각의 이름을 나열하고, `isLanguage(value)`는 어떤 값이 그중 하나인지 확인합니다). 날짜와 숫자는 `zh-CN`, `en-US`, `ja-JP`, `ko-KR`의 관례로 씁니다(`LOCALES`)                                              |
+| `upColor`                | `red`면 상승 빨강, 하락 초록. 기본값 `green`                                                                                                                                                                                                                                                  |
+| `accentColor`            | 버튼과 선택 상태의 주 색상. 예: 브랜드 색                                                                                                                                                                                                                                                     |
+| `timeZone`               | 사용자가 직접 시간대를 고르기 전에 시간을 표시할 시간대. `Asia/Shanghai` 같은 값이나 `exchange`(종목마다 그 거래 캘린더의 시간대). 기본값은 브라우저의 시간대. 사용자가 시간축 오른쪽 아래에서 고른 뒤에는 사용자의 선택(상태에 저장)을 따릅니다                                              |
+| `brand`                  | `{ name, logo, href }`: 왼쪽 위의 이름, 로고 이미지 주소, 클릭하면 갈 주소. `name`만 주면 이름만 표시하고, `name`과 `logo`를 모두 주지 않으면 KumoChart 로고를 표시하며, `brand`를 주지 않으면 왼쪽 위에 아무것도 표시하지 않습니다                                                           |
+| `features`               | 필요 없는 부분을 끕니다. 아래 목록 참고                                                                                                                                                                                                                                                       |
+| `lockedLinks`            | 페이지가 고정하는 연동. 예를 들어 `{ symbol: true }`로 한 레이아웃의 차트가 항상 같은 종목을 표시하게 합니다. 고정된 연동은 저장된 상태나 `setLinks()`로 바뀌지 않고, 레이아웃 메뉴에도 더 이상 나오지 않습니다. 기본적으로 아무것도 고정하지 않습니다                                        |
+| `messages`               | 화면 문구를 바꿉니다: `{ ko: { indicators: '기술 지표' } }`                                                                                                                                                                                                                                   |
+| `themes`                 | 테마마다의 색. 화면의 디자인 변수와 차트 자체의 색입니다. ["색과 글꼴"](appearance.md) 참고                                                                                                                                                                                                   |
+| `fontFamily`             | 화면과 축의 글꼴. CSS `font-family` 형식입니다                                                                                                                                                                                                                                                |
+| `buttons`                | 페이지 자체의 버튼. 상단 바나 그리기 도구 모음에 둡니다. ["자체 버튼"](page-items.md) 참고                                                                                                                                                                                                    |
+| `contextMenu`            | 페이지 자체의 우클릭 메뉴 항목. ["우클릭 메뉴"](page-items.md) 참고                                                                                                                                                                                                                           |
+| `crosshairLines`         | 가격축의 십자선 가격 라벨 아래에 텍스트 줄을 더합니다. 예: 현재가와의 차이. 인수는 `{ chart, symbol, price }`(포인터가 있는 봉 영역의 가격)이고 텍스트 목록을 돌려줍니다. 포인터가 움직일 때마다 호출되므로 빨라야 합니다                                                                     |
+| `watchlist`              | 페이지 관심 종목 목록에 있는 종목 id. 종목 검색에서 이들의 별표를 켜고, 사용자가 별표를 누르면 `watchlistStar`를 내보냅니다. ["관심 종목"](page-items.md) 참고. 기본값 `null`이며 별표가 없습니다                                                                                             |
+| `drawingTools`           | 그리기 도구 모음에 어떤 도구를 어떤 순서로 둘지. ["그리기 도구"](drawings.md) 참고                                                                                                                                                                                                            |
+| `drawingStyles`          | 페이지가 그리기 도구에 주는 스타일. 예: 피보나치 레벨을 어느 쪽부터 셀지. 사용자가 직접 바꾼 스타일이 그 위에 덮입니다. ["그리기 도구"](drawings.md) 참고                                                                                                                                     |
+| `drawingBarItems`        | 그리기를 선택하면 떠오르는 바에 무엇을 어떤 순서로 둘지: 기본 제공 항목, 스타일 토글(예: `{ field: 'extendRight' }`), 페이지 자체의 버튼. ["두 바 바꾸기"](drawings.md) 참고                                                                                                                  |
+| `drawingToolbarControls` | 그리기 도구 모음에서 도구 외의 버튼(십자선, 자석, 연속 그리기, 즐겨찾기, 숨기기, 모두 삭제) 중 무엇을 남길지. ["두 바 바꾸기"](drawings.md) 참고                                                                                                                                              |
+| `customDrawings`         | 페이지 자체의 그리기 도구. 기본 제공 도구와 함께 그리기 도구 모음에 둡니다. ["사용자 그리기 도구"](custom-drawings.md) 참고                                                                                                                                                                   |
+| `customIndicators`       | 페이지 자체의 지표(직접 쓴 알고리즘, 또는 수식). 기본 제공 지표와 함께 지표 창에 나열됩니다. ["사용자 지표"](custom-indicators.md) 참고                                                                                                                                                       |
+| `storage`                | 사용자의 레이아웃, 각 차트, 그리기, 알림을 저장할 곳. 기본값은 브라우저의 `localStorage`(키 이름 `kumochart-pro-chart`)이며, `browserStorage(key)`로 키 이름을 바꾸거나 자체 저장소를 쓸 수도 있습니다(["상태 저장"](storage.md) 참고). `null`을 넘기면 저장하지 않습니다                     |
+| `licenseKey`             | 상업 라이선스 키. 차트 안의 볼륨 풋프린트, 시간 가격 기회, 오더 플로우 지표, 대량 체결, 호가창 히트맵, 정보 기반 바, 수식 지표를 포함합니다. 라이선스 키가 없으면 차트 왼쪽 아래에 "라이선스 미등록" 워터마크를 표시하며, 내 컴퓨터에서의 개발만 필요 없습니다(["라이선스"](license.md) 참고) |
+| `appId`                  | 데스크톱·모바일 앱의 앱 ID. 역도메인 형식으로 `com.acme.charts`처럼 쓰고 `licenseKey`와 함께 줍니다. 도메인이 없는 페이지는 이것으로 라이선스하고, 웹사이트는 도메인으로만 판단합니다(["라이선스"](license.md) 참고)                                                                          |
+
+`features`의 토글: `topBar`(상단 바, 아래 참고), `symbolSearch`(종목 검색. 데이터 피드가 검색할 수 있으면 기본으로 켜짐), `compare`(종목 비교. 마찬가지로 데이터 피드가 검색할 수 있어야 함), `chartTypes`(차트 유형), `indicators`(지표), `volumeProfile`(매물대), `drawings`(그리기), `replay`(리플레이), `alerts`(가격, 지표, 그리기 알림), `history`(그리기의 실행 취소와 다시 실행), `screenshot`(스크린샷: 이미지 다운로드나 복사), `dataExport`(차트 데이터 내보내기), `multiChart`(멀티 차트 레이아웃), `shortcuts`(단축키, ["단축키"](shortcuts.md) 참고). 종목 검색, 종목 비교, 차트 데이터 내보내기를 빼고는 모두 기본으로 켜져 있습니다. 토글은 화면만 다룹니다(`alerts`는 예외로, 끄면 기존 알림도 그리지 않고 감시하지도 않습니다. ["알림"](alerts.md) 참고). 예를 들어 `indicators`를 끄면 사용자에게 지표 버튼이 보이지 않지만 페이지는 여전히 `addIndicator()`로 지표를 추가할 수 있고, `compare`를 꺼도 페이지는 여전히 `addComparison()`으로 종목을 비교할 수 있습니다.
+
+그리기에는 작은 토글이 두 개 더 있습니다: `drawingToolbar`(왼쪽의 그리기 도구 모음)와 `drawingBar`(그리기를 선택하면 떠오르는 바)이며, 둘 다 기본으로 켜져 있습니다. 꺼도 그리기 기능은 그대로이고, 페이지가 `chart.drawingTools`로 자체의 것을 둡니다. ["직접 만드는 그리기 도구 모음"](drawings.md)를 참고하세요.
+
+**상단 바**: `topBar`를 끄면 상단 바 전체(종목, 주기, 차트 유형, 지표, 레이아웃, 리플레이, 페이지의 버튼)를 표시하지 않고 차트가 컨테이너를 가득 채우며, 페이지는 자체 바를 두고 메서드로 조작합니다: `setSymbol()`, `setTimeframe()`, `setChartType()`, `setLayout()`, `openDialog('symbolSearch')`, `openDialog('indicators')` 등. 상태 변화는 이벤트(`symbolChange`, `timeframeChange`, `layoutChange`……)에서 읽습니다. 단축키, 우클릭 메뉴, 각 창은 그대로입니다.
+
+옵션을 잘못 쓰면(옵션 이름이나 `features`의 토글 이름 오타, `messages`에 없는 문구, 텍스트도 아이콘도 없는 버튼, 그리기 도구 이름 오타, 없는 색 변수 이름, 제공하는 주기에 없는 `timeframe`, `indicators`에 없는 지표) `createProChart()`가 바로 오류를 던지며, 어디가 틀렸고 무엇을 쓸 수 있는지 알려 줍니다. 타입을 쓰지 않는 페이지에서 필드 이름을 하나 잘못 써도 조용히 무시되는 일은 없습니다.
+
+## 표시한 뒤에 바꾸기: applyOptions
+
+테마, 언어, 색, 글꼴, 화면 문구, 기능 토글, 자체 버튼과 메뉴, 관심 종목 목록, 그리기 도구, 두 그리기 바에 둘 것은 차트를 표시한 뒤에도 모두 바꿀 수 있습니다:
+
+```ts
+chart.applyOptions({ theme: 'dark', upColor: 'red' });
+chart.applyOptions({ features: { replay: false } }); // 준 토글만 바꿉니다
+chart.applyOptions({ accentColor: null }); // null이면 기본값으로 돌아갑니다
+```
+
+`features`, `messages`, `themes`는 키별로 원래 것 위에 합치고, 나머지는 통째로 바꿉니다. `null`을 넘기면 기본값으로 돌아갑니다. `timeZone`은 기본값이라서, 아직 직접 시간대를 고르지 않은 사용자에게만 영향을 줍니다. `datafeed`, `symbol`, `storage`처럼 만들 때 한 번만 읽는 옵션은 바꿀 수 없으며, 넘기면 오류가 납니다. 테마와 언어 전환도 이것으로 합니다: `applyOptions({ theme: 'dark' })`, `applyOptions({ language: 'en' })`.
