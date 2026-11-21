@@ -1,0 +1,215 @@
+{
+  "groups": [
+    {
+      "title": {
+        "zh-CN": "开始",
+        "en": "Getting started",
+        "ja": "はじめに",
+        "ko": "시작하기"
+      },
+      "items": [
+        {
+          "page": "getting-started.md",
+          "title": {
+            "zh-CN": "快速开始",
+            "en": "Quick start",
+            "ja": "クイックスタート",
+            "ko": "빠른 시작"
+          }
+        },
+        {
+          "page": "license.md",
+          "title": {
+            "zh-CN": "授权",
+            "en": "License",
+            "ja": "ライセンス",
+            "ko": "라이선스"
+          }
+        },
+        {
+          "page": "datafeed.md",
+          "title": {
+            "zh-CN": "接入行情",
+            "en": "Market data",
+            "ja": "相場データ",
+            "ko": "시세 데이터"
+          }
+        },
+        {
+          "page": "options.md",
+          "title": {
+            "zh-CN": "选项",
+            "en": "Options",
+            "ja": "オプション",
+            "ko": "옵션"
+          }
+        }
+      ]
+    },
+    {
+      "title": {
+        "zh-CN": "图表",
+        "en": "The chart",
+        "ja": "チャート",
+        "ko": "차트"
+      },
+      "items": [
+        {
+          "page": "chart-types.md",
+          "title": {
+            "zh-CN": "图表类型",
+            "en": "Chart types",
+            "ja": "チャートタイプ",
+            "ko": "차트 유형"
+          }
+        },
+        {
+          "page": "indicators.md",
+          "title": {
+            "zh-CN": "指标",
+            "en": "Indicators",
+            "ja": "インジケーター",
+            "ko": "지표"
+          }
+        },
+        {
+          "page": "compare.md",
+          "title": {
+            "zh-CN": "比较品种",
+            "en": "Comparing symbols",
+            "ja": "シンボル比較",
+            "ko": "종목 비교"
+          }
+        },
+        {
+          "page": "drawings.md",
+          "title": {
+            "zh-CN": "画线工具",
+            "en": "Drawing tools",
+            "ja": "描画ツール",
+            "ko": "그리기 도구"
+          }
+        },
+        {
+          "page": "alerts.md",
+          "title": {
+            "zh-CN": "提醒",
+            "en": "Alerts",
+            "ja": "アラート",
+            "ko": "알림"
+          }
+        },
+        {
+          "page": "shortcuts.md",
+          "title": {
+            "zh-CN": "快捷键",
+            "en": "Keyboard shortcuts",
+            "ja": "キーボードショートカット",
+            "ko": "단축키"
+          }
+        }
+      ]
+    },
+    {
+      "title": {
+        "zh-CN": "嵌入页面",
+        "en": "Embedding",
+        "ja": "埋め込み",
+        "ko": "임베드"
+      },
+      "items": [
+        {
+          "page": "methods.md",
+          "title": {
+            "zh-CN": "接口",
+            "en": "Methods",
+            "ja": "メソッド",
+            "ko": "메서드"
+          }
+        },
+        {
+          "page": "events.md",
+          "title": {
+            "zh-CN": "事件",
+            "en": "Events",
+            "ja": "イベント",
+            "ko": "이벤트"
+          }
+        },
+        {
+          "page": "page-items.md",
+          "title": {
+            "zh-CN": "按钮、菜单和自选",
+            "en": "Buttons, menus and watchlist",
+            "ja": "ボタン・メニュー・ウォッチリスト",
+            "ko": "버튼, 메뉴와 관심 종목"
+          }
+        },
+        {
+          "page": "appearance.md",
+          "title": {
+            "zh-CN": "颜色和字体",
+            "en": "Colors and fonts",
+            "ja": "色とフォント",
+            "ko": "색과 글꼴"
+          }
+        },
+        {
+          "page": "storage.md",
+          "title": {
+            "zh-CN": "保存到自己的服务器",
+            "en": "Saving the state",
+            "ja": "状態の保存",
+            "ko": "상태 저장"
+          }
+        },
+        {
+          "page": "frameworks.md",
+          "title": {
+            "zh-CN": "Vue 和 React",
+            "en": "Vue and React",
+            "ja": "Vue と React",
+            "ko": "Vue와 React"
+          }
+        }
+      ]
+    },
+    {
+      "title": {
+        "zh-CN": "扩展",
+        "en": "Extending",
+        "ja": "拡張",
+        "ko": "확장"
+      },
+      "items": [
+        {
+          "page": "custom-indicators.md",
+          "title": {
+            "zh-CN": "自定义指标",
+            "en": "Custom indicators",
+            "ja": "カスタムインジケーター",
+            "ko": "사용자 지표"
+          }
+        },
+        {
+          "page": "formula.md",
+          "title": {
+            "zh-CN": "公式",
+            "en": "Formulas",
+            "ja": "数式",
+            "ko": "수식"
+          }
+        },
+        {
+          "page": "custom-drawings.md",
+          "title": {
+            "zh-CN": "自定义画线工具",
+            "en": "Custom drawing tools",
+            "ja": "カスタム描画ツール",
+            "ko": "사용자 그리기 도구"
+          }
+        }
+      ]
+    }
+  ]
+}

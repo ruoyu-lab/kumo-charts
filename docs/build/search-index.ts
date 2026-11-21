@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { SearchIndex } from '../src/shared/search';
 import type { Language } from '../src/shared/ui-text';
+import { EDITION_DIRECTORY, type Edition } from './editions';
 import type { TextSection } from './markdown';
 
 /** A page as the search sees it. */
@@ -21,12 +22,17 @@ export function buildSearchIndex(pages: readonly SearchPage[]): SearchIndex {
   };
 }
 
-/** The index as a file named by its content, so that it can be cached for ever. */
+/**
+ * The index of a language of an edition as a file named by its content, so that it can be cached
+ * for ever: `/search/zh-CN.….json` for the library's, `/search/commercial/zh-CN.….json`.
+ */
 export function searchIndexFile(
   language: Language,
+  edition: Edition,
   index: SearchIndex
 ): { url: string; json: string } {
   const json = JSON.stringify(index);
   const hash = createHash('sha256').update(json).digest('hex').slice(0, 10);
-  return { url: `/search/${language}.${hash}.json`, json };
+  const directory = EDITION_DIRECTORY[edition] === '' ? '' : `${EDITION_DIRECTORY[edition]}/`;
+  return { url: `/search/${directory}${language}.${hash}.json`, json };
 }

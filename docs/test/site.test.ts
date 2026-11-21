@@ -29,7 +29,7 @@ function page(url: string): string {
 }
 
 describe('the site of the test pages', () => {
-  it('has every written page in every language, the API reference, the root and a 404 page', () => {
+  it('has every written page of each edition in every language, the API reference, the root and a 404 page', () => {
     expect([...site.pages.keys()].filter((url) => !url.includes('/api/'))).toEqual([
       '/zh-CN/',
       '/zh-CN/guide/',
@@ -47,6 +47,14 @@ describe('the site of the test pages', () => {
       '/ko/guide/',
       '/ko/live/',
       '/ko/frameworks/',
+      '/zh-CN/commercial/',
+      '/zh-CN/commercial/start/',
+      '/en/commercial/',
+      '/en/commercial/start/',
+      '/ja/commercial/',
+      '/ja/commercial/start/',
+      '/ko/commercial/',
+      '/ko/commercial/start/',
       '/',
       NOT_FOUND_URL
     ]);
@@ -130,7 +138,32 @@ describe('the site of the test pages', () => {
     expect(page('/zh-CN/guide/')).toContain(`<img src="${url ?? ''}" alt="三根 K 线">`);
   });
 
-  it('builds a search index per language with the pages and the API', () => {
+  it('switches between the editions, each with its own navigation, title and search', () => {
+    const library = page('/zh-CN/guide/');
+    const commercial = page('/zh-CN/commercial/start/');
+    expect(library).toContain(
+      '<a href="/zh-CN/" aria-current="true" data-edition="open">开源版</a><a href="/zh-CN/commercial/" data-edition="commercial">商业版</a>'
+    );
+    expect(commercial).toContain(
+      '<a href="/zh-CN/" data-edition="open">开源版</a><a href="/zh-CN/commercial/" aria-current="true" data-edition="commercial">商业版</a>'
+    );
+    expect(library).toContain('<title>写法示例 · Kumo Charts</title>');
+    expect(commercial).toContain('<title>接入 · Kumo Charts 商业版</title>');
+    expect(page('/en/commercial/start/')).toContain('<title>接入 · Kumo Charts Commercial</title>');
+    expect(commercial).toContain('<a href="/zh-CN/commercial/start/" aria-current="page">接入</a>');
+    expect(commercial).not.toContain('href="/zh-CN/live/"');
+    expect(commercial).toContain('href="/zh-CN/guide/"');
+    expect(commercial).toContain('href="/zh-CN/api/core/#createChart"');
+    expect(commercial).toContain(
+      '<a class="pager-previous" href="/zh-CN/commercial/" rel="prev"><span>上一页</span>Kumo Charts 商业版</a>'
+    );
+    const search = (html: string) =>
+      /<meta name="docs-search-index" content="([^"]+)"/.exec(html)?.[1];
+    expect(search(commercial)).toMatch(/^\/search\/commercial\/zh-CN\.[0-9a-f]{10}\.json$/);
+    expect(search(library)).toMatch(/^\/search\/zh-CN\.[0-9a-f]{10}\.json$/);
+  });
+
+  it('builds a search index per edition and language, with the API in the library one', () => {
     const indexes = [...site.searchIndexes].map(
       ([url, json]) => [url, JSON.parse(json) as SearchIndex] as const
     );
@@ -138,7 +171,11 @@ describe('the site of the test pages', () => {
       '/search/zh-CN.HASH.json',
       '/search/en.HASH.json',
       '/search/ja.HASH.json',
-      '/search/ko.HASH.json'
+      '/search/ko.HASH.json',
+      '/search/commercial/zh-CN.HASH.json',
+      '/search/commercial/en.HASH.json',
+      '/search/commercial/ja.HASH.json',
+      '/search/commercial/ko.HASH.json'
     ]);
     const [, zh] = indexes[0]!;
     expect(zh.records.some(([, , , text]) => text.includes('均线指标'))).toBe(true);
@@ -191,5 +228,32 @@ describe('a site with mistakes', () => {
         `  ${at('zh-CN/index.md')}:3: the API has no symbol nothingAtAll`
       ].join('\n')
     );
+  });
+
+  it('keeps the API reference and the live examples to the library', async () => {
+    const titles = { 'zh-CN': '页', en: 'Pages', ja: 'ページ', ko: '페이지' };
+    const other = mkdtempSync(join(tmpdir(), 'kumochart-docs-'));
+    const put = (path: string, text: string) => {
+      mkdirSync(dirname(join(other, path)), { recursive: true });
+      writeFileSync(join(other, path), text);
+    };
+    put('nav.json', JSON.stringify({ groups: [] }));
+    put('api.md', '# API\n');
+    put('zh-CN/index.md', '# 首页\n');
+    put(
+      'commercial/nav.json',
+      JSON.stringify({ groups: [{ title: titles, items: [{ generated: 'api', title: titles }] }] })
+    );
+    put('commercial/zh-CN/index.md', '# 商业版\n\n```ts live\nconsole.log(1);\n```\n');
+
+    const at = (path: string) => displayPath(config.siteDir, join(other, path));
+    await expect(buildSite(siteConfig(other), api)).rejects.toThrow(
+      [
+        'The documentation has 2 errors:',
+        `  ${at('commercial/nav.json')}: the API reference is the library's: only its navigation has it`,
+        `  ${at('commercial/zh-CN/index.md')}:3: live examples run the library alone: the commercial components are not in its repository`
+      ].join('\n')
+    );
+    rmSync(other, { recursive: true, force: true });
   });
 });

@@ -3,8 +3,9 @@
 //
 //   npm run check -w docs [-- docs directories…]
 //
-// Every ts, tsx and vue code block is checked, live examples included, unless it is marked
-// `no-check`. Live examples and Vue components must be complete. A ts or tsx snippet can use
+// Every ts, tsx and vue code block of the library's pages is checked, live examples included,
+// unless it is marked `no-check`. The commercial edition's code uses the commercial packages, which
+// are not in this repository: it is not checked here. Live examples and Vue components must be complete. A ts or tsx snippet can use
 // `chart` (a chart with every module), `container`, `createChart`, `bars` and `trades` without
 // declaring them, and gets the `<!-- code-prelude … -->` above it put before it. Errors are
 // reported at their line in the Markdown.
@@ -15,6 +16,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { checkedBlocks, type CheckedBlock } from '../build/code-blocks';
 import { siteConfig } from '../build/config';
 import { createMarkdown } from '../build/markdown';
+import { isLanguage } from '../src/shared/ui-text';
 
 const require = createRequire(import.meta.url);
 
@@ -157,8 +159,9 @@ export function main(args: readonly string[]): number {
 
   for (const directory of directories) {
     const docs = resolve(config.siteDir, directory);
-    const languages = readdirSync(docs, { withFileTypes: true }).filter((entry) =>
-      entry.isDirectory()
+    // The library's languages: not the commercial edition's directory beside them.
+    const languages = readdirSync(docs, { withFileTypes: true }).filter(
+      (entry) => entry.isDirectory() && isLanguage(entry.name)
     );
 
     for (const language of languages) {

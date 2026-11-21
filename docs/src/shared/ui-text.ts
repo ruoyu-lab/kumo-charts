@@ -47,6 +47,14 @@ export interface UiText {
   notFoundTitle: string;
   notFoundText: string;
   backHome: string;
+  /** Label of the switch between the editions of the documentation. */
+  edition: string;
+  /** The open-source library, and the commercial components, in the switch. */
+  editionOpen: string;
+  editionCommercial: string;
+  /** The name of each edition, after the titles of its pages. */
+  nameOpen: string;
+  nameCommercial: string;
 }
 
 export const UI_TEXT: Readonly<Record<Language, UiText>> = {
@@ -81,7 +89,12 @@ export const UI_TEXT: Readonly<Record<Language, UiText>> = {
     apiSource: '源码',
     notFoundTitle: '找不到这个页面',
     notFoundText: '地址可能写错了，或者页面已经移走。',
-    backHome: '回到首页'
+    backHome: '回到首页',
+    edition: '版本',
+    editionOpen: '开源版',
+    editionCommercial: '商业版',
+    nameOpen: 'Kumo Charts',
+    nameCommercial: 'Kumo Charts 商业版'
   },
   en: {
     languageName: 'English',
@@ -114,7 +127,12 @@ export const UI_TEXT: Readonly<Record<Language, UiText>> = {
     apiSource: 'Source',
     notFoundTitle: 'Page not found',
     notFoundText: 'The address may be mistyped, or the page has moved.',
-    backHome: 'Back to the home page'
+    backHome: 'Back to the home page',
+    edition: 'Edition',
+    editionOpen: 'Open source',
+    editionCommercial: 'Commercial',
+    nameOpen: 'Kumo Charts',
+    nameCommercial: 'Kumo Charts Commercial'
   },
   ja: {
     languageName: '日本語',
@@ -147,7 +165,12 @@ export const UI_TEXT: Readonly<Record<Language, UiText>> = {
     apiSource: 'ソース',
     notFoundTitle: 'ページが見つかりません',
     notFoundText: 'アドレスが間違っているか、ページが移動した可能性があります。',
-    backHome: 'ホームに戻る'
+    backHome: 'ホームに戻る',
+    edition: 'エディション',
+    editionOpen: 'オープンソース',
+    editionCommercial: '商用版',
+    nameOpen: 'Kumo Charts',
+    nameCommercial: 'Kumo Charts 商用版'
   },
   ko: {
     languageName: '한국어',
@@ -180,6 +203,11 @@ export const UI_TEXT: Readonly<Record<Language, UiText>> = {
     apiSource: '소스',
     notFoundTitle: '페이지를 찾을 수 없습니다',
     notFoundText: '주소가 잘못되었거나 페이지가 옮겨졌을 수 있습니다.',
-    backHome: '홈으로 돌아가기'
+    backHome: '홈으로 돌아가기',
+    edition: '에디션',
+    editionOpen: '오픈소스',
+    editionCommercial: '상업용',
+    nameOpen: 'Kumo Charts',
+    nameCommercial: 'Kumo Charts 상업용'
   }
 };

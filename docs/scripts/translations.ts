@@ -6,7 +6,7 @@
 import { join, relative } from 'node:path';
 import { LANGUAGES, SOURCE_LANGUAGE } from '../src/shared/ui-text';
 import { siteConfig } from '../build/config';
-import { loadContent, missingTranslations } from '../build/content';
+import { editionDirectory, loadContent, missingTranslations } from '../build/content';
 import { Problems } from '../build/problems';
 
 export function main(args: readonly string[]): number {
@@ -22,7 +22,9 @@ export function main(args: readonly string[]): number {
     );
 
     for (const page of missing) {
-      console.log(`  ${relative(config.siteDir, join(config.docsDir, language, page.file))}`);
+      console.log(
+        `  ${relative(config.siteDir, join(editionDirectory(config, page.edition), language, page.file))}`
+      );
     }
   }
 

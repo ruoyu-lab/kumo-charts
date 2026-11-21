@@ -105,6 +105,7 @@ export type {
   CalendarOptions,
   ChartOptions,
   ChartTexts,
+  CrosshairLabelOptions,
   CrosshairOptions,
   CrosshairPriceLines,
   FontOptions,

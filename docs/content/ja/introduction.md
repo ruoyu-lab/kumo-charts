@@ -1,6 +1,6 @@
 # 紹介
 
-KumoChart はオープンソースのトレーディングチャートライブラリです。コアにはローソク足とスケールだけが入っていて、インジケーター、描画、アラート、リプレイは必要なときに読み込みます。
+Kumo Charts はオープンソースのトレーディングチャートライブラリです。コアにはローソク足とスケールだけが入っていて、インジケーター、描画、アラート、リプレイは必要なときに読み込みます。
 
 ```ts live height=420
 import { createChart } from '@kumo-charts/core';
@@ -69,4 +69,4 @@ Chrome と Edge は 99 以上、Firefox は 112 以上、Safari は 16 以上（
 
 ## ライセンス
 
-Apache-2.0 ライセンスで、商用製品にも無料で使えます。Web サイトやアプリで KumoChart を使う場合は、フッターや「概要」ページなどユーザーの目に触れる場所に、[kumochart.com](https://kumochart.com) へのリンク付きで記載してください（例：「Charts by KumoChart」）。チャート自体にはロゴを表示しません。
+Apache-2.0 ライセンスで、商用製品にも無料で使えます。Web サイトやアプリで Kumo Charts を使う場合は、フッターや「概要」ページなどユーザーの目に触れる場所に、[kumochart.com](https://kumochart.com) へのリンク付きで記載してください（例：「Charts by Kumo Charts」）。チャート自体にはロゴを表示しません。

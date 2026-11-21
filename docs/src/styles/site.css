@@ -221,6 +221,36 @@ button {
   fill: var(--bg);
 }
 
+/* The editions, as two tabs: the one shown raised. */
+.edition-switch {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  margin-right: 8px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--bg-raised);
+}
+
+.edition-switch a {
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.edition-switch a:hover {
+  color: var(--text);
+}
+
+.edition-switch a[aria-current='true'] {
+  background: var(--bg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  color: var(--text);
+}
+
 .icon-button {
   display: inline-flex;
   align-items: center;
@@ -1072,6 +1102,10 @@ dialog.search::backdrop {
     margin-right: 0;
   }
 
+  .edition-switch a {
+    padding: 4px 8px;
+  }
+
   .search-button {
     width: auto;
     margin-left: auto;
@@ -1152,5 +1186,27 @@ dialog.search::backdrop {
     height: 100%;
     max-height: 100%;
     border-radius: 0;
+  }
+}
+
+/* A phone: the logo alone, the language by its icon, and room for the editions. */
+@media (max-width: 640px) {
+  .brand-name,
+  .language-switch span,
+  .repository-link {
+    display: none;
+  }
+
+  .topbar {
+    gap: 6px;
+  }
+
+  .edition-switch {
+    margin-right: 0;
+  }
+
+  .edition-switch a {
+    padding: 4px 7px;
+    font-size: 12.5px;
   }
 }

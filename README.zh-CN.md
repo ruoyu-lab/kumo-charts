@@ -1,4 +1,4 @@
-# KumoChart
+# Kumo Charts
 
 [English](README.md) · 简体中文
 
@@ -39,4 +39,4 @@ chart.drawings.startTool('trend-line');
 
 ## 许可
 
-[Apache-2.0](LICENSE)。在网站或应用里用了 KumoChart 的话，请照 [NOTICE](NOTICE) 说的，在用户看得到的地方注明并链接到 [kumochart.com](https://kumochart.com)。
+[Apache-2.0](LICENSE)。在网站或应用里用了 Kumo Charts 的话，请照 [NOTICE](NOTICE) 说的，在用户看得到的地方注明并链接到 [kumochart.com](https://kumochart.com)。

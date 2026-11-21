@@ -7,14 +7,20 @@ const config = siteConfig('test/fixtures/docs');
 const repository = 'https://github.com/ruoyu-lab/kumo-charts';
 
 const targets: LinkTargets = {
-  anchors: (_language, file) =>
-    file === 'live.md'
+  anchors: (edition, _language, file) => {
+    if (edition === 'commercial') {
+      return file === 'start.md' ? new Set(['接入']) : null;
+    }
+
+    return file === 'live.md'
       ? new Set(['按成交生成-k-线'])
       : file === 'guide.md'
         ? new Set(['链接'])
-        : null,
-  written: (language, file) => language === 'zh-CN' || file === 'guide.md',
-  planned: new Set(['planned.md']),
+        : null;
+  },
+  written: (edition, language, file) =>
+    language === 'zh-CN' || (edition === 'open' && file === 'guide.md'),
+  planned: (edition, file) => edition === 'open' && file === 'planned.md',
   api: (fragment, language) =>
     fragment === 'createChart' ? `/${language}/api/core/#createChart` : { error: `no ${fragment}` }
 };
@@ -70,6 +76,37 @@ describe('the links of a page', () => {
     expect(link('live.md', english)).toEqual({
       href: '/en/live/',
       warning: 'links to en/live.md, which is not translated yet'
+    });
+  });
+
+  it('link the pages of the other edition, and within the commercial one', () => {
+    expect(link('../commercial/zh-CN/start.md#%E6%8E%A5%E5%85%A5')).toEqual({
+      href: '/zh-CN/commercial/start/#%E6%8E%A5%E5%85%A5'
+    });
+
+    const start: LinkSource = {
+      ...guide,
+      path: join(config.docsDir, 'commercial/zh-CN/start.md'),
+      anchors: new Set(['接入'])
+    };
+    expect(link('../../zh-CN/live.md', start)).toEqual({ href: '/zh-CN/live/' });
+    expect(link('start.md', start)).toEqual({ href: '/zh-CN/commercial/start/' });
+    expect(link('../../api.md#createChart', start)).toEqual({
+      href: '/zh-CN/api/core/#createChart'
+    });
+    expect(link('missing.md', start)).toEqual({
+      href: 'missing.md',
+      error: 'there is no page commercial/zh-CN/missing.md'
+    });
+    const english: LinkSource = {
+      ...start,
+      language: 'en',
+      contentLanguage: 'en',
+      path: join(config.docsDir, 'commercial/en/start.md')
+    };
+    expect(link('start.md', english)).toEqual({
+      href: '/en/commercial/start/',
+      warning: 'links to commercial/en/start.md, which is not translated yet'
     });
   });
 

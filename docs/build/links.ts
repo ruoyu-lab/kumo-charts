@@ -3,6 +3,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { isLanguage, type Language } from '../src/shared/ui-text';
 import type { SiteConfig } from './config';
 import { pageUrl } from './content';
+import { EDITION_DIRECTORY, editionOf, type Edition } from './editions';
 
 /** The Markdown file guide pages link to for the API reference, as `api.md#createChart`. */
 export const API_LINK_FILE = 'api.md';
@@ -14,12 +15,15 @@ export function apiUrl(language: Language): string {
 
 /** The pages and symbols links can point at. */
 export interface LinkTargets {
-  /** Anchors of a page as the site shows it in a language, or `null` when there is no such page. */
-  anchors(language: Language, file: string): ReadonlySet<string> | null;
-  /** Whether a language has a file of its own for a page. */
-  written(language: Language, file: string): boolean;
-  /** Pages of the navigation that are not written yet. */
-  readonly planned: ReadonlySet<string>;
+  /**
+   * Anchors of a page of an edition as the site shows it in a language, or `null` when there is no
+   * such page.
+   */
+  anchors(edition: Edition, language: Language, file: string): ReadonlySet<string> | null;
+  /** Whether a language of an edition has a file of its own for a page. */
+  written(edition: Edition, language: Language, file: string): boolean;
+  /** Whether a page of an edition's navigation is not written yet. */
+  planned(edition: Edition, file: string): boolean;
   /**
    * The address of an API symbol in the API reference of a language, from a fragment such as
    * `createChart`, `DataApi.set` or `vue:KumoChart`; a problem as `{ error }`.
@@ -54,9 +58,9 @@ function decode(text: string): string {
 
 /**
  * Where a link of a page goes on the site. Links between Markdown files become addresses of
- * pages, `api.md#…` an address in the API reference, and links to files of the library, from the root
- * of its repository as `/packages/core/src/index.ts`, their address on GitHub; links that lead
- * nowhere come back with an error.
+ * pages, of the same edition or of the other one, `api.md#…` an address in the API reference, and
+ * links to files of the library, from the root of its repository as `/packages/core/src/index.ts`,
+ * their address on GitHub; links that lead nowhere come back with an error.
  */
 export function resolveLink(
   href: string,
@@ -94,30 +98,32 @@ export function resolveLink(
   }
 
   const inDocs = relative(config.docsDir, target).split(sep);
-  const [directory = '', ...rest] = inDocs;
+  const { edition, rest } = editionOf(inDocs);
+  const [directory = '', ...parts] = rest;
 
-  if (directory !== '..' && isLanguage(directory) && target.endsWith('.md')) {
-    const file = rest.join('/');
+  if (inDocs[0] !== '..' && isLanguage(directory) && target.endsWith('.md')) {
+    const file = parts.join('/');
+    const prefix = EDITION_DIRECTORY[edition] === '' ? '' : `${EDITION_DIRECTORY[edition]}/`;
     // An untranslated page links to the pages of the language it is shown in.
     const language = directory === source.contentLanguage ? source.language : directory;
-    const url = `${pageUrl(language, file)}${suffix}`;
-    const anchors = targets.anchors(language, file);
+    const url = `${pageUrl(language, file, edition)}${suffix}`;
+    const anchors = targets.anchors(edition, language, file);
 
     if (anchors === null) {
-      return targets.planned.has(file)
-        ? { href: url, warning: `links to ${file}, which is not written yet` }
-        : { href, error: `there is no page ${directory}/${file}` };
+      return targets.planned(edition, file)
+        ? { href: url, warning: `links to ${prefix}${file}, which is not written yet` }
+        : { href, error: `there is no page ${prefix}${directory}/${file}` };
     }
 
     if (anchor !== '' && !anchors.has(anchor)) {
-      return { href, error: `there is no heading #${anchor} on ${language}/${file}` };
+      return { href, error: `there is no heading #${anchor} on ${prefix}${language}/${file}` };
     }
 
-    return targets.written(directory, file)
+    return targets.written(edition, directory, file)
       ? { href: url }
       : {
           href: url,
-          warning: `links to ${directory}/${file}, which is not translated yet`
+          warning: `links to ${prefix}${directory}/${file}, which is not translated yet`
         };
   }
 

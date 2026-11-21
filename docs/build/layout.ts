@@ -1,5 +1,6 @@
 import { THEME_STORAGE_KEY } from '../src/shared/storage-keys';
 import { LANGUAGES, UI_TEXT, type Language } from '../src/shared/ui-text';
+import type { Edition } from './editions';
 import { escapeHtml } from './html';
 import type { Heading } from './markdown';
 
@@ -24,6 +25,7 @@ export interface PageLink {
 
 /** Everything a page of the site is made of. */
 export interface LayoutPage {
+  readonly edition: Edition;
   readonly language: Language;
   readonly url: string;
   readonly title: string;
@@ -156,11 +158,29 @@ function themeMenu(language: Language): string {
   ].join('');
 }
 
-/** The bar on top of every page: menu, brand, search, language, theme and repository. */
+/** The name of an edition in a language, such as `Kumo Charts 商业版`. */
+export function editionName(language: Language, edition: Edition): string {
+  const text = UI_TEXT[language];
+  return edition === 'open' ? text.nameOpen : text.nameCommercial;
+}
+
+/** The switch between the editions, to the home page of each in the language shown. */
+function editionSwitch(language: Language, edition: Edition): string {
+  const text = UI_TEXT[language];
+  const link = (item: Edition, label: string, url: string) =>
+    `<a href="${escapeHtml(url)}"${item === edition ? ' aria-current="true"' : ''} data-edition="${item}">${escapeHtml(label)}</a>`;
+  return `<nav class="edition-switch" aria-label="${escapeHtml(text.edition)}">${link('open', text.editionOpen, `/${language}/`)}${link('commercial', text.editionCommercial, `/${language}/commercial/`)}</nav>`;
+}
+
+/**
+ * The bar on top of every page: menu, brand, the switch between the editions, search, language,
+ * theme and repository.
+ */
 export function topbar(
   language: Language,
   alternates: Readonly<Record<Language, string>>,
-  repository: string
+  repository: string,
+  edition: Edition
 ): string {
   const text = UI_TEXT[language];
   const options = LANGUAGES.map(
@@ -176,12 +196,13 @@ export function topbar(
   return [
     '<header class="topbar">',
     `<button class="icon-button menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="${escapeHtml(text.menu)}" data-menu-toggle>${icon('menu')}</button>`,
-    `<a class="brand" href="/${language}/">${LOGO}KumoChart</a>`,
+    `<a class="brand" href="/${language}/">${LOGO}<span class="brand-name">Kumo Charts</span></a>`,
+    editionSwitch(language, edition),
     `<button class="search-button" type="button" data-search-open>${icon('search')}<span>${escapeHtml(text.search)}</span><kbd data-search-shortcut>Ctrl K</kbd></button>`,
     '<div class="topbar-actions">',
     languages,
     themeMenu(language),
-    `<a class="icon-button" href="${escapeHtml(repository)}" aria-label="GitHub" title="GitHub">${icon('github')}</a>`,
+    `<a class="icon-button repository-link" href="${escapeHtml(repository)}" aria-label="GitHub" title="GitHub">${icon('github')}</a>`,
     '</div>',
     '</header>'
   ].join('');
@@ -212,17 +233,20 @@ export function renderLayout(page: LayoutPage): string {
     )
     .join('\n');
   const notice = page.notice ? `<p class="notice">${escapeHtml(page.notice)}</p>` : '';
+  // A home page titled with its edition's name is not named twice.
+  const name = editionName(page.language, page.edition);
+  const title = page.title === name ? name : `${page.title} · ${name}`;
 
   return `<!doctype html>
 <html lang="${page.language}">
 <head>
-${head(`${page.title} · KumoChart`, page.language)}
+${head(title, page.language)}
 <meta name="docs-search-index" content="${escapeHtml(page.searchIndexUrl)}" />
 ${alternates}
 </head>
 <body>
 <a class="skip-link" href="#content">${escapeHtml(text.skipToContent)}</a>
-${topbar(page.language, page.alternates, page.repository)}
+${topbar(page.language, page.alternates, page.repository, page.edition)}
 <div class="layout">
 <nav id="sidebar" class="sidebar" aria-label="${escapeHtml(text.menu)}">${sidebar(page.sidebar, page.url)}</nav>
 <div class="sidebar-backdrop" data-menu-close hidden></div>

@@ -1,6 +1,6 @@
 # Introduction
 
-KumoChart is an open-source library for trading charts: the core holds the bars and the scales, and indicators, drawings, alerts and replay load when you need them.
+Kumo Charts is an open-source library for trading charts: the core holds the bars and the scales, and indicators, drawings, alerts and replay load when you need them.
 
 ```ts live height=420
 import { createChart } from '@kumo-charts/core';
@@ -69,4 +69,4 @@ The chart needs a browser. Computing indicators, the lines of drawings and volum
 
 ## License
 
-Apache-2.0, free in commercial products too. If you use KumoChart in a website or an app, please credit it where your users can see it, such as in the footer or on the about page, with a link to [kumochart.com](https://kumochart.com), for example "Charts by KumoChart". The chart itself shows no logo.
+Apache-2.0, free in commercial products too. If you use Kumo Charts in a website or an app, please credit it where your users can see it, such as in the footer or on the about page, with a link to [kumochart.com](https://kumochart.com), for example "Charts by Kumo Charts". The chart itself shows no logo.

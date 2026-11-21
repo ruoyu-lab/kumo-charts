@@ -1,4 +1,4 @@
-# KumoChart
+# Kumo Charts
 
 An open-source library for trading charts: the core holds the bars and the scales, and indicators, drawings, alerts and replay load when you need them.
 

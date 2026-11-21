@@ -1,0 +1,23 @@
+{
+  "groups": [
+    {
+      "title": {
+        "zh-CN": "开始",
+        "en": "Getting started",
+        "ja": "はじめに",
+        "ko": "시작하기"
+      },
+      "items": [
+        {
+          "page": "start.md",
+          "title": {
+            "zh-CN": "接入",
+            "en": "Setting up",
+            "ja": "導入",
+            "ko": "연결"
+          }
+        }
+      ]
+    }
+  ]
+}

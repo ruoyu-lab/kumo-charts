@@ -15,7 +15,8 @@ import {
 } from './api/render';
 import { parseFenceInfo } from './code-blocks';
 import type { SiteConfig } from './config';
-import { HOME_FILE, loadContent, pageUrl, type Content, type PageEntry } from './content';
+import { HOME_FILE, loadContent, pageUrl, type EditionContent, type PageEntry } from './content';
+import type { Edition } from './editions';
 import {
   codeBlockHtml,
   exampleHtml,
@@ -25,7 +26,14 @@ import {
 } from './examples';
 import { createHighlighter, type Highlighter } from './highlight';
 import { escapeHtml } from './html';
-import { head, renderLayout, topbar, type PageLink, type SidebarGroup } from './layout';
+import {
+  editionName,
+  head,
+  renderLayout,
+  topbar,
+  type PageLink,
+  type SidebarGroup
+} from './layout';
 import { apiUrl, resolveLink, type LinkTargets } from './links';
 import {
   createMarkdown,
@@ -64,15 +72,18 @@ interface ParsedPage {
   readonly parsed: ParsedMarkdown;
 }
 
-/** The sidebar of a language: the groups of the navigation, the API reference with its entries. */
+/**
+ * The sidebar of a language of an edition: the groups of its navigation, the API reference of the
+ * library with its entries.
+ */
 function sidebarOf(
-  content: Content,
+  edition: EditionContent,
   api: ApiModel,
   language: Language,
   pages: readonly PageEntry[]
 ): SidebarGroup[] {
   const written = new Set(pages.map((page) => page.file));
-  return content.nav.groups
+  return edition.nav.groups
     .map((group) => ({
       title: group.title[language],
       links: group.items.flatMap((item) => {
@@ -91,7 +102,7 @@ function sidebarOf(
         }
 
         return written.has(item.file)
-          ? [{ title: item.title[language], url: pageUrl(language, item.file) }]
+          ? [{ title: item.title[language], url: pageUrl(language, item.file, edition.edition) }]
           : [];
       })
     }))
@@ -131,7 +142,7 @@ function rootPage(): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>KumoChart</title>
+<title>Kumo Charts</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <script>(()=>{const s=${JSON.stringify(LANGUAGES)};let l=null;try{l=localStorage.getItem(${JSON.stringify(LANGUAGE_STORAGE_KEY)})}catch{}if(!s.includes(l)){l=navigator.languages.map((x)=>s.find((y)=>x.toLowerCase().startsWith(y.split('-')[0]))).find(Boolean)??'en'}location.replace('/'+l+'/')})()</script>
 <noscript><meta http-equiv="refresh" content="0; url=/${SOURCE_LANGUAGE}/" /></noscript>
@@ -154,20 +165,24 @@ function notFoundPage(repository: string): string {
   return `<!doctype html>
 <html lang="${SOURCE_LANGUAGE}">
 <head>
-${head(`404 · KumoChart`, SOURCE_LANGUAGE)}
+${head(`404 · ${editionName(SOURCE_LANGUAGE, 'open')}`, SOURCE_LANGUAGE)}
 </head>
 <body class="not-found-page">
-${topbar(SOURCE_LANGUAGE, alternates, repository)}
+${topbar(SOURCE_LANGUAGE, alternates, repository, 'open')}
 <main id="content" class="main">${LANGUAGES.map(message).join('')}</main>
 </body>
 </html>
 `;
 }
 
+/** The pages of an edition in a language, as the search finds them. */
+const searchKey = (edition: Edition, language: Language) => `${edition}/${language}`;
+
 /**
- * Builds the site from the documentation: the pages of every language, the API reference, the
- * live examples and the search indexes. Fails with every error found; warnings come back.
- * `api` reuses a reference already extracted from the sources.
+ * Builds the site from the documentation: the pages of every edition and language, the API
+ * reference, the live examples and the search indexes, one for each edition and language. Fails
+ * with every error found; warnings come back. `api` reuses a reference already extracted from the
+ * sources.
  */
 export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Site> {
   const problems = new Problems();
@@ -195,12 +210,15 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
 
   const anchors = new Map(parsed.map(({ entry, parsed: page }) => [entry.url, page.anchors]));
   const written = new Set(
-    content.pages.filter((page) => page.translated).map((page) => `${page.language}/${page.file}`)
+    content.pages
+      .filter((page) => page.translated)
+      .map((page) => `${page.edition}/${page.language}/${page.file}`)
   );
   const targets: LinkTargets = {
-    anchors: (language, file) => anchors.get(pageUrl(language, file)) ?? null,
-    written: (language, file) => written.has(`${language}/${file}`),
-    planned: content.planned,
+    anchors: (edition, language, file) => anchors.get(pageUrl(language, file, edition)) ?? null,
+    written: (edition, language, file) => written.has(`${edition}/${language}/${file}`),
+    planned: (edition, file) =>
+      content.editions.find((item) => item.edition === edition)?.planned.has(file) ?? false,
     api: (fragment, language) => {
       const target = resolveApiFragment(model, fragment);
       return 'error' in target ? target : apiTargetUrl(language, target);
@@ -210,9 +228,15 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
   const pages = new Map<string, string>();
   const examples = new Map<string, LiveExample>();
   const images = new Map<string, string>();
-  const searchPages = new Map<Language, SearchPage[]>(LANGUAGES.map((language) => [language, []]));
+  const searchPages = new Map<string, SearchPage[]>();
   const searchIndexes = new Map<string, string>();
-  const searchUrls = new Map<Language, string>();
+  const searchUrls = new Map<string, string>();
+  const searchOf = (edition: Edition, language: Language): SearchPage[] => {
+    const key = searchKey(edition, language);
+    const list = searchPages.get(key) ?? [];
+    searchPages.set(key, list);
+    return list;
+  };
   const rendered: {
     entry: PageEntry;
     title: string;
@@ -260,6 +284,15 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
         return codeBlockHtml(code, token.content, info.language, entry.language);
       }
 
+      if (entry.edition !== 'open') {
+        problems.error(
+          source.path,
+          line,
+          'live examples run the library alone: the commercial components are not in its repository'
+        );
+        return codeBlockHtml(code, token.content, info.language, entry.language);
+      }
+
       live += 1;
       const example: LiveExample = {
         id: `${source.language}/${source.file.replace(/\.md$/, '')}/${live}`,
@@ -301,9 +334,11 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
     });
 
     rendered.push({ entry, title: page.title, html, headings: page.headings });
-    searchPages
-      .get(entry.language)
-      ?.push({ title: page.title, url: entry.url, sections: textSections(page) });
+    searchOf(entry.edition, entry.language).push({
+      title: page.title,
+      url: entry.url,
+      sections: textSections(page)
+    });
   }
 
   const apiPages = new Map<Language, { url: string; page: ApiPage }[]>();
@@ -320,44 +355,58 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
     apiPages.set(language, list);
 
     for (const { url, page } of list) {
-      searchPages.get(language)?.push({ title: page.title, url, sections: page.sections });
+      searchOf('open', language).push({ title: page.title, url, sections: page.sections });
     }
+  }
 
-    const file = searchIndexFile(language, buildSearchIndex(searchPages.get(language) ?? []));
-    searchIndexes.set(file.url, file.json);
-    searchUrls.set(language, file.url);
+  for (const { edition } of content.editions) {
+    for (const language of LANGUAGES) {
+      const file = searchIndexFile(
+        language,
+        edition,
+        buildSearchIndex(searchOf(edition, language))
+      );
+      searchIndexes.set(file.url, file.json);
+      searchUrls.set(searchKey(edition, language), file.url);
+    }
   }
 
   problems.throwIfAny(config.siteDir);
 
-  const sidebars = new Map(
-    LANGUAGES.map((language) => [
-      language,
-      sidebarOf(
-        content,
-        model,
-        language,
-        content.pages.filter((page) => page.language === language)
-      )
-    ])
-  );
   const alternatesOf = (url: string): Record<Language, string> =>
     Object.fromEntries(
       LANGUAGES.map((language) => [language, url.replace(/^\/[^/]+\//, `/${language}/`)])
     ) as Record<Language, string>;
 
-  for (const language of LANGUAGES) {
-    const sidebar = sidebars.get(language) ?? [];
-    const order = readingOrder(sidebar);
-    const home = { title: 'KumoChart', url: pageUrl(language, HOME_FILE) };
-    const common = {
+  /** The common parts of the pages of a language of an edition, and their reading order. */
+  function frame(editionContent: EditionContent, language: Language) {
+    const { edition } = editionContent;
+    const sidebar = sidebarOf(
+      editionContent,
+      model,
       language,
-      sidebar,
-      searchIndexUrl: searchUrls.get(language) ?? '',
-      repository: config.repository
+      content.pages.filter((page) => page.edition === edition && page.language === language)
+    );
+    return {
+      order: readingOrder(sidebar),
+      home: { title: editionName(language, edition), url: pageUrl(language, HOME_FILE, edition) },
+      common: {
+        edition,
+        language,
+        sidebar,
+        searchIndexUrl: searchUrls.get(searchKey(edition, language)) ?? '',
+        repository: config.repository
+      }
     };
+  }
 
-    for (const page of rendered.filter((item) => item.entry.language === language)) {
+  function renderEdition(editionContent: EditionContent, language: Language): void {
+    const { order, home, common } = frame(editionContent, language);
+    const ownPages = rendered.filter(
+      (item) => item.entry.edition === editionContent.edition && item.entry.language === language
+    );
+
+    for (const page of ownPages) {
       pages.set(
         page.entry.url,
         renderLayout({
@@ -373,6 +422,11 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
         })
       );
     }
+  }
+
+  /** The pages of the API reference, in a language of the library's edition. */
+  function renderApi(library: EditionContent, language: Language): void {
+    const { order, home, common } = frame(library, language);
 
     for (const { url, page } of apiPages.get(language) ?? []) {
       pages.set(
@@ -388,6 +442,18 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
           ...neighbors(order, url, home)
         })
       );
+    }
+  }
+
+  for (const editionContent of content.editions) {
+    const { edition } = editionContent;
+
+    for (const language of LANGUAGES) {
+      renderEdition(editionContent, language);
+
+      if (edition === 'open') {
+        renderApi(editionContent, language);
+      }
     }
   }
 
