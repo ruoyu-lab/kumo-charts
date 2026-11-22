@@ -32,13 +32,13 @@ createProChart(container, {
 チャートは Shadow DOM の中にあり、ページのスタイルは入り込めませんが、次の部分は `::part()` で選べます：`topbar`（トップバー）、`drawing-toolbar`（描画ツールバー）、`chart-area`（すべてのチャートの領域）、`chart`（各チャート）、`custom-button`（ページ独自のボタン）。
 
 ```css
-kumochart-pro-chart::part(topbar) {
+kumo-pro-chart::part(topbar) {
   border-bottom-width: 2px;
 }
 
-kumochart-pro-chart::part(custom-button) {
+kumo-pro-chart::part(custom-button) {
   font-weight: 600;
 }
 ```
 
-`kumochart-pro-chart` 要素そのもの（コンテナ内のもの）には、枠線や角丸などを直接付けられます。色は CSS ではなく `themes` で変えてください。`themes` はチャート自体の色も変え、テーマを切り替えるとそれに合わせて変わります。
+`kumo-pro-chart` 要素そのもの（コンテナ内のもの）には、枠線や角丸などを直接付けられます。色は CSS ではなく `themes` で変えてください。`themes` はチャート自体の色も変え、テーマを切り替えるとそれに合わせて変わります。

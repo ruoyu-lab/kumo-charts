@@ -122,28 +122,28 @@ chart.on('loadMore', async ({ before }) => {
 
 ## Without a bundler
 
-Include one script and every module is in the global `KumoChart`:
+Include one script and every module is in the global `KumoCharts`:
 
 ```html
 <div id="chart" style="height: 480px"></div>
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts.iife.js"></script>
 <script>
-  const chart = KumoChart.createChart(document.getElementById('chart'), {
-    modules: KumoChart.allModules()
+  const chart = KumoCharts.createChart(document.getElementById('chart'), {
+    modules: KumoCharts.allModules()
   });
   chart.data.set(bars);
 </script>
 ```
 
-The script holds every feature, about 112 kB gzipped. The words of the indicators in Chinese, Japanese and Korean (see [Indicators](indicators.md#languages)) are in a script of their own, about 6 kB, to add when you want them, as the global `KumoChartIndicatorTexts`:
+The script holds every feature, about 112 kB gzipped. The words of the indicators in Chinese, Japanese and Korean (see [Indicators](indicators.md#languages)) are in a script of their own, about 6 kB, to add when you want them, as the global `KumoChartsIndicatorTexts`:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts.iife.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts-indicator-texts.iife.js"></script>
 <script>
-  const chart = KumoChart.createChart(document.getElementById('chart'), {
-    modules: KumoChart.allModules({
-      indicators: { texts: [KumoChartIndicatorTexts.indicatorTexts] }
+  const chart = KumoCharts.createChart(document.getElementById('chart'), {
+    modules: KumoCharts.allModules({
+      indicators: { texts: [KumoChartsIndicatorTexts.indicatorTexts] }
     }),
     locale: 'zh-CN'
   });

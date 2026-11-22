@@ -187,7 +187,7 @@ describe('the site of the test pages', () => {
 });
 
 describe('a site with mistakes', () => {
-  const root = mkdtempSync(join(tmpdir(), 'kumochart-docs-'));
+  const root = mkdtempSync(join(tmpdir(), 'kumo-charts-docs-'));
   const write = (path: string, text: string) => {
     mkdirSync(dirname(join(root, path)), { recursive: true });
     writeFileSync(join(root, path), text);
@@ -232,7 +232,7 @@ describe('a site with mistakes', () => {
 
   it('keeps the API reference and the live examples to the library', async () => {
     const titles = { 'zh-CN': '页', en: 'Pages', ja: 'ページ', ko: '페이지' };
-    const other = mkdtempSync(join(tmpdir(), 'kumochart-docs-'));
+    const other = mkdtempSync(join(tmpdir(), 'kumo-charts-docs-'));
     const put = (path: string, text: string) => {
       mkdirSync(dirname(join(other, path)), { recursive: true });
       writeFileSync(join(other, path), text);

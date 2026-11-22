@@ -24,4 +24,4 @@ defineProps<{ bars: { time: number; open: number; high: number; low: number; clo
 
 Documentation: [docs.kumochart.com/en/vue](https://docs.kumochart.com/en/vue/) · [中文](https://docs.kumochart.com/zh-CN/vue/)
 
-Apache-2.0 License. If you use KumoChart in a website or an app, please credit it with a link to [kumochart.com](https://kumochart.com), as NOTICE asks.
+Apache-2.0 License. If you use Kumo Charts in a website or an app, please credit it with a link to [kumochart.com](https://kumochart.com), as NOTICE asks.

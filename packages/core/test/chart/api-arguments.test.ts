@@ -45,7 +45,7 @@ const CALLS: ReadonlyArray<readonly [string, (chart: Chart) => unknown]> = [
 describe('what the chart says of arguments left out', () => {
   it.each(CALLS)('%s throws an error of the chart, not one of the language', (_name, call) => {
     const chart = chartWithBars(20);
-    expect(() => call(chart)).toThrow(/\[kumochart\]/);
+    expect(() => call(chart)).toThrow(/\[kumo-charts\]/);
   });
 });
 

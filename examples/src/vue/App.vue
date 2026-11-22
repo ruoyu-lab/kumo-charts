@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
 
 <template>
   <header>
-    <strong>KumoChart · Vue 3</strong>
+    <strong>Kumo Charts · Vue 3</strong>
     <button
       v-for="item in TIMEFRAMES"
       :key="item"

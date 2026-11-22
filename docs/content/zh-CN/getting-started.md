@@ -122,28 +122,28 @@ chart.on('loadMore', async ({ before }) => {
 
 ## 不用打包工具
 
-直接在页面里引入一个脚本，所有模块都在全局的 `KumoChart` 里：
+直接在页面里引入一个脚本，所有模块都在全局的 `KumoCharts` 里：
 
 ```html
 <div id="chart" style="height: 480px"></div>
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts.iife.js"></script>
 <script>
-  const chart = KumoChart.createChart(document.getElementById('chart'), {
-    modules: KumoChart.allModules()
+  const chart = KumoCharts.createChart(document.getElementById('chart'), {
+    modules: KumoCharts.allModules()
   });
   chart.data.set(bars);
 </script>
 ```
 
-这个脚本包含全部功能，gzip 后约 112 kB。指标名字的中文、日文、韩文（见[指标](indicators.md#多语言)）另放在一个约 6 kB 的脚本里，要用再引入，它在全局的 `KumoChartIndicatorTexts` 里：
+这个脚本包含全部功能，gzip 后约 112 kB。指标名字的中文、日文、韩文（见[指标](indicators.md#多语言)）另放在一个约 6 kB 的脚本里，要用再引入，它在全局的 `KumoChartsIndicatorTexts` 里：
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts.iife.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts-indicator-texts.iife.js"></script>
 <script>
-  const chart = KumoChart.createChart(document.getElementById('chart'), {
-    modules: KumoChart.allModules({
-      indicators: { texts: [KumoChartIndicatorTexts.indicatorTexts] }
+  const chart = KumoCharts.createChart(document.getElementById('chart'), {
+    modules: KumoCharts.allModules({
+      indicators: { texts: [KumoChartsIndicatorTexts.indicatorTexts] }
     }),
     locale: 'zh-CN'
   });

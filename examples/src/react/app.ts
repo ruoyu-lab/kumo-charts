@@ -60,7 +60,7 @@ export function App() {
     h(
       'header',
       null,
-      h('strong', null, 'KumoChart · React · BTC/USDT'),
+      h('strong', null, 'Kumo Charts · React · BTC/USDT'),
       h('span', { className: 'close' }, hovered ? `C ${hovered.close.toFixed(2)}` : ''),
       h(
         'button',

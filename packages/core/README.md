@@ -20,4 +20,4 @@ chart.indicators.add({ type: 'MACD' });
 
 Documentation: [docs.kumochart.com](https://docs.kumochart.com/en/) · [中文文档](https://docs.kumochart.com/zh-CN/)
 
-Apache-2.0 License. If you use KumoChart in a website or an app, please credit it with a link to [kumochart.com](https://kumochart.com), as NOTICE asks.
+Apache-2.0 License. If you use Kumo Charts in a website or an app, please credit it with a link to [kumochart.com](https://kumochart.com), as NOTICE asks.

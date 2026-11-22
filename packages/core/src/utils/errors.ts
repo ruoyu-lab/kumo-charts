@@ -1,4 +1,4 @@
-const PREFIX = '[kumochart]';
+const PREFIX = '[kumo-charts]';
 
 /** Error thrown for every invalid argument, unknown id or illegal state reported by the library. */
 export class ChartError extends Error {

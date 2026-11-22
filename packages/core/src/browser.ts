@@ -1,4 +1,4 @@
-// What a page without a bundler gets as `KumoChart`: the core, every module, and `allModules()`.
+// What a page without a bundler gets as `KumoCharts`: the core, every module, and `allModules()`.
 export * from './index';
 export { allModules } from './all';
 export { alerts } from './alerts';

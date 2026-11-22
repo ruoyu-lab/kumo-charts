@@ -32,13 +32,13 @@ createProChart(container, {
 차트는 Shadow DOM 안에 있어 페이지의 스타일이 들어가지 못하지만, 다음 부분은 `::part()`로 선택할 수 있습니다: `topbar`(상단 바), `drawing-toolbar`(그리기 도구 모음), `chart-area`(모든 차트의 영역), `chart`(각 차트), `custom-button`(페이지 자체의 버튼).
 
 ```css
-kumochart-pro-chart::part(topbar) {
+kumo-pro-chart::part(topbar) {
   border-bottom-width: 2px;
 }
 
-kumochart-pro-chart::part(custom-button) {
+kumo-pro-chart::part(custom-button) {
   font-weight: 600;
 }
 ```
 
-`kumochart-pro-chart` 요소 자체(컨테이너 안의 것)에는 테두리, 둥근 모서리 등을 바로 줄 수 있습니다. 색은 CSS가 아니라 `themes`로 바꾸세요. `themes`는 차트 자체의 색도 바꾸며, 테마를 바꿀 때 따라 바뀝니다.
+`kumo-pro-chart` 요소 자체(컨테이너 안의 것)에는 테두리, 둥근 모서리 등을 바로 줄 수 있습니다. 색은 CSS가 아니라 `themes`로 바꾸세요. `themes`는 차트 자체의 색도 바꾸며, 테마를 바꿀 때 따라 바뀝니다.

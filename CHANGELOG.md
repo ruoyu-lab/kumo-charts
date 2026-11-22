@@ -1,8 +1,14 @@
 # Changelog
 
-The packages of KumoChart share one version. Each release lists what changed for those who use them.
+The packages of Kumo Charts share one version. Each release lists what changed for those who use them.
 
 ## Unreleased
+
+**Breaking**
+
+- The script for a page without a bundler puts the library in the global `KumoCharts`, and the words of the indicators in `KumoChartsIndicatorTexts`: they were `KumoChart` and `KumoChartIndicatorTexts`. Errors start with `[kumo-charts]` in place of `[kumochart]`. The components `KumoChart` of `@kumo-charts/vue` and `@kumo-charts/react` keep their names.
+
+**Other changes**
 
 - `legend.title`: what the main series' row of the legend starts with, before the open, high, low and close, such as the symbol (`BTC/USDT`), in the color of the text; `null` (default) starts it with the values, as before. The row's buttons follow it, as they follow an indicator's name.
 - The time axis keeps every tick under the crosshair's time label, which is painted over them as the price label is over the price ticks: ticks beside the label no longer disappear, and moving the pointer no longer paints the axes again.

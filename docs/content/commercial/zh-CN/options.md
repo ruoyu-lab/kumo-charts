@@ -12,7 +12,7 @@
 | `upColor`                | `red` 为红涨绿跌，默认 `green`                                                                                                                                                                                          |
 | `accentColor`            | 按钮、选中状态的主色，比如品牌色                                                                                                                                                                                        |
 | `timeZone`               | 用户自己选时区之前显示时间用的时区：如 `Asia/Shanghai`，或 `exchange`（每个品种按它交易日历的时区）；默认是浏览器的时区。用户在时间轴右下角选过以后，按用户的选择（存在状态里）                                         |
-| `brand`                  | `{ name, logo, href }`：左上角的名称、logo 图片地址和点击后去的地址；只给 `name` 时只显示名称，`name` 和 `logo` 都不给时显示 KumoChart 的标志，不给 `brand` 时左上角什么也不显示                                        |
+| `brand`                  | `{ name, logo, href }`：左上角的名称、logo 图片地址和点击后去的地址；只给 `name` 时只显示名称，`name` 和 `logo` 都不给时显示 Kumo Charts 的标志，不给 `brand` 时左上角什么也不显示                                        |
 | `features`               | 关掉不需要的部分，见下表                                                                                                                                                                                                |
 | `lockedLinks`            | 页面固定的联动方式，如 `{ symbol: true }` 让一个布局里的图永远显示同一个品种：被固定的联动不随存下来的状态和 `setLinks()` 变，布局菜单里也不再出现它；默认都不固定                                                      |
 | `messages`               | 替换界面文字：`{ zh: { indicators: '技术指标' } }`                                                                                                                                                                      |
@@ -28,7 +28,7 @@
 | `drawingToolbarControls` | 画线栏里除了工具以外的按钮（十字线、磁铁、连续画、收藏、隐藏、删除全部）留哪些，见[「改两条栏」](drawings.md)                                                                                                           |
 | `customDrawings`         | 页面自己的画线工具，和自带的一起放在画线栏里，见[「自定义画线工具」](custom-drawings.md)                                                                                                                                |
 | `customIndicators`       | 页面自己的指标（自己写算法，或者用公式），和自带的一起列在指标窗口里，见[「自定义指标」](custom-indicators.md)                                                                                                          |
-| `storage`                | 用户的布局、每张图、画线和提醒存在哪里：默认存在浏览器的 `localStorage`（键名 `kumochart-pro-chart`），`browserStorage(key)` 换一个键名，也可以是自己的存储（见[「保存到自己的服务器」](storage.md)）；传 `null` 不保存 |
+| `storage`                | 用户的布局、每张图、画线和提醒存在哪里：默认存在浏览器的 `localStorage`（键名 `kumo-pro-chart`），`browserStorage(key)` 换一个键名，也可以是自己的存储（见[「保存到自己的服务器」](storage.md)）；传 `null` 不保存 |
 | `licenseKey`             | 商业授权码，包括图里的成交量轨迹、时间价格机会、订单流指标、大单、订单簿热力图、信息驱动 K 线和公式指标；没有授权码时图表左下角显示「未授权」水印，只有本机开发不需要（见[「授权」](license.md)）                       |
 | `appId`                  | 桌面、手机应用的应用标识，反向域名格式，如 `com.acme.charts`，和 `licenseKey` 一起给：没有域名的页面按它授权，网站只按域名（见[「授权」](license.md)）                                                                  |
 

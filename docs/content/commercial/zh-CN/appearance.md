@@ -32,13 +32,13 @@ createProChart(container, {
 图表在 Shadow DOM 里，网页的样式进不去，但这几个部分可以用 `::part()` 选中：`topbar`（顶栏）、`drawing-toolbar`（画线栏）、`chart-area`（所有图的区域）、`chart`（每张图）、`custom-button`（页面自己的按钮）。
 
 ```css
-kumochart-pro-chart::part(topbar) {
+kumo-pro-chart::part(topbar) {
   border-bottom-width: 2px;
 }
 
-kumochart-pro-chart::part(custom-button) {
+kumo-pro-chart::part(custom-button) {
   font-weight: 600;
 }
 ```
 
-`kumochart-pro-chart` 元素本身（容器里的那个）可以直接加边框、圆角等。颜色用 `themes` 改，不用 CSS：它也会改图本身的颜色，切换主题时跟着换。
+`kumo-pro-chart` 元素本身（容器里的那个）可以直接加边框、圆角等。颜色用 `themes` 改，不用 CSS：它也会改图本身的颜色，切换主题时跟着换。

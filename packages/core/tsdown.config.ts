@@ -22,25 +22,25 @@ export default defineConfig([
     format: 'esm'
   },
   {
-    // One script for a page without a bundler: the core and every module, as `KumoChart`.
+    // One script for a page without a bundler: the core and every module, as `KumoCharts`.
     entry: { 'kumo-charts': 'src/browser.ts' },
     platform: 'browser',
     target: 'es2022',
     dts: false,
     format: 'iife',
-    globalName: 'KumoChart',
+    globalName: 'KumoCharts',
     minify: true,
     clean: false
   },
   {
     // The words of the indicators in other languages, for a page without a bundler that wants
-    // them, as `KumoChartIndicatorTexts`.
+    // them, as `KumoChartsIndicatorTexts`.
     entry: { 'kumo-charts-indicator-texts': 'src/browser-texts.ts' },
     platform: 'browser',
     target: 'es2022',
     dts: false,
     format: 'iife',
-    globalName: 'KumoChartIndicatorTexts',
+    globalName: 'KumoChartsIndicatorTexts',
     minify: true,
     clean: false
   }

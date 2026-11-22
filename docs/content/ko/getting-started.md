@@ -122,28 +122,28 @@ chart.on('loadMore', async ({ before }) => {
 
 ## 번들러 없이 쓰기
 
-페이지에 스크립트 하나만 넣으면 모든 모듈이 전역 `KumoChart`에 들어 있습니다:
+페이지에 스크립트 하나만 넣으면 모든 모듈이 전역 `KumoCharts`에 들어 있습니다:
 
 ```html
 <div id="chart" style="height: 480px"></div>
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts.iife.js"></script>
 <script>
-  const chart = KumoChart.createChart(document.getElementById('chart'), {
-    modules: KumoChart.allModules()
+  const chart = KumoCharts.createChart(document.getElementById('chart'), {
+    modules: KumoCharts.allModules()
   });
   chart.data.set(bars);
 </script>
 ```
 
-이 스크립트에는 모든 기능이 들어 있으며, gzip 후 약 112 kB입니다. 지표 이름의 중국어, 일본어, 한국어 번역([지표](indicators.md#다국어) 참고)은 약 6 kB의 별도 스크립트에 있어 필요할 때만 불러오며, 전역 `KumoChartIndicatorTexts`에 들어갑니다.
+이 스크립트에는 모든 기능이 들어 있으며, gzip 후 약 112 kB입니다. 지표 이름의 중국어, 일본어, 한국어 번역([지표](indicators.md#다국어) 참고)은 약 6 kB의 별도 스크립트에 있어 필요할 때만 불러오며, 전역 `KumoChartsIndicatorTexts`에 들어갑니다.
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts.iife.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts-indicator-texts.iife.js"></script>
 <script>
-  const chart = KumoChart.createChart(document.getElementById('chart'), {
-    modules: KumoChart.allModules({
-      indicators: { texts: [KumoChartIndicatorTexts.indicatorTexts] }
+  const chart = KumoCharts.createChart(document.getElementById('chart'), {
+    modules: KumoCharts.allModules({
+      indicators: { texts: [KumoChartsIndicatorTexts.indicatorTexts] }
     }),
     locale: 'zh-CN'
   });

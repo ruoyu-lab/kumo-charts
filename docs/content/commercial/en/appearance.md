@@ -32,13 +32,13 @@ The main design variables: `app-bg` (the outermost background), `panel` (the bac
 The chart is in a Shadow DOM, which the page's styles do not get into, but these parts can be selected with `::part()`: `topbar` (the top bar), `drawing-toolbar` (the drawing toolbar), `chart-area` (the area of all the charts), `chart` (each chart) and `custom-button` (the page's own buttons).
 
 ```css
-kumochart-pro-chart::part(topbar) {
+kumo-pro-chart::part(topbar) {
   border-bottom-width: 2px;
 }
 
-kumochart-pro-chart::part(custom-button) {
+kumo-pro-chart::part(custom-button) {
   font-weight: 600;
 }
 ```
 
-The `kumochart-pro-chart` element itself (the one in the container) can take borders, rounded corners and the like directly. Change colors with `themes`, not CSS: it changes the colors of the chart itself too, and follows when the theme switches.
+The `kumo-pro-chart` element itself (the one in the container) can take borders, rounded corners and the like directly. Change colors with `themes`, not CSS: it changes the colors of the chart itself too, and follows when the theme switches.

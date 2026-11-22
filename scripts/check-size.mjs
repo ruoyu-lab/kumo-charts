@@ -193,7 +193,7 @@ const ENTRIES = {
   'core/all': 'all.js'
 };
 
-const scratch = await mkdtemp(join(tmpdir(), 'kumochart-size-'));
+const scratch = await mkdtemp(join(tmpdir(), 'kumo-charts-size-'));
 
 try {
   for (const app of APPS) {

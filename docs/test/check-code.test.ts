@@ -5,7 +5,7 @@ import { afterAll, describe, expect, it, vi } from 'vitest';
 import { siteConfig } from '../build/config';
 import { main } from '../scripts/check-code';
 
-const root = mkdtempSync(join(tmpdir(), 'kumochart-code-'));
+const root = mkdtempSync(join(tmpdir(), 'kumo-charts-code-'));
 
 afterAll(() => {
   rmSync(root, { recursive: true, force: true });

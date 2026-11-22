@@ -122,28 +122,28 @@ chart.on('loadMore', async ({ before }) => {
 
 ## バンドラーを使わない場合
 
-ページにスクリプトを 1 つ読み込むだけで、すべてのモジュールがグローバルの `KumoChart` に入ります。
+ページにスクリプトを 1 つ読み込むだけで、すべてのモジュールがグローバルの `KumoCharts` に入ります。
 
 ```html
 <div id="chart" style="height: 480px"></div>
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts.iife.js"></script>
 <script>
-  const chart = KumoChart.createChart(document.getElementById('chart'), {
-    modules: KumoChart.allModules()
+  const chart = KumoCharts.createChart(document.getElementById('chart'), {
+    modules: KumoCharts.allModules()
   });
   chart.data.set(bars);
 </script>
 ```
 
-このスクリプトにはすべての機能が入っていて、gzip 後で約 112 kB です。インジケーター名の中国語・日本語・韓国語（[インジケーター](indicators.md#多言語)を参照）は約 6 kB の別のスクリプトに入っていて、必要なときだけ読み込みます。グローバルの `KumoChartIndicatorTexts` に入ります。
+このスクリプトにはすべての機能が入っていて、gzip 後で約 112 kB です。インジケーター名の中国語・日本語・韓国語（[インジケーター](indicators.md#多言語)を参照）は約 6 kB の別のスクリプトに入っていて、必要なときだけ読み込みます。グローバルの `KumoChartsIndicatorTexts` に入ります。
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts.iife.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kumo-charts/core/dist/kumo-charts-indicator-texts.iife.js"></script>
 <script>
-  const chart = KumoChart.createChart(document.getElementById('chart'), {
-    modules: KumoChart.allModules({
-      indicators: { texts: [KumoChartIndicatorTexts.indicatorTexts] }
+  const chart = KumoCharts.createChart(document.getElementById('chart'), {
+    modules: KumoCharts.allModules({
+      indicators: { texts: [KumoChartsIndicatorTexts.indicatorTexts] }
     }),
     locale: 'zh-CN'
   });

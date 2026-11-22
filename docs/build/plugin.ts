@@ -175,7 +175,7 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
   };
 
   return {
-    name: 'kumochart-docs',
+    name: 'kumo-charts-docs',
     enforce: 'pre',
 
     async config(_config, environment) {

@@ -57,7 +57,7 @@ const ICONS = {
     '<path d="M9 19c-4.5 1.4-4.5-2.2-6.3-2.7m12.6 4.5v-3.4a3 3 0 0 0-.8-2.3c2.7-.3 5.5-1.3 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.3 4.3 0 0 0-.1-3.2s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6 0C6.8 2.9 5.8 3.2 5.8 3.2a4.3 4.3 0 0 0-.1 3.2A4.6 4.6 0 0 0 4.4 9.6c0 4.7 2.8 5.7 5.5 6a3 3 0 0 0-.8 2.3v3.4"/>'
 } as const;
 
-/** KumoChart's logo, as on its website and developer platform: its mark on a rounded square, in the text's colors. */
+/** Kumo Charts' logo, as on its website: its mark on a rounded square, in the text's colors. */
 const LOGO =
   '<svg class="brand-logo" width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path transform="translate(5 8.45) scale(0.22)" d="M74.2 0 98.9 0 99.7 0.3 100 0.9 100 14.8 99.6 16 98.7 17 97.1 17.6 75.2 17.6 74 18.1 40.6 51.9 39 52.5 21.4 52.5 20.7 52.7 18.9 54.2 5 68 3.3 68.7 0.7 68.7 0.1 68.2 0 23.8 0.8 21.8 1.8 20.7 3 20 4.2 19.6 19.4 19.6 20.4 20.3 20.6 20.7 20.6 44.9 21.1 45.5 22.1 45.6 54.9 14.7 68.4 1.5 70.7 0.3ZM72.4 34.4 73.3 34.5 73.8 35.1 73.8 65.9 73.3 67 72.2 68.1 70.7 68.7 52.6 68.6 52.1 68.1 52 58.2 52.1 54.1 52.5 53.5Z"/></svg>';
 
