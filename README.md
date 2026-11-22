@@ -35,8 +35,8 @@ chart.drawings.startTool('trend-line');
 
 ## Documentation
 
-[docs.kumochart.com](https://docs.kumochart.com/en/), built from [`docs/`](docs): its pages in four languages under `docs/content`, and the API reference from the sources of the packages. `npm run dev:docs` serves it as you write.
+[docs.kumocharts.com](https://docs.kumocharts.com/en/), built from [`docs/`](docs): its pages in four languages under `docs/content`, and the API reference from the sources of the packages. `npm run dev:docs` serves it as you write.
 
 ## License
 
-[Apache-2.0](LICENSE). If you use Kumo Charts in a website or an app, please credit it with a link to [kumochart.com](https://kumochart.com), as [NOTICE](NOTICE) asks.
+[Apache-2.0](LICENSE). If you use Kumo Charts in a website or an app, please credit it with a link to [kumocharts.com](https://kumocharts.com), as [NOTICE](NOTICE) asks.

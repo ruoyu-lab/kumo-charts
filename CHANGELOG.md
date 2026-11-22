@@ -10,6 +10,7 @@ The packages of Kumo Charts share one version. Each release lists what changed f
 
 **Other changes**
 
+- The website, the docs and the packages' homepage are at kumocharts.com, docs.kumocharts.com and api.kumocharts.com; kumochart.com leads there.
 - `legend.title`: what the main series' row of the legend starts with, before the open, high, low and close, such as the symbol (`BTC/USDT`), in the color of the text; `null` (default) starts it with the values, as before. The row's buttons follow it, as they follow an indicator's name.
 - The time axis keeps every tick under the crosshair's time label, which is painted over them as the price label is over the price ticks: ticks beside the label no longer disappear, and moving the pointer no longer paints the axes again.
 - The crosshair's label on a price axis is drawn across the axis, as wide as the labels of the latest price and values and with its text from the same left: it was as wide as its text, and on the left axis set against the plot.

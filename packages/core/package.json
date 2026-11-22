@@ -81,7 +81,7 @@
     "url": "git+https://github.com/ruoyu-lab/kumo-charts.git",
     "directory": "packages/core"
   },
-  "homepage": "https://www.kumochart.com/",
+  "homepage": "https://kumocharts.com/",
   "bugs": {
     "url": "https://github.com/ruoyu-lab/kumo-charts/issues"
   },

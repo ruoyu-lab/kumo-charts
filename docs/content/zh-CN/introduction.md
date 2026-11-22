@@ -69,4 +69,4 @@ Chrome、Edge 99 以上，Firefox 112 以上，Safari 16 以上（包括 iOS）�
 
 ## 许可
 
-Apache-2.0，可以免费用在商业产品里。在网站或应用里用了 Kumo Charts 的话，请在用户看得到的地方（比如页脚或「关于」页）注明，并链接到 [kumochart.com](https://kumochart.com)，比如写「图表由 Kumo Charts 提供」。图表上不显示任何标志。
+Apache-2.0，可以免费用在商业产品里。在网站或应用里用了 Kumo Charts 的话，请在用户看得到的地方（比如页脚或「关于」页）注明，并链接到 [kumocharts.com](https://kumocharts.com)，比如写「图表由 Kumo Charts 提供」。图表上不显示任何标志。

@@ -22,6 +22,6 @@ export function PriceChart({ bars }: { bars: BarInput[] }) {
 }
 ```
 
-Documentation: [docs.kumochart.com/en/react](https://docs.kumochart.com/en/react/) · [中文](https://docs.kumochart.com/zh-CN/react/)
+Documentation: [docs.kumocharts.com/en/react](https://docs.kumocharts.com/en/react/) · [中文](https://docs.kumocharts.com/zh-CN/react/)
 
-Apache-2.0 License. If you use Kumo Charts in a website or an app, please credit it with a link to [kumochart.com](https://kumochart.com), as NOTICE asks.
+Apache-2.0 License. If you use Kumo Charts in a website or an app, please credit it with a link to [kumocharts.com](https://kumocharts.com), as NOTICE asks.

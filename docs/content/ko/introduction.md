@@ -69,4 +69,4 @@ Chrome, Edge 99 이상, Firefox 112 이상, Safari 16 이상(iOS 포함).
 
 ## 라이선스
 
-Apache-2.0 라이선스이며, 상용 제품에도 무료로 쓸 수 있습니다. 웹사이트나 앱에서 Kumo Charts를 쓴다면 바닥글이나 소개 페이지처럼 사용자가 볼 수 있는 곳에 [kumochart.com](https://kumochart.com) 링크와 함께 표시해 주세요(예: "Charts by Kumo Charts"). 차트 자체에는 로고를 표시하지 않습니다.
+Apache-2.0 라이선스이며, 상용 제품에도 무료로 쓸 수 있습니다. 웹사이트나 앱에서 Kumo Charts를 쓴다면 바닥글이나 소개 페이지처럼 사용자가 볼 수 있는 곳에 [kumocharts.com](https://kumocharts.com) 링크와 함께 표시해 주세요(예: "Charts by Kumo Charts"). 차트 자체에는 로고를 표시하지 않습니다.

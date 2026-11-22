@@ -24,7 +24,7 @@ const chart = createProChart(document.getElementById('chart')!, {
 
 ## 先试再买
 
-本机开发服务器上的页面（`localhost`、`127.0.0.1` 这些）不需要授权码，也没有水印，可以完整地试。放到正式网站或应用里时，没有授权码的图表左下角显示「Kumo Charts 商业版 · 未授权，仅供试用」。授权分个人和公司两档，在 [kumochart.com](https://kumochart.com/zh-CN/#pricing) 购买，付款后马上拿到授权码，规则见[授权](license.md)。
+本机开发服务器上的页面（`localhost`、`127.0.0.1` 这些）不需要授权码，也没有水印，可以完整地试。放到正式网站或应用里时，没有授权码的图表左下角显示「Kumo Charts 商业版 · 未授权，仅供试用」。授权分个人和公司两档，在 [kumocharts.com](https://kumocharts.com/zh-CN/#pricing) 购买，付款后马上拿到授权码，规则见[授权](license.md)。
 
 ## 界面一览
 
