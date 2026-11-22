@@ -11,10 +11,9 @@ import { PaneStore } from '../panes/pane-store';
 import { font } from '../canvas/canvas';
 import { BufferPool } from '../render/contributors';
 import { buildFrame, formatPaneValue, type AxisWidths, type Frame } from '../render/frame';
-import { coveredTicks, crosshairCovers } from '../render/axis-covers';
 import type { CrosshairView } from '../render/cursor-painter';
 import { paintMagnifier } from '../render/magnifier';
-import { paintScene, repaintAxes } from '../render/scene-painter';
+import { paintScene } from '../render/scene-painter';
 import { FrameScheduler } from '../render/scheduler';
 import { Surface, type LayerName } from '../render/surface';
 import { TimeMarks } from '../scales/time-ticks';
@@ -138,8 +137,6 @@ export class ChartCore {
   readonly countdown = new Countdown(this);
   /** The pane above the separator under the pointer or being dragged. */
   private hoveredSeparator: string | null = null;
-  /** The ticks the crosshair's labels covered as the scene was last painted. */
-  private coveredTicks = '';
   /** The legend as last painted, and its row under the pointer. */
   readonly legend = new LegendState();
   /** Source data after this time is hidden (replay); `Infinity` shows all. */
@@ -681,16 +678,9 @@ export class ChartCore {
             ? null
             : crosshairView(this, frame, this.tracker.value, this.tracker.mirrored);
       });
-      const labelFont = font(options.font.size, options.font.family);
-      const covers = crosshairCovers(frame, options, crosshair, (text) =>
-        this.measureText(text, labelFont)
-      );
-      // The ticks under the crosshair's labels are left out: the axes paint again as they change.
-      const covered = coveredTicks(frame, covers);
 
       if (layers.has('scene')) {
         attempt(() => {
-          this.coveredTicks = covered;
           paintScene(
             this.surface.begin('scene', origin),
             frame,
@@ -703,15 +693,8 @@ export class ChartCore {
                 painter(ctx, frame, pane, layer, ratio);
               });
             },
-            this.hoveredSeparator,
-            covers
+            this.hoveredSeparator
           );
-        });
-      } else if (covered !== this.coveredTicks) {
-        attempt(() => {
-          this.coveredTicks = covered;
-          const scene = this.surface.over('scene', origin);
-          repaintAxes(scene, frame, options, ratio, this.hoveredSeparator, covers);
         });
       }
 

@@ -9,7 +9,7 @@ import {
   priceLabelSpan,
   timeLabelCenter,
   type PriceLabelSpan
-} from './axis-covers';
+} from './crosshair-labels';
 import { placeAxisLabels } from './axis-labels';
 import type { Frame } from './frame';
 

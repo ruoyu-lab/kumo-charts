@@ -79,41 +79,35 @@ describe('rendering', () => {
     expect(all.filter((text) => !over.includes(text))).toEqual([]);
   });
 
-  it('leaves out the time ticks under the label of the crosshair while it is there, the price ticks staying', async () => {
+  it('keeps every tick under the labels of the crosshair, which lie over them on a layer of their own', async () => {
     const chart = createTestChart({ latestPrice: { label: false } });
     chart.data.set(createBars(50));
     chart.priceScale().setRange({ min: 100, max: 160 });
     const scene = canvasCalls(layer(chart, 'scene'));
-    let cleared = false;
-    const texts = () => {
-      const painted = scene.filter((call) => call.name === 'fillText');
-      cleared = scene.some((call) => call.name === 'clearRect');
-      scene.length = 0;
-      return painted.map((call) => ({ text: String(call.args[0]), x: Number(call.args[1]) }));
-    };
+    const cursor = canvasCalls(layer(chart, 'cursor'));
+    const texts = (calls: typeof scene) =>
+      calls
+        .filter((call) => call.name === 'fillText')
+        .map((call) => ({ text: String(call.args[0]), x: Number(call.args[1]) }));
     chart.screenshot();
-    const all = texts();
-    const y = chart.priceScale().priceToY(130) ?? 0;
-    const tick = all.find((each) => each.text === '130.00');
-    const timeTick = all.find((each) => /^\d\d:\d\d$/.test(each.text));
+    const ticks = texts(scene);
+    const timeTick = ticks.find((each) => /^\d\d:\d\d$/.test(each.text));
+    expect(ticks.map((each) => each.text)).toContain('130.00');
+    expect(timeTick).toBeDefined();
+
+    scene.length = 0;
+    cursor.length = 0;
     const x = (timeTick?.x ?? 0) + chart.layout().leftAxisWidth;
-    pointer(chart, 'pointermove', x, y, { buttons: 0 });
+    pointer(chart, 'pointermove', x, chart.priceScale().priceToY(130) ?? 0, { buttons: 0 });
     await nextFrame();
     chart.screenshot();
-    const hovered = texts().map((each) => each.text);
 
-    expect(tick).toBeDefined();
-    // The price label lies over the tick at its price, which is written under it.
-    expect(hovered).toContain('130.00');
-    expect(hovered).not.toContain(timeTick?.text);
-    // The axes alone paint again, over the series.
-    expect(cleared).toBe(false);
-
-    chart.element.dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'mouse' }));
-    await nextFrame();
-    chart.screenshot();
-    const left = texts().map((each) => each.text);
-    expect(left).toContain(timeTick?.text);
+    // The scene, its ticks with it, is not painted again: every tick stays, as on the price axis.
+    expect(scene).toEqual([]);
+    // The labels of the time and the price are painted over the ticks there.
+    const labels = texts(cursor).map((each) => each.text);
+    expect(labels).toContain('130.00');
+    expect(labels.some((text) => text.includes(timeTick?.text ?? '?'))).toBe(true);
   });
 
   it('writes the lines the crosshair is given under its price, evenly apart', async () => {

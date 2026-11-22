@@ -1,7 +1,6 @@
 import type { ChartOptions } from '../options/types';
 import { applyStroke, font, isolated, snap } from '../canvas/canvas';
 import type { Rect } from '../layout/layout';
-import { timeTickCovered, type CrosshairCovers } from './axis-covers';
 import type { Frame, PaneFrame, PlotJob, PriceLabel } from './frame';
 import type { SeriesPoints } from '../series/types';
 import { shapeDirection, traceShape } from '../canvas/shapes';
@@ -442,12 +441,12 @@ function paintPriceAxes(
   ctx.stroke();
 }
 
+/** The time axis and its ticks, every one: the crosshair's time label is painted over them, as its price label is over the price ticks. */
 function paintTimeAxis(
   ctx: CanvasRenderingContext2D,
   frame: Frame,
   options: ChartOptions,
-  pixelRatio: number,
-  crosshair: CrosshairCovers
+  pixelRatio: number
 ): void {
   const axis = frame.layout.timeAxis;
 
@@ -472,10 +471,6 @@ function paintTimeAxis(
   ctx.textBaseline = 'middle';
 
   for (const tick of frame.timeTicks) {
-    if (timeTickCovered(crosshair, tick)) {
-      continue;
-    }
-
     const strong = tick.unit === 'year' || tick.unit === 'month' || tick.unit === 'day';
     ctx.fillStyle = strong ? theme.text : theme.textMuted;
     ctx.fillText(tick.text, tick.x, axis.y + axis.height / 2);
@@ -558,9 +553,7 @@ export function paintScene(
   barSpacing: number,
   paintLayer: PaneLayerPainter,
   /** The pane above the separator under the pointer or being dragged. */
-  hoveredSeparator: string | null,
-  /** Where the crosshair's labels cover the axes. */
-  crosshair: CrosshairCovers
+  hoveredSeparator: string | null
 ): void {
   ctx.fillStyle = options.theme.background;
   ctx.fillRect(-frame.layout.leftAxisWidth, 0, frame.layout.width, frame.layout.height);
@@ -586,38 +579,5 @@ export function paintScene(
   paintLatestPriceLine(ctx, frame, options, pixelRatio);
   paintSeparators(ctx, frame, options, pixelRatio, hoveredSeparator);
   paintPriceAxes(ctx, frame, options, pixelRatio);
-  paintTimeAxis(ctx, frame, options, pixelRatio, crosshair);
-}
-
-/**
- * Paints the axes of the scene again, over it, as the ticks the crosshair's labels cover change:
- * the plots stay as they are. Takes what `paintScene` does.
- */
-export function repaintAxes(
-  ctx: CanvasRenderingContext2D,
-  frame: Frame,
-  options: ChartOptions,
-  pixelRatio: number,
-  hoveredSeparator: string | null,
-  crosshair: CrosshairCovers
-): void {
-  const { timeAxis } = frame.layout;
-  const axes = frame.panes.flatMap((pane) =>
-    pane.left ? [pane.axis, pane.left.axis] : [pane.axis]
-  );
-  isolated(ctx, () => {
-    ctx.beginPath();
-
-    for (const axis of timeAxis ? [...axes, timeAxis] : axes) {
-      ctx.rect(axis.x, axis.y, axis.width, axis.height);
-    }
-
-    ctx.clip();
-    ctx.fillStyle = options.theme.background;
-    ctx.fillRect(-frame.layout.leftAxisWidth, 0, frame.layout.width, frame.layout.height);
-    // The separators cross the price axes.
-    paintSeparators(ctx, frame, options, pixelRatio, hoveredSeparator);
-    paintPriceAxes(ctx, frame, options, pixelRatio);
-    paintTimeAxis(ctx, frame, options, pixelRatio, crosshair);
-  });
+  paintTimeAxis(ctx, frame, options, pixelRatio);
 }

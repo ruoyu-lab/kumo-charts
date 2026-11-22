@@ -1,10 +1,9 @@
+// Where the crosshair's labels lie on the axes. They are painted over the ticks there, on a layer
+// of their own above the scene, as the label of the latest price is over the price ticks: the
+// ticks stay.
 import type { ChartOptions } from '../options/types';
-import type { CrosshairView } from './cursor-painter';
 import { labelHeight as axisLabelHeight, placeAxisLabels } from './axis-labels';
-import type { Frame, TimeLabel } from './frame';
-
-/** Where the crosshair's label lies on the time axis, whose ticks there are left out; `null` without one. */
-export type CrosshairCovers = { readonly left: number; readonly right: number } | null;
+import type { Frame } from './frame';
 
 /** Room on either side of the text of the crosshair's labels. */
 export const LABEL_PADDING_X = 6;
@@ -122,40 +121,4 @@ function clearOf(
 /** Where the crosshair's time label of `width` is centered: at its line, within the plot. */
 export function timeLabelCenter(frame: Frame, x: number, width: number): number {
   return Math.min(Math.max(x, width / 2), Math.max(width / 2, frame.layout.plotWidth - width / 2));
-}
-
-/** Where the time label of `crosshair` lies on the time axis; `measure` gives the width of a text. */
-export function crosshairCovers(
-  frame: Frame,
-  options: ChartOptions,
-  crosshair: CrosshairView | null,
-  measure: (text: string) => number
-): CrosshairCovers {
-  if (
-    !crosshair ||
-    !options.crosshair.labels.visible ||
-    crosshair.timeText === null ||
-    !frame.layout.timeAxis
-  ) {
-    return null;
-  }
-
-  const width = measure(crosshair.timeText) + LABEL_PADDING_X * 2;
-  const center = timeLabelCenter(frame, crosshair.x, width);
-  return { left: center - width / 2, right: center + width / 2 };
-}
-
-export function timeTickCovered(covers: CrosshairCovers, tick: TimeLabel): boolean {
-  return (
-    covers !== null &&
-    tick.x + tick.width / 2 > covers.left &&
-    tick.x - tick.width / 2 < covers.right
-  );
-}
-
-/** The time ticks the crosshair's label leaves out, as a key that changes when they do. */
-export function coveredTicks(frame: Frame, covers: CrosshairCovers): string {
-  return frame.timeTicks
-    .flatMap((tick, position) => (timeTickCovered(covers, tick) ? [`t${String(position)}`] : []))
-    .join(',');
 }

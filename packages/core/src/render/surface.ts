@@ -178,12 +178,6 @@ export class Surface {
     const { canvas, ctx } = this.layers[layer];
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    return this.over(layer, originX);
-  }
-
-  /** Prepares a layer for drawing over what it holds, as `begin` does without clearing it. */
-  over(layer: LayerName, originX = 0): CanvasRenderingContext2D {
-    const { ctx } = this.layers[layer];
     ctx.setTransform(this.ratio, 0, 0, this.ratio, this.ratio * originX, 0);
     return ctx;
   }

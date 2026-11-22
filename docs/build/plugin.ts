@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import type { ServerResponse } from 'node:http';
 import { extname, join, relative } from 'node:path';
-import type { Logger, Plugin, ViteDevServer } from 'vite';
+import { normalizePath, type Logger, type Plugin, type ViteDevServer } from 'vite';
 import { LANGUAGES } from '../src/shared/ui-text';
 import { extractApi } from './api/extract';
 import type { ApiModel } from './api/model';
@@ -59,7 +59,10 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
   const config = siteConfig(options.docsDir);
   let site: Site | null = null;
   let api: ApiModel | null = null;
-  /** Files of the modules of the examples, so that they resolve and load from memory. */
+  /**
+   * Files of the modules of the examples, so that they resolve and load from memory: by their path
+   * with forward slashes, as Vite gives ids on every system.
+   */
   const modules = new Map<string, string>();
 
   const update = (built: Site) => {
@@ -67,7 +70,7 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
     modules.clear();
 
     for (const [url, code] of built.exampleModules) {
-      modules.set(join(config.siteDir, url), code);
+      modules.set(normalizePath(join(config.siteDir, url)), code);
     }
   };
 
@@ -199,7 +202,8 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
     configureServer: dev,
 
     resolveId(id) {
-      const file = id.startsWith(config.siteDir) ? id : join(config.siteDir, id);
+      const inSite = normalizePath(id).startsWith(normalizePath(config.siteDir));
+      const file = normalizePath(inSite ? id : join(config.siteDir, id));
 
       if (modules.has(file)) {
         return file;
@@ -213,7 +217,7 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
     },
 
     load(id) {
-      const module = modules.get(id);
+      const module = modules.get(normalizePath(id));
 
       if (module !== undefined) {
         return module;

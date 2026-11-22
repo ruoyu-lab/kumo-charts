@@ -1,10 +1,11 @@
 import vue from '@vitejs/plugin-vue';
 import { resolve } from 'node:path';
-import { defaultClientConditions, defineConfig, type Plugin } from 'vite';
+import { defaultClientConditions, defineConfig, normalizePath, type Plugin } from 'vite';
 import { docsPlugin } from './build/plugin';
 
 const examples = resolve(import.meta.dirname, 'src/examples');
-const examplesCore = resolve(examples, 'core.ts');
+// With forward slashes, as Vite gives importers on every system.
+const examplesCore = normalizePath(resolve(examples, 'core.ts'));
 
 /**
  * In the live examples a chart created without a theme follows the site's theme: what imports
