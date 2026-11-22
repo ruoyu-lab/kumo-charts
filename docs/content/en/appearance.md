@@ -247,6 +247,13 @@ chart.applyOptions({ legend: { rows: () => true } });
 chart.applyOptions({ legend: { rows: (item) => item.paneId !== 'main' } });
 ```
 
+The main series' row can start with the symbol, before the open, high, low and close: `legend.title` is what it starts with, `null` by default for none, and `null` again takes it away. When the row has buttons, they follow it.
+
+```ts
+chart.applyOptions({ legend: { title: 'BTC/USDT' } });
+chart.applyOptions({ legend: { title: null } });
+```
+
 Where the legend was painted: `chart.legendBounds()` gives the last place of the main pane's legend (in the pixels of `chart.layout()`; give a pane's id for another pane), `null` while it shows no row, such as for a fold button under it.
 
 Rows of your own go in the legend too, such as for something you draw over the bars that is not an indicator (a volume profile, say): `extraRows` returns them, listed after the indicators of their pane, as `rows` and `buttons` have them, with `kind: 'extra'`:

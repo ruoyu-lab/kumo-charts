@@ -110,8 +110,10 @@ function mainLegend(sources: CursorSources, frame: Frame, index: number): Legend
   const percent = previousClose === 0 ? 0 : (change / previousClose) * 100;
   const sign = change >= 0 ? '+' : '';
   const texts = textsOf(options);
+  const { title } = options.legend;
 
   return [
+    ...(title === null ? [] : [{ text: title, color: theme.text }]),
     { text: `${texts.legendOpen} ${price(bar.open)}`, color },
     { text: `${texts.legendHigh} ${price(bar.high)}`, color },
     { text: `${texts.legendLow} ${price(bar.low)}`, color },

@@ -49,6 +49,23 @@ describe('legend', () => {
     expect(labels()).toEqual(['开', '高', '低', '收', '量']);
   });
 
+  it('starts the row of the bars with its title, such as the symbol, while one is set', () => {
+    const chart = chartWithBars(100, { locale: 'en-US', latestPrice: { label: false } });
+
+    expect(legend(chart)[0]).toMatch(/^O /);
+    chart.applyOptions({ legend: { title: 'BTC/USDT' } });
+    expect(legend(chart).slice(0, 2)).toEqual(['BTC/USDT', expect.stringMatching(/^O /)]);
+    chart.applyOptions({ legend: { title: null } });
+    expect(legend(chart)).not.toContain('BTC/USDT');
+
+    expect(() => {
+      chart.applyOptions({ legend: { title: '' } });
+    }).toThrow('options.legend.title must be a non-empty string');
+    expect(() => {
+      chart.applyOptions({ legend: { title: 5 as never } });
+    }).toThrow('options.legend.title must be a non-empty string');
+  });
+
   it('wraps a row longer than a narrow chart instead of running under the price axis', () => {
     // Without the latest price's label, the legends are all the cursor layer paints.
     const options = { locale: 'en-US', latestPrice: { label: false } };

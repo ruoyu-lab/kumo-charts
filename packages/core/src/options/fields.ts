@@ -64,6 +64,7 @@ const SECTION_FIELDS: {
   }),
   legend: fieldsOf<LegendOptions>({
     visible: true,
+    title: true,
     rows: true,
     buttons: true,
     extraRows: true,

@@ -247,6 +247,13 @@ chart.applyOptions({ legend: { rows: () => true } });
 chart.applyOptions({ legend: { rows: (item) => item.paneId !== 'main' } });
 ```
 
+メイン系列の行は、始値・高値・安値・終値の前に銘柄を書けます：`legend.title` が行の先頭に書く文字で、既定の `null` では何も書かず、`null` に戻すと消えます。行にボタンがあるときは、その後ろに並びます。
+
+```ts
+chart.applyOptions({ legend: { title: 'BTC/USDT' } });
+chart.applyOptions({ legend: { title: null } });
+```
+
 凡例を描いた場所：`chart.legendBounds()` はメインペインの凡例を最後に描いた位置（`chart.layout()` と同じピクセル。ペイン ID を渡すと別のペイン）を返し、行を描いていないときは `null` です。たたむボタンを凡例の下に置くときなどに。
 
 指標ではないけれどチャートに描いているもの（出来高プロファイルなど）の行も凡例に追加できます。`extraRows` が返す行は、そのペインの指標の後に並び、`rows` と `buttons` もそのまま効きます。`kind` は `'extra'` です：

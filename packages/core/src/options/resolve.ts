@@ -160,6 +160,11 @@ function validateOptions(options: ChartOptions): void {
   }
 
   checkBoolean('options.legend.visible', options.legend.visible);
+
+  if (options.legend.title !== null) {
+    checkString('options.legend.title', options.legend.title);
+  }
+
   checkBoolean('options.legend.hideValuesOnHover', options.legend.hideValuesOnHover);
   checkNumber('options.legend.top', options.legend.top, { min: 0 });
 

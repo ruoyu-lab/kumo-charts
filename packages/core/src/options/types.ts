@@ -210,6 +210,11 @@ export interface LegendOptions {
   /** Shows the OHLC values and indicator values of the hovered (or latest) bar in each pane. */
   visible: boolean;
   /**
+   * What the main series' row starts with, before the open, high, low and close, such as the
+   * symbol: `BTC/USDT`. `null` (default) starts it with the values.
+   */
+  title: string | null;
+  /**
    * Which rows to list, the main series' row of its values among them; `null` (default) lists the
    * main series and the visible indicators and series. List hidden ones too, and they show dimmed,
    * e.g. for a button that shows them again; leave the main series out to put its values away.

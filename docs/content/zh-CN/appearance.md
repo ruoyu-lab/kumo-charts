@@ -247,6 +247,13 @@ chart.applyOptions({ legend: { rows: () => true } });
 chart.applyOptions({ legend: { rows: (item) => item.paneId !== 'main' } });
 ```
 
+主图那一行可以先写交易对，再写开高低收：`legend.title` 是写在最前面的字，默认 `null` 不写，设回 `null` 就去掉。这一行有按钮时，按钮跟在它后面。
+
+```ts
+chart.applyOptions({ legend: { title: 'BTC/USDT' } });
+chart.applyOptions({ legend: { title: null } });
+```
+
 图例画在哪：`chart.legendBounds()` 给出主图图例上次画的位置（和 `chart.layout()` 一样的像素，传窗格 id 看别的窗格），一行都没画时是 `null`。比如把收起按钮放在图例下面。
 
 图例里也可以加你自己的行，比如画在图上、但不是指标的东西（成交量分布这类）：`extraRows` 返回这些行，排在所在窗格的指标后面，`rows` 和 `buttons` 照样管，它们的 `kind` 是 `'extra'`：

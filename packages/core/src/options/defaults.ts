@@ -64,6 +64,7 @@ export function createDefaultOptions(sections: readonly OptionsSection[] = []): 
     },
     legend: {
       visible: true,
+      title: null,
       rows: null,
       buttons: null,
       extraRows: null,

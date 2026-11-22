@@ -247,6 +247,13 @@ chart.applyOptions({ legend: { rows: () => true } });
 chart.applyOptions({ legend: { rows: (item) => item.paneId !== 'main' } });
 ```
 
+메인 시리즈의 행은 시가·고가·저가·종가 앞에 종목을 쓸 수 있습니다. `legend.title`이 행 맨 앞에 쓰는 글자이고, 기본값 `null`이면 쓰지 않으며 `null`로 되돌리면 사라집니다. 행에 버튼이 있으면 그 뒤에 놓입니다.
+
+```ts
+chart.applyOptions({ legend: { title: 'BTC/USDT' } });
+chart.applyOptions({ legend: { title: null } });
+```
+
 범례를 그린 곳: `chart.legendBounds()`는 메인 창 범례를 마지막으로 그린 위치(`chart.layout()`과 같은 픽셀, 창 ID를 넘기면 다른 창)를 주고, 한 줄도 그리지 않았으면 `null`입니다. 접기 버튼을 범례 아래에 둘 때 등에 씁니다.
 
 지표는 아니지만 차트에 그리는 것(거래량 프로파일 등)의 줄도 범례에 넣을 수 있습니다. `extraRows`가 돌려주는 줄은 그 페인의 지표 뒤에 놓이고, `rows`와 `buttons`도 그대로 적용됩니다. `kind`는 `'extra'`입니다:

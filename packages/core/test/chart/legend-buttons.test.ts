@@ -132,6 +132,33 @@ describe('legend buttons', () => {
     expect(chart.timeScale.visibleLogicalRange()).toEqual(range);
   });
 
+  it('follow the title of the bars’ row, which stays while its values give way', async () => {
+    const buttons = (item: LegendItem) =>
+      item.kind === 'main' ? [{ id: 'settings', icon: CROSS }] : [];
+    const chart = chartWithBars(120, { legend: { buttons, title: 'BTC' } });
+    const clicks = vi.fn();
+    chart.on('legendButtonClick', clicks);
+    // The pointer finds the row where the legend was painted.
+    await nextFrame();
+    pointer(chart, 'pointermove', 12, 10, { buttons: 0 });
+    await nextFrame();
+    await nextFrame();
+    const texts = legendTexts(chart);
+
+    expect(texts).toContain('BTC');
+    expect(texts.some((text) => text.startsWith('O '))).toBe(false);
+
+    // Texts measure 6 pixels a character in the tests: the button is a gap after `BTC`.
+    const size = chart.options().font.size + 5;
+    const at = { x: 8 + 3 * 6 + 8 + size / 2, y: 4 + size / 2 };
+    pointer(chart, 'pointermove', at.x, at.y, { buttons: 0 });
+    await nextFrame();
+    pointer(chart, 'pointerdown', at.x, at.y);
+    pointer(chart, 'pointerup', at.x, at.y);
+
+    expect(clicks).toHaveBeenCalledWith(expect.objectContaining({ buttonId: 'settings' }));
+  });
+
   it('take the place of the values while they show, unless asked to keep them', async () => {
     const buttons = () => [{ id: 'settings', icon: CROSS }];
     const shown = async (keep: boolean) => {

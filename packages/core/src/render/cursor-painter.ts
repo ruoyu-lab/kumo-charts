@@ -333,8 +333,9 @@ function paintLegends(
       x += LEGEND_GAP - 2;
     };
     // The buttons go after the title, so that the values changing beside them do not move them;
-    // the main series' row has no title, and starts with them.
-    const buttonsAt = row.buttons.length === 0 ? -1 : item.kind === 'main' ? 0 : 1;
+    // the main series' row without `legend.title` has none, and starts with them.
+    const untitled = item.kind === 'main' && options.legend.title === null;
+    const buttonsAt = row.buttons.length === 0 ? -1 : untitled ? 0 : 1;
     // Hidden values keep their room, so that the row stays as wide under the pointer.
     const hideFrom = buttonsAt >= 0 && options.legend.hideValuesOnHover ? buttonsAt : Infinity;
 
