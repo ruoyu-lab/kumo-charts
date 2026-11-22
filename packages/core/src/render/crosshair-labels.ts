@@ -41,8 +41,13 @@ export function priceLabelSpan(
     : at;
 }
 
-/** Where the label lies at the pointer. */
-function labelAt(frame: Frame, options: ChartOptions, y: number, lines: number): PriceLabelSpan {
+/** Where the label lies at the pointer, as on the left price axis, where nothing moves it. */
+export function labelAt(
+  frame: Frame,
+  options: ChartOptions,
+  y: number,
+  lines: number
+): PriceLabelSpan {
   if (lines === 0) {
     const half = labelHeight(options) / 2;
     return { top: y - half, bottom: y + half, priceY: y, lineY: () => y };

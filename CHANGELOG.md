@@ -5,6 +5,7 @@ The packages of KumoChart share one version. Each release lists what changed for
 ## Unreleased
 
 - The time axis keeps every tick under the crosshair's time label, which is painted over them as the price label is over the price ticks: ticks beside the label no longer disappear, and moving the pointer no longer paints the axes again.
+- The crosshair's label on a price axis is drawn across the axis, as wide as the labels of the latest price and values and with its text from the same left: it was as wide as its text, and on the left axis set against the plot.
 
 ## 1.0.0-beta.8
 

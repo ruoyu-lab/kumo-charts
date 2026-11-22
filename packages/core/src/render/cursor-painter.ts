@@ -6,6 +6,7 @@ import type { Rect } from '../layout/layout';
 import { MAIN_PANE_ID } from '../panes/pane-store';
 import {
   LABEL_PADDING_X,
+  labelAt,
   priceLabelSpan,
   timeLabelCenter,
   type PriceLabelSpan
@@ -65,6 +66,17 @@ const HIDDEN_ALPHA = 0.45;
 const EMPTY_LAYOUT: LegendLayout = { rows: [], buttons: [] };
 
 /**
+ * Where a label on a price axis at `x`, `width` wide, lies across it: every label there as wide,
+ * the latest values' and the crosshair's, 1 pixel in from either edge, its text from the left.
+ */
+function axisLabelBox(
+  x: number,
+  width: number
+): { readonly left: number; readonly width: number; readonly text: number } {
+  return { left: x + 1, width: width - 2, text: x + LABEL_PADDING_X + 2 };
+}
+
+/**
  * Paints a value's label on an axis at `y` within it, with lines under the first such as the
  * countdown, in white or in `ink`; nothing beyond the axis.
  */
@@ -83,16 +95,17 @@ function paintAxisLabel(
 
   const height = options.font.size + 8;
   const top = axis.y + y - height / 2;
+  const box = axisLabelBox(axis.x, axis.width);
   ctx.font = font(options.font.size, options.font.family);
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.roundRect(axis.x + 1, top, axis.width - 2, (height - 6) * lines.length + 6, 2);
+  ctx.roundRect(box.left, top, box.width, (height - 6) * lines.length + 6, 2);
   ctx.fill();
   ctx.fillStyle = ink;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   lines.forEach((text, line) => {
-    ctx.fillText(text, axis.x + LABEL_PADDING_X + 2, top + height / 2 + 0.5 + (height - 6) * line);
+    ctx.fillText(text, box.text, top + height / 2 + 0.5 + (height - 6) * line);
   });
 }
 
@@ -160,21 +173,26 @@ function paintCrosshair(
     height
   };
 
-  if (crosshair.priceText !== null && crosshair.y !== null && options.priceScale.visible) {
-    const span = priceLabelSpan(frame, options, crosshair.y, crosshair.priceLines.length);
+  const { layout } = frame;
 
-    if (crosshair.priceLines.length === 0) {
-      drawLabel(ctx, crosshair.priceText, frame.layout.plotWidth + 1, span.priceY, {
-        ...label,
-        align: 'left'
-      });
-    } else {
-      paintPriceBlock(ctx, frame, options, crosshair.priceText, crosshair.priceLines, span);
-    }
+  if (crosshair.priceText !== null && crosshair.y !== null && options.priceScale.visible) {
+    paintPriceLabel(
+      ctx,
+      options,
+      axisLabelBox(layout.plotWidth, layout.axisWidth),
+      [crosshair.priceText, ...crosshair.priceLines],
+      priceLabelSpan(frame, options, crosshair.y, crosshair.priceLines.length)
+    );
   }
 
   if (crosshair.leftPriceText !== null && crosshair.y !== null && options.priceScale.visible) {
-    drawLabel(ctx, crosshair.leftPriceText, -1, crosshair.y, { ...label, align: 'right' });
+    paintPriceLabel(
+      ctx,
+      options,
+      axisLabelBox(-layout.leftAxisWidth, layout.leftAxisWidth),
+      [crosshair.leftPriceText],
+      labelAt(frame, options, crosshair.y, 0)
+    );
   }
 
   const axis = frame.layout.timeAxis;
@@ -190,31 +208,27 @@ function paintCrosshair(
 }
 
 /**
- * The crosshair's price label with its lines (`crosshair.labels.priceLines`): one box, as wide as its widest text, where `span`
- * puts it and its texts.
+ * The crosshair's label on a price axis: its price and the lines under it (`crosshair.labels.priceLines`) in one box
+ * across the axis, as the latest values' labels are, where `span` puts it and its texts.
  */
-function paintPriceBlock(
+function paintPriceLabel(
   ctx: CanvasRenderingContext2D,
-  frame: Frame,
   options: ChartOptions,
-  price: string,
-  lines: readonly string[],
+  box: ReturnType<typeof axisLabelBox>,
+  [price, ...lines]: readonly [string, ...string[]],
   span: PriceLabelSpan
 ): void {
   const { theme } = options;
-  const width =
-    Math.max(...[price, ...lines].map((text) => ctx.measureText(text).width)) + LABEL_PADDING_X * 2;
-  const left = frame.layout.plotWidth + 1;
   ctx.fillStyle = theme.crosshairLabelBackground;
   ctx.beginPath();
-  ctx.roundRect(left, span.top, width, span.bottom - span.top, 2);
+  ctx.roundRect(box.left, span.top, box.width, span.bottom - span.top, 2);
   ctx.fill();
   ctx.fillStyle = theme.crosshairLabelText;
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.fillText(price, left + width / 2, span.priceY + 0.5);
+  ctx.fillText(price, box.text, span.priceY + 0.5);
   lines.forEach((line, index) => {
-    ctx.fillText(line, left + width / 2, span.lineY(index) + 0.5);
+    ctx.fillText(line, box.text, span.lineY(index) + 0.5);
   });
 }
 

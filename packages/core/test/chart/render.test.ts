@@ -110,6 +110,29 @@ describe('rendering', () => {
     expect(labels.some((text) => text.includes(timeTick?.text ?? '?'))).toBe(true);
   });
 
+  it('draws the label of the crosshair across the price axis, as wide as that of the latest price', async () => {
+    const chart = createTestChart();
+    chart.data.set(createBars(50));
+    chart.priceScale().setRange({ min: 100, max: 160 });
+    const cursor = canvasCalls(layer(chart, 'cursor'));
+    chart.screenshot();
+    cursor.length = 0;
+    pointer(chart, 'pointermove', 200, chart.priceScale().priceToY(130) ?? 0, { buttons: 0 });
+    await nextFrame();
+    chart.screenshot();
+    const { plotWidth, axisWidth } = chart.layout();
+    const boxes = cursor.filter(
+      (call) => call.name === 'roundRect' && Number(call.args[0]) === plotWidth + 1
+    );
+    const texts = cursor.filter(
+      (call) => call.name === 'fillText' && Number(call.args[1]) > plotWidth
+    );
+
+    // The latest price's and the crosshair's, each across the axis, their texts from the same left.
+    expect(boxes.map((call) => Number(call.args[2]))).toEqual([axisWidth - 2, axisWidth - 2]);
+    expect(new Set(texts.map((call) => Number(call.args[1]))).size).toBe(1);
+  });
+
   it('writes the lines the crosshair is given under its price, evenly apart', async () => {
     const asked: [number, string][] = [];
     const chart = createTestChart({
