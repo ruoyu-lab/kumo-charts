@@ -1,6 +1,6 @@
 # License
 
-The rule of the commercial edition is that **only development on your own computer is free of a license**: use it as you like on a development server on your own computer, and put it on a production website or app with a commercial license key. Licenses are sold at [kumochart.com](https://kumochart.com/components/), personal and company, and the license key comes right after payment.
+The rule of the commercial edition is that **only development on your own computer is free of a license**: use it as you like on a development server on your own computer, and put it on a production website or app with a commercial license key. Licenses are sold at [kumochart.com](https://kumochart.com/en/#pricing), personal and company, and the license key comes right after payment.
 
 ## What the commercial license includes
 
