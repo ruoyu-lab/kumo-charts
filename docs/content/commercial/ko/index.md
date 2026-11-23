@@ -24,7 +24,7 @@ const chart = createProChart(document.getElementById('chart')!, {
 
 ## 사기 전에 써 보기
 
-내 컴퓨터의 개발 서버에 있는 페이지(`localhost`, `127.0.0.1` 등)는 라이선스 키가 필요 없고 워터마크도 없으므로 모든 기능을 써 볼 수 있습니다. 정식 웹사이트나 앱에 올리면 라이선스 키가 없는 차트는 왼쪽 아래에 "Kumo Charts 상업용 · 라이선스 미등록, 평가 전용"을 표시합니다. 라이선스는 개인과 기업 두 종류이며 [kumocharts.com](https://kumocharts.com/ko/#pricing)에서 구매하고, 결제하면 바로 라이선스 키를 받습니다. 규칙은 [라이선스](license.md)를 참고하세요.
+내 컴퓨터의 개발 서버에 있는 페이지(`http://localhost:5173` 등. 흔히 쓰는 개발 포트가 해당되며, [라이선스](license.md)를 보세요)는 라이선스 키가 필요 없고 워터마크도 없으므로 모든 기능을 써 볼 수 있습니다. 정식 웹사이트나 앱에 올리면 라이선스 키가 없는 차트는 왼쪽 아래에 "Kumo Charts 상업용 · 라이선스 미등록, 평가 전용"을 표시합니다. 라이선스는 개인과 기업 두 종류이며 [kumocharts.com](https://kumocharts.com/ko/#pricing)에서 구매하고, 결제하면 바로 라이선스 키를 받습니다. 규칙은 [라이선스](license.md)를 참고하세요.
 
 ## 화면 둘러보기
 

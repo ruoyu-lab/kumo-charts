@@ -24,7 +24,7 @@ All of these are in the pro chart, and one commercial license key covers all of 
 
 ## Try before you buy
 
-Pages on a development server on your own computer (`localhost`, `127.0.0.1` and the like) need no license key and show no watermark, so everything can be tried in full. On a production website or app, a chart without a license key shows "Kumo Charts Commercial · unlicensed, for evaluation only" in its bottom left corner. There are two licenses, personal and company, sold at [kumocharts.com](https://kumocharts.com/en/#pricing); the license key comes right after payment. The rules are on [License](license.md).
+Pages on a development server on your own computer (such as `http://localhost:5173`: the usual development ports count, see [License](license.md)) need no license key and show no watermark, so everything can be tried in full. On a production website or app, a chart without a license key shows "Kumo Charts Commercial · unlicensed, for evaluation only" in its bottom left corner. There are two licenses, personal and company, sold at [kumocharts.com](https://kumocharts.com/en/#pricing); the license key comes right after payment. The rules are on [License](license.md).
 
 ## A tour of the interface
 
