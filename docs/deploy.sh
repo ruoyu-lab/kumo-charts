@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # Deploys the documentation site: builds docs/dist and puts it on the server in place of the one there.
 #
-#   KUMOCHART_SERVER=<ssh host> docs/deploy.sh
+#   KUMOCHARTS_SERVER=<ssh host> docs/deploy.sh
 #
 # The host is one ssh reaches without a password (a name of ~/.ssh/config). The site is the library as this checkout
 # has it, so check out the version published as latest first, for the site to match what users install. The web
 # server's configuration and certificate for docs.kumocharts.com are set up with the website's, not here.
 set -euo pipefail
 
-SERVER="${KUMOCHART_SERVER:?Set KUMOCHART_SERVER to the ssh host of the server.}"
+SERVER="${KUMOCHARTS_SERVER:?Set KUMOCHARTS_SERVER to the ssh host of the server.}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-REMOTE=/srv/kumochart/www/docs
+REMOTE=/srv/kumocharts/www/docs
 
 echo "== Building the site"
 (cd "$ROOT" && npm run build:docs)
