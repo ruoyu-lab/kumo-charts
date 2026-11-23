@@ -18,6 +18,6 @@ chart.data.set(bars, { interval: '1m' });
 chart.indicators.add({ type: 'MACD' });
 ```
 
-Documentation: [docs.kumocharts.com](https://docs.kumocharts.com/en/) · [中文文档](https://docs.kumocharts.com/zh-CN/)
+Documentation: [kumocharts.com/docs](https://kumocharts.com/docs/en/) · [中文文档](https://kumocharts.com/docs/zh-CN/)
 
 Apache-2.0 License. If you use Kumo Charts in a website or an app, please credit it with a link to [kumocharts.com](https://kumocharts.com), as NOTICE asks.

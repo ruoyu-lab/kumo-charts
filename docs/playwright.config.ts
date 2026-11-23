@@ -18,7 +18,7 @@ export default defineConfig({
   webServer: {
     command: `npm run build && npm run preview -- --outDir .cache/e2e --host 127.0.0.1 --port ${port} --strictPort`,
     env: { DOCS_DIR: 'test/fixtures/docs', DOCS_OUT_DIR: '.cache/e2e' },
-    url: `${url}/zh-CN/`,
+    url: `${url}/docs/zh-CN/`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000
   }

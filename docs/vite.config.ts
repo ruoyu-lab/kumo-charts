@@ -2,6 +2,7 @@ import vue from '@vitejs/plugin-vue';
 import { resolve } from 'node:path';
 import { defaultClientConditions, defineConfig, normalizePath, type Plugin } from 'vite';
 import { docsPlugin } from './build/plugin';
+import { BASE } from './src/shared/base';
 
 const examples = resolve(import.meta.dirname, 'src/examples');
 // With forward slashes, as Vite gives importers on every system.
@@ -20,6 +21,8 @@ const liveCore: Plugin = {
 
 export default defineConfig({
   root: import.meta.dirname,
+  // Served at kumocharts.com/docs/: the addresses of the pages start with it (src/shared/base.ts).
+  base: BASE,
   appType: 'mpa',
   plugins: [
     // The documentation, or the pages of the tests with DOCS_DIR=test/fixtures/docs.

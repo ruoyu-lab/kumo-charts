@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { siteUrl } from '../src/shared/base';
 import { LANGUAGES, SOURCE_LANGUAGE, type Language } from '../src/shared/ui-text';
 import type { SiteConfig } from './config';
 import { EDITION_DIRECTORY, EDITIONS, type Edition } from './editions';
@@ -51,13 +52,13 @@ export interface Content {
 }
 
 /**
- * The address of a page of an edition: `/zh-CN/` for the library's home page, `/zh-CN/data/` for
- * its `data.md`, `/zh-CN/commercial/data/` for the commercial edition's.
+ * The address of a page of an edition: `/docs/zh-CN/` for the library's home page, `/docs/zh-CN/data/`
+ * for its `data.md`, `/docs/zh-CN/commercial/data/` for the commercial edition's.
  */
 export function pageUrl(language: Language, file: string, edition: Edition): string {
   const directory = EDITION_DIRECTORY[edition];
   const path = file.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '/');
-  return `/${language}/${directory === '' ? '' : `${directory}/`}${path}`;
+  return siteUrl(`${language}/${directory === '' ? '' : `${directory}/`}${path}`);
 }
 
 /** The directory of an edition's navigation and languages. */

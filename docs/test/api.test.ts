@@ -148,7 +148,7 @@ describe('the API reference', () => {
     );
     expect(page.html).toContain('<h3 id="createChart"><code>createChart</code>');
     expect(page.html).toContain(
-      '<a href="/en/api/core/#ChartModule"><span class="t-function">ChartModule</span></a>'
+      '<a href="/docs/en/api/core/#ChartModule"><span class="t-function">ChartModule</span></a>'
     );
     expect(page.html).toContain('<div class="api-member" id="DataApi.set">');
     expect(

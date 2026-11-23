@@ -41,7 +41,7 @@ async function scrolledAfter(page: Page, act: () => Promise<void>): Promise<numb
 }
 
 test('the links of the contents glide the page to their heading', async ({ page }) => {
-  await page.goto('/zh-CN/guide/');
+  await page.goto('/docs/zh-CN/guide/');
   const link = page.locator('.toc').getByRole('link', { name: '代码块' });
   const jumped = await scrolledAfter(page, () => link.click());
   const heading = page.getByRole('heading', { name: '代码块' });
@@ -55,9 +55,9 @@ test('the links of the contents glide the page to their heading', async ({ page 
 });
 
 test('the sidebar, the pager and the contents lead through the pages', async ({ page }) => {
-  await page.goto('/zh-CN/');
+  await page.goto('/docs/zh-CN/');
   await page.locator('.sidebar').getByRole('link', { name: '写法示例' }).click();
-  await expect(page).toHaveURL('/zh-CN/guide/');
+  await expect(page).toHaveURL('/docs/zh-CN/guide/');
   await expect(page.locator('h1')).toHaveText('写法示例');
   await expect(page.locator('.sidebar [aria-current="page"]')).toHaveText('写法示例');
 
@@ -66,47 +66,47 @@ test('the sidebar, the pager and the contents lead through the pages', async ({ 
   await expect(page.locator('.toc [aria-current="true"]')).toHaveText('代码块');
 
   await page.locator('.pager-next').click();
-  await expect(page).toHaveURL('/zh-CN/live/');
+  await expect(page).toHaveURL('/docs/zh-CN/live/');
   await page.locator('.pager-previous').click();
-  await expect(page).toHaveURL('/zh-CN/guide/');
+  await expect(page).toHaveURL('/docs/zh-CN/guide/');
 });
 
 test('the language switch keeps the page, and the root opens the language last read', async ({
   page
 }) => {
-  await page.goto('/zh-CN/live/');
+  await page.goto('/docs/zh-CN/live/');
   await page.getByRole('button', { name: '语言' }).click();
   await page.getByRole('menuitemradio', { name: 'English' }).click();
-  await expect(page).toHaveURL('/en/live/');
+  await expect(page).toHaveURL('/docs/en/live/');
   await expect(page.locator('.notice')).toHaveText(
     'This page has not been translated yet; it is shown in Chinese.'
   );
   await expect(page.locator('.sidebar [aria-current="page"]')).toHaveText('Live charts');
 
-  await page.goto('/en/guide/');
+  await page.goto('/docs/en/guide/');
   await expect(page.locator('.notice')).toHaveCount(0);
   await expect(page.locator('h1')).toHaveText('Writing pages');
 
-  await page.goto('/');
-  await expect(page).toHaveURL('/en/');
+  await page.goto('/docs/');
+  await expect(page).toHaveURL('/docs/en/');
   await page.getByRole('button', { name: 'Language' }).click();
   await page.getByRole('menuitemradio', { name: '日本語' }).click();
-  await expect(page).toHaveURL('/ja/');
+  await expect(page).toHaveURL('/docs/ja/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ja');
-  await page.goto('/');
-  await expect(page).toHaveURL('/ja/');
+  await page.goto('/docs/');
+  await expect(page).toHaveURL('/docs/ja/');
 });
 
 test("the root opens the first of the reader's languages the site has", async ({ browser }) => {
   const context = await browser.newContext({ locale: 'ko-KR' });
   const page = await context.newPage();
-  await page.goto('/');
-  await expect(page).toHaveURL('/ko/');
+  await page.goto('/docs/');
+  await expect(page).toHaveURL('/docs/ko/');
   await context.close();
 });
 
 test('the search finds Chinese words and API symbols, and opens a result', async ({ page }) => {
-  await page.goto('/zh-CN/guide/');
+  await page.goto('/docs/zh-CN/guide/');
   await page.keyboard.press('ControlOrMeta+k');
   const input = page.getByRole('searchbox', { name: '搜索文档' });
   await expect(input).toBeFocused();
@@ -117,9 +117,12 @@ test('the search finds Chinese words and API symbols, and opens a result', async
   await expect(results.first().locator('mark').first()).toHaveText('均线');
 
   await input.fill('setTimeframe');
-  await expect(results.first()).toHaveAttribute('href', '/zh-CN/api/core/#DataApi.setTimeframe');
+  await expect(results.first()).toHaveAttribute(
+    'href',
+    '/docs/zh-CN/api/core/#DataApi.setTimeframe'
+  );
   await input.press('Enter');
-  await expect(page).toHaveURL('/zh-CN/api/core/#DataApi.setTimeframe');
+  await expect(page).toHaveURL('/docs/zh-CN/api/core/#DataApi.setTimeframe');
   await expect(page.locator('[id="DataApi.setTimeframe"]')).toBeInViewport();
 
   await page.getByRole('button', { name: '搜索' }).click();
@@ -161,7 +164,7 @@ async function paintedColors(page: Page, url: RegExp): Promise<number> {
 }
 
 test('live examples draw real charts from their code', async ({ page }) => {
-  await page.goto('/zh-CN/live/');
+  await page.goto('/docs/zh-CN/live/');
   const frames = page.locator('iframe.live-frame');
   await expect(frames).toHaveCount(2);
 
@@ -187,7 +190,7 @@ test('live examples draw real charts from their code', async ({ page }) => {
 });
 
 test('Vue and React examples mount their component', async ({ page }) => {
-  await page.goto('/zh-CN/frameworks/');
+  await page.goto('/docs/zh-CN/frameworks/');
   const frames = page.locator('iframe.live-frame');
 
   for (const [index, url] of [/frameworks\/1\.html$/, /frameworks\/2\.html$/].entries()) {
@@ -198,7 +201,7 @@ test('Vue and React examples mount their component', async ({ page }) => {
 
 test('code blocks copy their code', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await page.goto('/zh-CN/guide/');
+  await page.goto('/docs/zh-CN/guide/');
   const block = page.locator('.code-block', { hasText: 'npm install' });
   await block.hover();
   await block.getByRole('button', { name: '复制' }).click();
@@ -212,7 +215,7 @@ test('the theme follows the system until one is chosen, live examples with it', 
   page
 }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
-  await page.goto('/zh-CN/live/');
+  await page.goto('/docs/zh-CN/live/');
   const root = page.locator('html');
   await expect(root).toHaveAttribute('data-theme', 'dark');
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(8, 8, 8)');
@@ -239,30 +242,38 @@ test('the theme follows the system until one is chosen, live examples with it', 
 });
 
 test('the API reference has anchors that guides and its own types link to', async ({ page }) => {
-  await page.goto('/zh-CN/guide/');
+  await page.goto('/docs/zh-CN/guide/');
   await page.getByRole('link', { name: 'createChart()' }).click();
-  await expect(page).toHaveURL('/zh-CN/api/core/#createChart');
+  await expect(page).toHaveURL('/docs/zh-CN/api/core/#createChart');
   await expect(page.locator('[id="createChart"]')).toBeInViewport();
 
   await page
     .locator('[id="createChart"] + .code-block a, [id="createChart"] ~ pre a')
     .first()
     .click();
-  await expect(page).toHaveURL('/zh-CN/api/core/#ChartModule');
+  await expect(page).toHaveURL('/docs/zh-CN/api/core/#ChartModule');
   await expect(page.locator('[id="ChartModule"]')).toBeInViewport();
 });
 
 test('the page of a missing address offers the way home', async ({ page }) => {
-  await page.goto('/404.html');
+  await page.goto('/docs/404.html');
   await expect(page.locator('h1:visible')).toHaveText('找不到这个页面');
-  await expect(page.getByRole('link', { name: '回到首页' })).toHaveAttribute('href', '/zh-CN/');
+  await expect(page.getByRole('link', { name: '回到首页' })).toHaveAttribute(
+    'href',
+    '/docs/zh-CN/'
+  );
 });
 
 test.describe('on a phone', () => {
   test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
   test('the navigation is a drawer and nothing scrolls sideways', async ({ page }) => {
-    for (const url of ['/zh-CN/guide/', '/zh-CN/live/', '/en/api/core/', '/zh-CN/frameworks/']) {
+    for (const url of [
+      '/docs/zh-CN/guide/',
+      '/docs/zh-CN/live/',
+      '/docs/en/api/core/',
+      '/docs/zh-CN/frameworks/'
+    ]) {
       await page.goto(url);
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - window.innerWidth
@@ -270,14 +281,14 @@ test.describe('on a phone', () => {
       expect(overflow, url).toBeLessThanOrEqual(0);
     }
 
-    await page.goto('/zh-CN/guide/');
+    await page.goto('/docs/zh-CN/guide/');
     const sidebar = page.locator('#sidebar');
     await expect(sidebar).not.toBeInViewport();
 
     await page.getByRole('button', { name: '打开目录' }).click();
     await expect(sidebar).toBeInViewport();
     await sidebar.getByRole('link', { name: 'Vue 和 React' }).click();
-    await expect(page).toHaveURL('/zh-CN/frameworks/');
+    await expect(page).toHaveURL('/docs/zh-CN/frameworks/');
     await expect(page.locator('#sidebar')).not.toBeInViewport();
 
     await page.getByRole('button', { name: '打开目录' }).click();

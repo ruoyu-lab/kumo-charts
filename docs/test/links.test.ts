@@ -22,7 +22,9 @@ const targets: LinkTargets = {
     language === 'zh-CN' || (edition === 'open' && file === 'guide.md'),
   planned: (edition, file) => edition === 'open' && file === 'planned.md',
   api: (fragment, language) =>
-    fragment === 'createChart' ? `/${language}/api/core/#createChart` : { error: `no ${fragment}` }
+    fragment === 'createChart'
+      ? `/docs/${language}/api/core/#createChart`
+      : { error: `no ${fragment}` }
 };
 
 const guide: LinkSource = {
@@ -46,11 +48,11 @@ describe('the links of a page', () => {
   });
 
   it('turn links between pages into addresses of the site, with their anchors checked', () => {
-    expect(link('live.md')).toEqual({ href: '/zh-CN/live/' });
+    expect(link('live.md')).toEqual({ href: '/docs/zh-CN/live/' });
     expect(link('./live.md#%E6%8C%89%E6%88%90%E4%BA%A4%E7%94%9F%E6%88%90-k-%E7%BA%BF')).toEqual({
-      href: '/zh-CN/live/#%E6%8C%89%E6%88%90%E4%BA%A4%E7%94%9F%E6%88%90-k-%E7%BA%BF'
+      href: '/docs/zh-CN/live/#%E6%8C%89%E6%88%90%E4%BA%A4%E7%94%9F%E6%88%90-k-%E7%BA%BF'
     });
-    expect(link('../en/guide.md')).toEqual({ href: '/en/guide/' });
+    expect(link('../en/guide.md')).toEqual({ href: '/docs/en/guide/' });
     expect(link('live.md#nope')).toEqual({
       href: 'live.md#nope',
       error: 'there is no heading #nope on zh-CN/live.md'
@@ -63,7 +65,7 @@ describe('the links of a page', () => {
 
   it('warn about pages not written or not translated yet', () => {
     expect(link('planned.md')).toEqual({
-      href: '/zh-CN/planned/',
+      href: '/docs/zh-CN/planned/',
       warning: 'links to planned.md, which is not written yet'
     });
 
@@ -74,14 +76,14 @@ describe('the links of a page', () => {
       path: join(config.docsDir, 'en/guide.md')
     } as const;
     expect(link('live.md', english)).toEqual({
-      href: '/en/live/',
+      href: '/docs/en/live/',
       warning: 'links to en/live.md, which is not translated yet'
     });
   });
 
   it('link the pages of the other edition, and within the commercial one', () => {
     expect(link('../commercial/zh-CN/start.md#%E6%8E%A5%E5%85%A5')).toEqual({
-      href: '/zh-CN/commercial/start/#%E6%8E%A5%E5%85%A5'
+      href: '/docs/zh-CN/commercial/start/#%E6%8E%A5%E5%85%A5'
     });
 
     const start: LinkSource = {
@@ -89,10 +91,10 @@ describe('the links of a page', () => {
       path: join(config.docsDir, 'commercial/zh-CN/start.md'),
       anchors: new Set(['接入'])
     };
-    expect(link('../../zh-CN/live.md', start)).toEqual({ href: '/zh-CN/live/' });
-    expect(link('start.md', start)).toEqual({ href: '/zh-CN/commercial/start/' });
+    expect(link('../../zh-CN/live.md', start)).toEqual({ href: '/docs/zh-CN/live/' });
+    expect(link('start.md', start)).toEqual({ href: '/docs/zh-CN/commercial/start/' });
     expect(link('../../api.md#createChart', start)).toEqual({
-      href: '/zh-CN/api/core/#createChart'
+      href: '/docs/zh-CN/api/core/#createChart'
     });
     expect(link('missing.md', start)).toEqual({
       href: 'missing.md',
@@ -105,18 +107,18 @@ describe('the links of a page', () => {
       path: join(config.docsDir, 'commercial/en/start.md')
     };
     expect(link('start.md', english)).toEqual({
-      href: '/en/commercial/start/',
+      href: '/docs/en/commercial/start/',
       warning: 'links to commercial/en/start.md, which is not translated yet'
     });
   });
 
   it('keep an untranslated page in the language it is shown in', () => {
-    expect(link('live.md', { ...guide, language: 'en' })).toEqual({ href: '/en/live/' });
+    expect(link('live.md', { ...guide, language: 'en' })).toEqual({ href: '/docs/en/live/' });
   });
 
   it('link the API reference through api.md', () => {
-    expect(link('../api.md')).toEqual({ href: '/zh-CN/api/' });
-    expect(link('../api.md#createChart')).toEqual({ href: '/zh-CN/api/core/#createChart' });
+    expect(link('../api.md')).toEqual({ href: '/docs/zh-CN/api/' });
+    expect(link('../api.md#createChart')).toEqual({ href: '/docs/zh-CN/api/core/#createChart' });
     expect(link('../api.md#nothing')).toEqual({ href: '../api.md#nothing', error: 'no nothing' });
   });
 

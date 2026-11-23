@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, relative, resolve } from 'node:path';
 import type { Token } from 'markdown-it';
+import { BASE, sitePath, siteUrl } from '../src/shared/base';
 import { LANGUAGES, SOURCE_LANGUAGE, UI_TEXT, type Language } from '../src/shared/ui-text';
 import { extractApi } from './api/extract';
 import type { ApiModel } from './api/model';
@@ -21,6 +22,7 @@ import {
   codeBlockHtml,
   exampleHtml,
   exampleModules,
+  exampleUrl,
   liveExampleHtml,
   type LiveExample
 } from './examples';
@@ -50,11 +52,11 @@ import { buildSearchIndex, searchIndexFile, type SearchPage } from './search-ind
 
 /** The site, built in memory: what the dev server serves and the build writes. */
 export interface Site {
-  /** Every page by address, such as `/zh-CN/data/`, with `/` and `/404.html`. */
+  /** Every page by address, such as `/docs/zh-CN/data/`, with `/docs/` and `/docs/404.html`. */
   readonly pages: ReadonlyMap<string, string>;
-  /** The frames of the live examples by address, such as `/examples/zh-CN/data/1.html`. */
+  /** The frames of the live examples by address, such as `/docs/examples/zh-CN/data/1.html`. */
   readonly examplePages: ReadonlyMap<string, string>;
-  /** The code of the live examples by address, such as `/examples/zh-CN/data/1.ts`. */
+  /** The code of the live examples by module id, such as `/examples/zh-CN/data/1.ts`. */
   readonly exampleModules: ReadonlyMap<string, string>;
   /** The search index of each language by address. */
   readonly searchIndexes: ReadonlyMap<string, string>;
@@ -63,7 +65,7 @@ export interface Site {
   readonly warnings: readonly Problem[];
 }
 
-export const NOT_FOUND_URL = '/404.html';
+export const NOT_FOUND_URL = siteUrl('404.html');
 
 let highlighter: Promise<Highlighter> | null = null;
 
@@ -144,11 +146,11 @@ function rootPage(): string {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Kumo Charts</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-<script>(()=>{const s=${JSON.stringify(LANGUAGES)};let l=null;try{l=localStorage.getItem(${JSON.stringify(LANGUAGE_STORAGE_KEY)})}catch{}if(!s.includes(l)){l=navigator.languages.map((x)=>s.find((y)=>x.toLowerCase().startsWith(y.split('-')[0]))).find(Boolean)??'en'}location.replace('/'+l+'/')})()</script>
-<noscript><meta http-equiv="refresh" content="0; url=/${SOURCE_LANGUAGE}/" /></noscript>
+<script>(()=>{const s=${JSON.stringify(LANGUAGES)};let l=null;try{l=localStorage.getItem(${JSON.stringify(LANGUAGE_STORAGE_KEY)})}catch{}if(!s.includes(l)){l=navigator.languages.map((x)=>s.find((y)=>x.toLowerCase().startsWith(y.split('-')[0]))).find(Boolean)??'en'}location.replace(${JSON.stringify(BASE)}+l+'/')})()</script>
+<noscript><meta http-equiv="refresh" content="0; url=${siteUrl(`${SOURCE_LANGUAGE}/`)}" /></noscript>
 </head>
 <body>
-<p>${LANGUAGES.map((language) => `<a href="/${language}/">${escapeHtml(UI_TEXT[language].languageName)}</a>`).join(' · ')}</p>
+<p>${LANGUAGES.map((language) => `<a href="${siteUrl(`${language}/`)}">${escapeHtml(UI_TEXT[language].languageName)}</a>`).join(' · ')}</p>
 </body>
 </html>
 `;
@@ -157,10 +159,10 @@ function rootPage(): string {
 function notFoundPage(repository: string): string {
   const message = (language: Language) => {
     const text = UI_TEXT[language];
-    return `<div class="not-found" lang="${language}" data-not-found="${language}"${language === SOURCE_LANGUAGE ? '' : ' hidden'}><h1>${escapeHtml(text.notFoundTitle)}</h1><p>${escapeHtml(text.notFoundText)}</p><p><a href="/${language}/">${escapeHtml(text.backHome)}</a></p></div>`;
+    return `<div class="not-found" lang="${language}" data-not-found="${language}"${language === SOURCE_LANGUAGE ? '' : ' hidden'}><h1>${escapeHtml(text.notFoundTitle)}</h1><p>${escapeHtml(text.notFoundText)}</p><p><a href="${siteUrl(`${language}/`)}">${escapeHtml(text.backHome)}</a></p></div>`;
   };
   const alternates = Object.fromEntries(
-    LANGUAGES.map((language) => [language, `/${language}/`])
+    LANGUAGES.map((language) => [language, siteUrl(`${language}/`)])
   ) as Record<Language, string>;
   return `<!doctype html>
 <html lang="${SOURCE_LANGUAGE}">
@@ -257,7 +259,7 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
     }
 
     const hash = createHash('sha256').update(readFileSync(path)).digest('hex').slice(0, 10);
-    const url = `/docs-assets/${basename(path, extname(path))}.${hash}${extname(path)}`;
+    const url = siteUrl(`docs-assets/${basename(path, extname(path))}.${hash}${extname(path)}`);
     images.set(url, path);
     return url;
   };
@@ -375,7 +377,10 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
 
   const alternatesOf = (url: string): Record<Language, string> =>
     Object.fromEntries(
-      LANGUAGES.map((language) => [language, url.replace(/^\/[^/]+\//, `/${language}/`)])
+      LANGUAGES.map((language) => [
+        language,
+        siteUrl((sitePath(url) ?? '').replace(/^[^/]+\//, `${language}/`))
+      ])
     ) as Record<Language, string>;
 
   /** The common parts of the pages of a language of an edition, and their reading order. */
@@ -457,7 +462,7 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
     }
   }
 
-  pages.set('/', rootPage());
+  pages.set(BASE, rootPage());
   pages.set(NOT_FOUND_URL, notFoundPage(config.repository));
 
   const examplePages = new Map<string, string>();
@@ -465,7 +470,7 @@ export async function buildSite(config: SiteConfig, api?: ApiModel): Promise<Sit
 
   for (const example of examples.values()) {
     examplePages.set(
-      `/examples/${example.id}.html`,
+      exampleUrl(example.id),
       exampleHtml(example, example.id.split('/')[0] as Language)
     );
 

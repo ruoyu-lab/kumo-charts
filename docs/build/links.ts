@@ -1,5 +1,6 @@
 import { existsSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
+import { siteUrl } from '../src/shared/base';
 import { isLanguage, type Language } from '../src/shared/ui-text';
 import type { SiteConfig } from './config';
 import { pageUrl } from './content';
@@ -10,7 +11,7 @@ export const API_LINK_FILE = 'api.md';
 
 /** Where the API reference starts in a language. */
 export function apiUrl(language: Language): string {
-  return `/${language}/api/`;
+  return siteUrl(`${language}/api/`);
 }
 
 /** The pages and symbols links can point at. */

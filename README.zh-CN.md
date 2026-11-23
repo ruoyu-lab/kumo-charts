@@ -35,7 +35,7 @@ chart.drawings.startTool('trend-line');
 
 ## 文档
 
-[docs.kumocharts.com](https://docs.kumocharts.com/zh-CN/)，由 [`docs/`](docs) 生成：四种语言的页面在 `docs/content`，API 参考按各个包的源码生成。写文档时 `npm run dev:docs` 边写边看。
+[kumocharts.com/docs](https://kumocharts.com/docs/zh-CN/)，由 [`docs/`](docs) 生成：四种语言的页面在 `docs/content`，API 参考按各个包的源码生成。写文档时 `npm run dev:docs` 边写边看。
 
 ## 许可
 

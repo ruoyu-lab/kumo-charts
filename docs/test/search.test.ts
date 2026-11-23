@@ -6,7 +6,7 @@ const index = prepareIndex(
   buildSearchIndex([
     {
       title: '指标',
-      url: '/zh-CN/indicators/',
+      url: '/docs/zh-CN/indicators/',
       sections: [
         { anchor: '', heading: '指标', text: '图表自带常用的技术指标，比如均线和成交量。' },
         {
@@ -18,7 +18,7 @@ const index = prepareIndex(
     },
     {
       title: '数据',
-      url: '/zh-CN/data/',
+      url: '/docs/zh-CN/data/',
       sections: [
         { anchor: '', heading: '数据', text: '用 chart.data.set() 设置 K 线，周期由图表合成。' },
         { anchor: 'trades', heading: '逐笔成交', text: 'addTrades() folds trades into the bars.' }
@@ -26,7 +26,7 @@ const index = prepareIndex(
     },
     {
       title: '@kumo-charts/core',
-      url: '/zh-CN/api/core/',
+      url: '/docs/zh-CN/api/core/',
       sections: [
         {
           anchor: 'DataApi.addTrades',
@@ -41,19 +41,19 @@ const index = prepareIndex(
 describe('the search', () => {
   it('finds Chinese words inside the text', () => {
     expect(search(index, '均线').map((result) => result.url)).toEqual([
-      '/zh-CN/indicators/',
-      '/zh-CN/indicators/#添加指标'
+      '/docs/zh-CN/indicators/',
+      '/docs/zh-CN/indicators/#添加指标'
     ]);
-    expect(search(index, '成交')[0]?.url).toBe('/zh-CN/data/#trades');
+    expect(search(index, '成交')[0]?.url).toBe('/docs/zh-CN/data/#trades');
   });
 
   it('needs every word of the query and ranks headings first', () => {
     expect(search(index, '指标 添加').map((result) => result.url)).toEqual([
-      '/zh-CN/indicators/#添加指标'
+      '/docs/zh-CN/indicators/#添加指标'
     ]);
     expect(search(index, 'addtrades').map((result) => result.url)).toEqual([
-      '/zh-CN/api/core/#DataApi.addTrades',
-      '/zh-CN/data/#trades'
+      '/docs/zh-CN/api/core/#DataApi.addTrades',
+      '/docs/zh-CN/data/#trades'
     ]);
     expect(search(index, '均线 nothing')).toEqual([]);
     expect(search(index, '   ')).toEqual([]);

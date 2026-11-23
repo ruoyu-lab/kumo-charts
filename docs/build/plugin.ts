@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import type { ServerResponse } from 'node:http';
 import { extname, join, relative } from 'node:path';
 import { normalizePath, type Logger, type Plugin, type ViteDevServer } from 'vite';
+import { sitePath, siteUrl } from '../src/shared/base';
 import { LANGUAGES } from '../src/shared/ui-text';
 import { extractApi } from './api/extract';
 import type { ApiModel } from './api/model';
@@ -15,9 +16,15 @@ export interface DocsPluginOptions {
   readonly docsDir: string;
 }
 
-/** The file a page or frame is built to: `/zh-CN/data/` is `zh-CN/data/index.html`. */
+/** The file a page or frame is built to: `/docs/zh-CN/data/` is `zh-CN/data/index.html`. */
 export function htmlFile(siteDir: string, url: string): string {
-  return join(siteDir, url.endsWith('/') ? `${url}index.html` : url);
+  const path = sitePath(url) ?? url;
+  return join(siteDir, path === '' || path.endsWith('/') ? `${path}index.html` : path);
+}
+
+/** The address of a page or frame from its file: `zh-CN/data/index.html` is `/docs/zh-CN/data/`. */
+function fileUrl(siteDir: string, file: string): string {
+  return siteUrl(displayPath(siteDir, file).replace(/(^|\/)index\.html$/, '$1'));
 }
 
 const TYPES: Readonly<Record<string, string>> = {
@@ -43,10 +50,13 @@ function warn(logger: Logger, config: SiteConfig, site: Site): void {
 
 /** Whether an address can only be a page of the site, so that it is a missing page if unknown. */
 function isPageAddress(url: string): boolean {
+  const path = sitePath(url);
   return (
-    url.endsWith('/') ||
-    url.endsWith('.html') ||
-    LANGUAGES.some((language) => url === `/${language}` || url.startsWith(`/${language}/`))
+    path !== null &&
+    (path === '' ||
+      path.endsWith('/') ||
+      path.endsWith('.html') ||
+      LANGUAGES.some((language) => path === language || path.startsWith(`${language}/`)))
   );
 }
 
@@ -210,7 +220,7 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
       }
 
       const built = site;
-      const url = `/${displayPath(config.siteDir, file)}`.replace(/(^|\/)index\.html$/, '$1');
+      const url = fileUrl(config.siteDir, file);
       return built && (built.pages.has(url) || built.examplePages.has(url)) && id.endsWith('.html')
         ? file
         : null;
@@ -229,7 +239,7 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
         return null;
       }
 
-      const url = `/${displayPath(config.siteDir, id)}`.replace(/(^|\/)index\.html$/, '$1');
+      const url = fileUrl(config.siteDir, id);
       return built.pages.get(url) ?? built.examplePages.get(url) ?? null;
     },
 
@@ -241,11 +251,15 @@ export function docsPlugin(options: DocsPluginOptions): Plugin {
       }
 
       for (const [url, json] of built.searchIndexes) {
-        this.emitFile({ type: 'asset', fileName: url.slice(1), source: json });
+        this.emitFile({ type: 'asset', fileName: sitePath(url) ?? url, source: json });
       }
 
       for (const [url, path] of built.images) {
-        this.emitFile({ type: 'asset', fileName: url.slice(1), source: readFileSync(path) });
+        this.emitFile({
+          type: 'asset',
+          fileName: sitePath(url) ?? url,
+          source: readFileSync(path)
+        });
       }
     }
   };

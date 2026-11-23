@@ -1,5 +1,6 @@
 import { THEME_STORAGE_KEY } from '../src/shared/storage-keys';
 import { LANGUAGES, UI_TEXT, type Language } from '../src/shared/ui-text';
+import { HOME_FILE, pageUrl } from './content';
 import type { Edition } from './editions';
 import { escapeHtml } from './html';
 import type { Heading } from './markdown';
@@ -169,7 +170,7 @@ function editionSwitch(language: Language, edition: Edition): string {
   const text = UI_TEXT[language];
   const link = (item: Edition, label: string, url: string) =>
     `<a href="${escapeHtml(url)}"${item === edition ? ' aria-current="true"' : ''} data-edition="${item}">${escapeHtml(label)}</a>`;
-  return `<nav class="edition-switch" aria-label="${escapeHtml(text.edition)}">${link('open', text.editionOpen, `/${language}/`)}${link('commercial', text.editionCommercial, `/${language}/commercial/`)}</nav>`;
+  return `<nav class="edition-switch" aria-label="${escapeHtml(text.edition)}">${link('open', text.editionOpen, pageUrl(language, HOME_FILE, 'open'))}${link('commercial', text.editionCommercial, pageUrl(language, HOME_FILE, 'commercial'))}</nav>`;
 }
 
 /**
@@ -196,7 +197,7 @@ export function topbar(
   return [
     '<header class="topbar">',
     `<button class="icon-button menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="${escapeHtml(text.menu)}" data-menu-toggle>${icon('menu')}</button>`,
-    `<a class="brand" href="/${language}/">${LOGO}<span class="brand-name">Kumo Charts</span></a>`,
+    `<a class="brand" href="${escapeHtml(pageUrl(language, HOME_FILE, 'open'))}">${LOGO}<span class="brand-name">Kumo Charts</span></a>`,
     editionSwitch(language, edition),
     `<button class="search-button" type="button" data-search-open>${icon('search')}<span>${escapeHtml(text.search)}</span><kbd data-search-shortcut>Ctrl K</kbd></button>`,
     '<div class="topbar-actions">',

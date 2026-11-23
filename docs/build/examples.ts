@@ -1,3 +1,4 @@
+import { siteUrl } from '../src/shared/base';
 import { UI_TEXT, type Language } from '../src/shared/ui-text';
 import type { CheckedLanguage, FenceInfo } from './code-blocks';
 import type { Highlighter } from './highlight';
@@ -14,7 +15,7 @@ export interface LiveExample {
 
 /** Where the example's frame is. */
 export function exampleUrl(id: string): string {
-  return `/examples/${id}.html`;
+  return siteUrl(`examples/${id}.html`);
 }
 
 /** The module of the example's code, `.ts`, `.tsx` or `.vue` as the block is. */

@@ -1,11 +1,12 @@
+import { sitePath } from '../shared/base';
 import { LANGUAGE_STORAGE_KEY } from '../shared/storage-keys';
 import { isLanguage } from '../shared/ui-text';
 import { initPopup } from './popup';
 import { store } from './storage';
 
-/** The language of the address, such as `en` for `/en/data/`, or `null`. */
+/** The language of the address, such as `en` for `/docs/en/data/`, or `null`. */
 function addressLanguage(): string | null {
-  return /^\/([^/]+)\//.exec(window.location.pathname)?.[1] ?? null;
+  return /^([^/]+)\//.exec(sitePath(window.location.pathname) ?? '')?.[1] ?? null;
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { MarkdownIt, Token } from 'markdown-it';
+import { siteUrl } from '../../src/shared/base';
 import { UI_TEXT, type Language } from '../../src/shared/ui-text';
 import type { SiteConfig } from '../config';
 import type { Highlighter } from '../highlight';
@@ -36,7 +37,7 @@ const KIND_LABELS: Readonly<Record<ApiKind, string>> = {
 
 /** The address of an entry's page. */
 export function apiEntryUrl(language: Language, entry: string): string {
-  return `/${language}/api/${entry}/`;
+  return siteUrl(`${language}/api/${entry}/`);
 }
 
 /** The address of a symbol or member in the API reference. */
