@@ -44,6 +44,10 @@ Browsers give `crypto.subtle`, which checks the signature, only on secure pages 
 
 A license key carries an **updates-until date**, which is not an expiry date: versions released on or before that day work with the license key forever; versions released after it are not covered, and upgrading to them takes a renewal and a new license key. What is compared is the release date of the code, not the clock of the visitor's computer.
 
+## A new key after changing domains
+
+When you change the domains or apps of a license, the key in your account is replaced with a new one. The old key keeps working with the versions already released, but versions released afterwards no longer take it: when you upgrade, use the key now in your account.
+
 ## When the check fails, look at the console
 
-When the license key does not cover the page, the browser console says why, once for each domain or app and each component, starting with `Kumo Charts Commercial:`: the domain is not the right one, the app id is missing or does not match, the version was released after the update period, the license key was altered, or the page is not on HTTPS.
+When the license key does not cover the page, the browser console says why, once for each domain or app and each component, starting with `Kumo Charts Commercial:`: the domain is not the right one, the app id is missing or does not match, the version was released after the update period, the license key was replaced or withdrawn, the license key was altered, or the page is not on HTTPS.
