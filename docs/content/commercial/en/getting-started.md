@@ -1,5 +1,13 @@
 # Quick start
 
+Install it with npm:
+
+```bash
+npm install @kumo-charts/pro-chart
+```
+
+On your own computer's development servers it needs no license key; on a website or in an app it needs one, see ["License"](license.md).
+
 ```ts
 import { createProChart } from '@kumo-charts/pro-chart';
 
@@ -36,12 +44,12 @@ Further on is customizing: adding your own buttons and context menu items (a "Pl
 
 ## A plain web page
 
-A page without Vue or React uses `pro-chart.js`, a single bundled ES module: the chart, the Vue runtime and the commercial components are all in it, so it depends on no framework; it is about 940 KB minified, about 300 KB gzipped.
+A page without Vue, React or a bundler imports the package's single bundled ES module, `dist/browser/pro-chart.js`, from a CDN: the chart, the Vue runtime and the commercial components are all in it, so it depends on no framework; it is about 1.3 MB minified, about 420 KB gzipped. On a production site, put the version in the address (`@kumo-charts/pro-chart@version/…`), so that it does not change when a new version is released.
 
 ```html
 <div id="chart" style="height: 600px"></div>
 <script type="module">
-  import { createProChart } from './pro-chart.js';
+  import { createProChart } from 'https://cdn.jsdelivr.net/npm/@kumo-charts/pro-chart/dist/browser/pro-chart.js';
 
   createProChart(document.getElementById('chart'), { datafeed, symbol: 'BTCUSDT' });
 </script>

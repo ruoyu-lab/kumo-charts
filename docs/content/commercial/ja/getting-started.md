@@ -1,5 +1,13 @@
 # クイックスタート
 
+npm でインストールします。
+
+```bash
+npm install @kumo-charts/pro-chart
+```
+
+自分のパソコンの開発サーバーではライセンスキーは要りません。本番の Web サイトやアプリでは必要です。[「ライセンス」](license.md)を参照してください。
+
 ```ts
 import { createProChart } from '@kumo-charts/pro-chart';
 
@@ -36,12 +44,12 @@ chart.on('alert', (event) => {
 
 ## 普通の Web ページ
 
-Vue や React を使わないページでは、1 ファイルにバンドルした ES モジュール `pro-chart.js` を使います。チャート、Vue ランタイム、商用版のコンポーネントがすべて入っていて、どのフレームワークにも依存しません。圧縮後は約 940KB、gzip で約 300KB です。
+Vue や React もバンドラーも使わないページでは、パッケージに入っている 1 ファイルの ES モジュール `dist/browser/pro-chart.js` を CDN から読み込みます。チャート、Vue ランタイム、商用版のコンポーネントがすべて入っていて、どのフレームワークにも依存しません。圧縮後は約 1.3MB、gzip で約 420KB です。本番のサイトでは、新しいバージョンが出ても変わらないよう、アドレスにバージョンを書きます（`@kumo-charts/pro-chart@バージョン/…`）。
 
 ```html
 <div id="chart" style="height: 600px"></div>
 <script type="module">
-  import { createProChart } from './pro-chart.js';
+  import { createProChart } from 'https://cdn.jsdelivr.net/npm/@kumo-charts/pro-chart/dist/browser/pro-chart.js';
 
   createProChart(document.getElementById('chart'), { datafeed, symbol: 'BTCUSDT' });
 </script>

@@ -1,5 +1,13 @@
 # 快速开始
 
+用 npm 安装：
+
+```bash
+npm install @kumo-charts/pro-chart
+```
+
+在自己电脑的开发服务器上不用授权码；放到正式网站或应用里要有授权码，见[「授权」](license.md)。
+
 ```ts
 import { createProChart } from '@kumo-charts/pro-chart';
 
@@ -36,12 +44,12 @@ chart.on('alert', (event) => {
 
 ## 普通网页
 
-不用 Vue、React 的页面，用打包好的单文件 ES 模块 `pro-chart.js`：图表、Vue 运行时和商业版组件都在里面，不依赖任何框架，压缩后约 940KB，gzip 约 300KB。
+不用 Vue、React、也没有打包工具的页面，从 CDN 引用包里打包好的单文件 ES 模块 `dist/browser/pro-chart.js`：图表、Vue 运行时和商业版组件都在里面，不依赖任何框架，压缩后约 1.3MB，gzip 约 420KB。正式网站在地址里写上版本号（`@kumo-charts/pro-chart@版本号/…`），免得新版本发布时跟着变。
 
 ```html
 <div id="chart" style="height: 600px"></div>
 <script type="module">
-  import { createProChart } from './pro-chart.js';
+  import { createProChart } from 'https://cdn.jsdelivr.net/npm/@kumo-charts/pro-chart/dist/browser/pro-chart.js';
 
   createProChart(document.getElementById('chart'), { datafeed, symbol: 'BTCUSDT' });
 </script>

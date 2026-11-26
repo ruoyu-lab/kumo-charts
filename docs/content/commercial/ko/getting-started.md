@@ -1,5 +1,13 @@
 # 빠른 시작
 
+npm으로 설치합니다.
+
+```bash
+npm install @kumo-charts/pro-chart
+```
+
+내 컴퓨터의 개발 서버에서는 라이선스 키가 필요 없고, 실제 웹사이트나 앱에서는 필요합니다. ["라이선스"](license.md)를 참고하세요.
+
 ```ts
 import { createProChart } from '@kumo-charts/pro-chart';
 
@@ -36,12 +44,12 @@ chart.on('alert', (event) => {
 
 ## 일반 웹 페이지
 
-Vue나 React를 쓰지 않는 페이지는 하나의 파일로 묶은 ES 모듈 `pro-chart.js`를 씁니다. 차트, Vue 런타임, 상업용 컴포넌트가 모두 들어 있어 어떤 프레임워크에도 의존하지 않으며, 압축하면 약 940KB, gzip으로 약 300KB입니다.
+Vue, React, 번들러를 쓰지 않는 페이지는 패키지에 들어 있는, 하나의 파일로 묶은 ES 모듈 `dist/browser/pro-chart.js`를 CDN에서 불러옵니다. 차트, Vue 런타임, 상업용 컴포넌트가 모두 들어 있어 어떤 프레임워크에도 의존하지 않으며, 압축하면 약 1.3MB, gzip으로 약 420KB입니다. 실제 사이트에서는 새 버전이 나와도 바뀌지 않도록 주소에 버전을 적습니다(`@kumo-charts/pro-chart@버전/…`).
 
 ```html
 <div id="chart" style="height: 600px"></div>
 <script type="module">
-  import { createProChart } from './pro-chart.js';
+  import { createProChart } from 'https://cdn.jsdelivr.net/npm/@kumo-charts/pro-chart/dist/browser/pro-chart.js';
 
   createProChart(document.getElementById('chart'), { datafeed, symbol: 'BTCUSDT' });
 </script>
