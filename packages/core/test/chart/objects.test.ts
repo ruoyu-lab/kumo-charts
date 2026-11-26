@@ -92,15 +92,15 @@ describe('drawings', () => {
     const chart = chartWithBars(200);
     const touch = { pointerType: 'touch' } as const;
     chart.drawings.startTool('rectangle');
-    // Pressing places nothing yet: the anchor follows the finger.
-    pointer(chart, 'pointerdown', ...at(chart, 150, 170), touch);
+    // A tap places the first anchor where it lifts.
+    drag(chart, at(chart, 150, 170), at(chart, 150, 170), 1, touch);
     expect(chart.drawings.list()).toEqual([]);
-    drag(chart, at(chart, 150, 170), at(chart, 160, 175), 4, touch);
-    drag(chart, at(chart, 170, 180), at(chart, 170, 180), 1, touch);
+    // Pressing for the next places nothing yet: the anchor follows the finger until it lifts.
+    drag(chart, at(chart, 165, 170), at(chart, 170, 180), 4, touch);
 
     const points = chart.drawings.list()[0]?.points ?? [];
-    expect(points.map((anchor) => anchor.time)).toEqual([T0 + 160 * MINUTE, T0 + 170 * MINUTE]);
-    expect(points[0]?.price).toBeCloseTo(175, 0);
+    expect(points.map((anchor) => anchor.time)).toEqual([T0 + 150 * MINUTE, T0 + 170 * MINUTE]);
+    expect(points[0]?.price).toBeCloseTo(170, 0);
     expect(points[1]?.price).toBeCloseTo(180, 0);
   });
 

@@ -4,6 +4,7 @@ import { runKeyCommand } from './keyboard';
 import { Pinch } from './pinch';
 import {
   NO_MODIFIERS,
+  TOUCH_SLOP,
   type HitTarget,
   type InteractionHost,
   type Modifiers,
@@ -12,7 +13,6 @@ import {
 } from './types';
 
 const MOUSE_SLOP = 3;
-const TOUCH_SLOP = 8;
 const WHEEL_ZOOM_SPEED = 0.0018;
 const PINCH_WHEEL_SPEED = 0.012;
 const AXIS_DRAG_SPEED = 0.006;

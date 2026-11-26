@@ -52,6 +52,9 @@ export interface Modifiers {
 
 export const NO_MODIFIERS: Modifiers = { shift: false, alt: false, command: false };
 
+/** How far a finger moves, in CSS pixels, before its press is a drag rather than a tap. */
+export const TOUCH_SLOP = 8;
+
 /** An object drag in progress. */
 export interface DragSession {
   move(point: Point, modifiers: Modifiers): void;
@@ -63,7 +66,10 @@ export interface DragSession {
 
 /** A drawing tool placing points. */
 export interface ToolSession {
-  /** A mouse places an anchor where it presses; a finger, which covers it, where it lifts. */
+  /**
+   * A mouse places an anchor where it presses. A finger, which covers it, places it where it
+   * lifts; one that drags to start a drawing places its first anchor where it pressed, too.
+   */
   pointerDown(point: Point, modifiers: Modifiers, touch: boolean): void;
   pointerMove(point: Point, modifiers: Modifiers): void;
   pointerUp(point: Point, modifiers: Modifiers, touch: boolean): void;

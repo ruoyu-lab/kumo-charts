@@ -111,6 +111,91 @@ describe('a tool while every drawing is hidden', () => {
   });
 });
 
+describe('a finger', () => {
+  const finger = { pointerType: 'touch', pointerId: 1 } as const;
+  const timesOf = (chart: Chart) =>
+    chart.drawings.list().map((drawing) => drawing.points.map((point) => point.time));
+
+  /** A finger pressing at `from`, dragging through `through` and lifting at the last of them. */
+  function stroke(chart: Chart, from: [number, number], ...through: [number, number][]): void {
+    pointer(chart, 'pointerdown', ...from, finger);
+
+    for (const point of through) {
+      pointer(chart, 'pointermove', ...point, finger);
+    }
+
+    const end = through.at(-1) ?? from;
+    pointer(chart, 'pointerup', ...end, finger);
+  }
+
+  it('draws a line in one stroke: from where it pressed to where it lifts', () => {
+    const chart = chartWithBars(200);
+    chart.drawings.startTool('trend-line');
+    stroke(chart, at(chart, 150, 170), at(chart, 160, 175), at(chart, 170, 180));
+
+    expect(timesOf(chart)).toEqual([[T0 + 150 * MINUTE, T0 + 170 * MINUTE]]);
+  });
+
+  it('draws the line from where it pressed to the finger while it drags', async () => {
+    const chart = chartWithBars(200);
+    chart.drawings.startTool('trend-line');
+    const objects = chart.element.querySelector<HTMLCanvasElement>('canvas[data-layer="objects"]');
+    const calls = canvasCalls(objects as HTMLCanvasElement);
+    pointer(chart, 'pointerdown', ...at(chart, 150, 170), finger);
+    await nextFrame();
+    calls.length = 0;
+    pointer(chart, 'pointermove', ...at(chart, 160, 175), finger);
+    await nextFrame();
+
+    expect(chart.drawings.list()).toEqual([]);
+    expect(calls.filter((call) => call.name === 'lineTo')).not.toEqual([]);
+  });
+
+  it('places one anchor with a tap, where it lifts, and the next with the next tap', () => {
+    const chart = chartWithBars(200);
+    chart.drawings.startTool('trend-line');
+    stroke(chart, at(chart, 150, 170));
+
+    expect(chart.drawings.list()).toEqual([]);
+
+    stroke(chart, at(chart, 170, 180));
+    expect(timesOf(chart)).toEqual([[T0 + 150 * MINUTE, T0 + 170 * MINUTE]]);
+  });
+
+  it('places the first two anchors of a longer drawing with a stroke, the others where it lifts', () => {
+    const chart = chartWithBars(200);
+    chart.drawings.startTool('parallel-channel');
+    stroke(chart, at(chart, 150, 170), at(chart, 160, 175), at(chart, 170, 180));
+
+    expect(chart.drawings.list()).toEqual([]);
+
+    stroke(chart, at(chart, 175, 170), at(chart, 180, 175));
+    expect(timesOf(chart)).toEqual([[T0 + 150 * MINUTE, T0 + 170 * MINUTE, T0 + 180 * MINUTE]]);
+  });
+
+  it('places a drawing of one anchor where it lifts, after a drag', () => {
+    const chart = chartWithBars(200);
+    chart.drawings.startTool('vertical-line');
+    stroke(chart, at(chart, 150, 170), at(chart, 160, 175), at(chart, 170, 180));
+
+    expect(timesOf(chart)).toEqual([[T0 + 170 * MINUTE]]);
+  });
+
+  it('places nothing where it pressed when a pinch takes the stroke', () => {
+    const chart = chartWithBars(200);
+    chart.drawings.startTool('trend-line');
+    const [x, y] = at(chart, 150, 170);
+    pointer(chart, 'pointerdown', x, y, finger);
+    pointer(chart, 'pointermove', ...at(chart, 160, 175), finger);
+    pointer(chart, 'pointerdown', x + 100, y, { pointerType: 'touch', pointerId: 2 });
+    pointer(chart, 'pointerup', x + 100, y, { pointerType: 'touch', pointerId: 2 });
+    pointer(chart, 'pointerup', ...at(chart, 160, 175), finger);
+    stroke(chart, at(chart, 120, 170), at(chart, 130, 175), at(chart, 140, 180));
+
+    expect(timesOf(chart)).toEqual([[T0 + 120 * MINUTE, T0 + 140 * MINUTE]]);
+  });
+});
+
 describe('a press that is lost', () => {
   const touch = (id: number) => ({ pointerType: 'touch', pointerId: id }) as const;
 

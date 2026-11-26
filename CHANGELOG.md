@@ -2,6 +2,10 @@
 
 The packages of Kumo Charts share one version. Each release lists what changed for those who use them.
 
+## Unreleased
+
+- A finger draws a line in one stroke: the first anchor goes where it pressed once it drags, the line runs from there to the finger, and the second goes where it lifts. A tap still places one anchor where it lifts, and the next tap the next; a drawing of three anchors or more takes its first two in a stroke, then each where the finger lifts; one of a single anchor takes it where the finger lifts, as before. A pinch that takes the stroke takes the anchor it placed with it.
+
 ## 1.0.0-beta.9
 
 **Breaking**

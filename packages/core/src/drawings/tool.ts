@@ -1,4 +1,4 @@
-import type { Modifiers, Point, ToolSession } from '../interaction/types';
+import { TOUCH_SLOP, type Modifiers, type Point, type ToolSession } from '../interaction/types';
 import { paneOf, type ObjectContext } from '../objects/types';
 import { MAIN_PANE_ID } from '../panes/pane-store';
 import type { PaneFrame } from '../render/frame';
@@ -74,8 +74,9 @@ export function local(pane: PaneFrame, point: Point): Point {
 }
 
 /**
- * The active drawing tool: places anchors with clicks, or where a finger lifts, previews the
- * next anchor under the pointer, snaps with the magnet and constrains the direction with Shift.
+ * The active drawing tool: places anchors with clicks, or where a finger lifts (a finger that
+ * drags to start a drawing places its first anchor where it pressed, too), previews the next
+ * anchor under the pointer, snaps with the magnet and constrains the direction with Shift.
  */
 export class DrawingTool implements ToolSession {
   points: DrawingPoint[] = [];
@@ -86,6 +87,11 @@ export class DrawingTool implements ToolSession {
   private pressPlaced = false;
   /** Where the last anchor of a stroke drawn by hand was taken. */
   private strokeAt: Point | null = null;
+  /**
+   * Where a finger pressed to start a drawing of more than one anchor, until it drags: then its
+   * first anchor goes there, and the next where it lifts, as a line is drawn in one stroke.
+   */
+  private touchStart: { readonly point: Point; readonly modifiers: Modifiers } | null = null;
   /** Where the pointer is, which the next anchor follows, and the keys held. */
   private hover: { readonly point: Point; readonly modifiers: Modifiers } | null = null;
 
@@ -128,6 +134,7 @@ export class DrawingTool implements ToolSession {
       this.points = [];
       this.paneId = null;
       this.downAt = null;
+      this.touchStart = null;
       this.strokeAt = null;
     }
   }
@@ -135,8 +142,13 @@ export class DrawingTool implements ToolSession {
   pointerDown(point: Point, modifiers: Modifiers, touch: boolean): void {
     this.pressPlaced = false;
 
-    // A finger covers where it presses: the anchor follows it, in the loupe, until it lifts.
+    // A finger covers where it presses: the anchor follows it, in the loupe, until it lifts. A
+    // tap places one anchor; a drag that starts a drawing places one where it pressed too.
     if (touch && !this.definition.freehand) {
+      this.touchStart =
+        this.points.length === 0 && placedCount(this.definition) !== 1
+          ? { point, modifiers }
+          : null;
       this.pointerMove(point, modifiers);
     } else if (this.placeAt(point, modifiers)) {
       this.pressPlaced = true;
@@ -146,6 +158,13 @@ export class DrawingTool implements ToolSession {
   }
 
   pointerMove(point: Point, modifiers: Modifiers): void {
+    const start = this.touchStart;
+
+    if (start && Math.hypot(point.x - start.point.x, point.y - start.point.y) >= TOUCH_SLOP) {
+      this.touchStart = null;
+      this.pressPlaced = this.placeAt(start.point, start.modifiers);
+    }
+
     this.hover = { point, modifiers };
     const last = this.strokeAt;
 
@@ -180,6 +199,7 @@ export class DrawingTool implements ToolSession {
    */
   pointerUp(point: Point, modifiers: Modifiers, touch: boolean): void {
     this.downAt = null;
+    this.touchStart = null;
     this.pressPlaced = false;
 
     if (this.definition.freehand) {
@@ -201,6 +221,7 @@ export class DrawingTool implements ToolSession {
    */
   cancelPress(): void {
     this.downAt = null;
+    this.touchStart = null;
     this.strokeAt = null;
     this.hover = null;
 

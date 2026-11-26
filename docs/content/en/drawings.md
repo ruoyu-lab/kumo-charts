@@ -65,7 +65,7 @@ chart.on('toolEnd', ({ type, completed }) => {
 
 A click where the drawing would draw nothing does not count, and the tool waits for the next one: an anchored VWAP after the last bar, or a regression trend ending on the bar it starts at.
 
-On a touch screen the anchor follows the finger while it presses, shown in the loupe, and is placed where the finger lifts.
+On a touch screen the anchor follows the finger while it presses, shown in the loupe, and is placed where the finger lifts. A line is drawn in one stroke: its first anchor is where the finger pressed, the line runs from there to the finger as it drags, and its second anchor is where it lifts; a tap places one anchor, and the next tap the next. A drawing of three anchors or more takes its first two in a stroke, then each where the finger lifts; one of a single anchor takes it where the finger lifts.
 
 The tool's options:
 
